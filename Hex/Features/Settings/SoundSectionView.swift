@@ -1,11 +1,10 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct SoundSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 
 	var body: some View {
 		let sliderBinding = Binding<Double>(

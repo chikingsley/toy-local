@@ -1,19 +1,13 @@
-import ComposableArchitecture
 import Inject
 import SwiftUI
 
-public struct ModelDownloadView: View {
+struct ModelDownloadView: View {
 	@ObserveInjection var inject
 
-	@Bindable var store: StoreOf<ModelDownloadFeature>
+	var store: ModelDownloadStore
 	var shouldFlash: Bool = false
 
-	public init(store: StoreOf<ModelDownloadFeature>, shouldFlash: Bool = false) {
-		self.store = store
-		self.shouldFlash = shouldFlash
-	}
-
-	public var body: some View {
+	var body: some View {
 		VStack(alignment: .leading, spacing: 12) {
 			if !store.modelBootstrapState.isModelReady,
 			   let message = store.modelBootstrapState.lastError,
@@ -50,11 +44,11 @@ public struct ModelDownloadView: View {
 		.frame(maxWidth: 500)
 		.task {
 			if store.availableModels.isEmpty {
-				store.send(.fetchModels)
+				store.fetchModels()
 			}
 		}
 		.onAppear {
-			store.send(.fetchModels)
+			store.fetchModels()
 		}
 		.enableInjection()
 	}

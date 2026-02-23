@@ -1,11 +1,10 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct WordRemappingsView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 	@FocusState private var isScratchpadFocused: Bool
 	@State private var activeSection: ModificationSection = .removals
 
@@ -27,11 +26,11 @@ struct WordRemappingsView: View {
 								Text("Scratchpad")
 									.font(.caption.weight(.semibold))
 									.foregroundStyle(.secondary)
-								TextField("Say something…", text: $store.remappingScratchpadText)
+								TextField("Say something...", text: $store.remappingScratchpadText)
 									.textFieldStyle(.roundedBorder)
 									.focused($isScratchpadFocused)
 									.onChange(of: isScratchpadFocused) { _, newValue in
-										store.send(.setRemappingScratchpadFocused(newValue))
+										store.setRemappingScratchpadFocused(newValue)
 									}
 							}
 
@@ -39,7 +38,7 @@ struct WordRemappingsView: View {
 								Text("Preview")
 									.font(.caption.weight(.semibold))
 									.foregroundStyle(.secondary)
-								Text(previewText.isEmpty ? "—" : previewText)
+								Text(previewText.isEmpty ? "\u{2014}" : previewText)
 									.font(.body)
 									.frame(maxWidth: .infinity, alignment: .leading)
 									.padding(.horizontal, 8)
@@ -73,7 +72,7 @@ struct WordRemappingsView: View {
 			.padding()
 		}
 		.onDisappear {
-			store.send(.setRemappingScratchpadFocused(false))
+			store.setRemappingScratchpadFocused(false)
 		}
 		.enableInjection()
 	}
@@ -90,7 +89,7 @@ struct WordRemappingsView: View {
 					ForEach(store.hexSettings.wordRemovals) { removal in
 						if let removalBinding = removalBinding(for: removal.id) {
 							RemovalRow(removal: removalBinding) {
-								store.send(.removeWordRemoval(removal.id))
+								store.removeWordRemoval(removal.id)
 							}
 						}
 					}
@@ -98,7 +97,7 @@ struct WordRemappingsView: View {
 
 				HStack {
 					Button {
-						store.send(.addWordRemoval)
+						store.addWordRemoval()
 					} label: {
 						Label("Add Removal", systemImage: "plus")
 					}
@@ -125,7 +124,7 @@ struct WordRemappingsView: View {
 					ForEach(store.hexSettings.wordRemappings) { remapping in
 						if let remappingBinding = remappingBinding(for: remapping.id) {
 							RemappingRow(remapping: remappingBinding) {
-								store.send(.removeWordRemapping(remapping.id))
+								store.removeWordRemapping(remapping.id)
 							}
 						}
 					}
@@ -133,7 +132,7 @@ struct WordRemappingsView: View {
 
 				HStack {
 					Button {
-						store.send(.addWordRemapping)
+						store.addWordRemapping()
 					} label: {
 						Label("Add Remapping", systemImage: "plus")
 					}
@@ -194,7 +193,7 @@ struct WordRemappingsView: View {
 			},
 			set: { newValue in
 				if let idx = store.hexSettings.wordRemovals.firstIndex(where: { $0.id == id }) {
-					$store.hexSettings.wordRemovals.wrappedValue[idx] = newValue
+					store.hexSettings.wordRemovals[idx] = newValue
 				}
 			}
 		)
@@ -211,7 +210,7 @@ struct WordRemappingsView: View {
 			},
 			set: { newValue in
 				if let idx = store.hexSettings.wordRemappings.firstIndex(where: { $0.id == id }) {
-					$store.hexSettings.wordRemappings.wrappedValue[idx] = newValue
+					store.hexSettings.wordRemappings[idx] = newValue
 				}
 			}
 		)

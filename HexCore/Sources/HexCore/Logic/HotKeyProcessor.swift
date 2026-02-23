@@ -4,7 +4,6 @@
 //
 //  Created by Kit Langton on 1/28/25.
 //
-import Dependencies
 import Foundation
 import SwiftUI
 
@@ -87,7 +86,8 @@ private let hotKeyLogger = HexLog.hotKey
 /// - `HotKey`: Configuration of which key/modifiers to detect
 ///
 public struct HotKeyProcessor {
-    @Dependency(\.date.now) var now
+    /// Injectable clock for testing. Returns current time by default.
+    public var now: () -> Date = { Date() }
 
     // MARK: - Configuration
     
@@ -220,11 +220,11 @@ public struct HotKeyProcessor {
             return nil
         case let .pressAndHold(startTime):
             // Mouse click during modifier-only recording
-            let elapsed = now.timeIntervalSince(startTime)
+            let elapsed = now().timeIntervalSince(startTime)
             // For modifier-only hotkeys, use the same threshold as RecordingDecisionEngine
             // (max of minimumKeyTime and 0.3s) to be consistent
             let effectiveMinimum = max(minimumKeyTime, RecordingDecisionEngine.modifierOnlyMinimumDuration)
-            
+
             // Only discard if within threshold - after threshold, ignore clicks (only ESC cancels)
             if elapsed < effectiveMinimum {
                 isDirty = true
@@ -298,11 +298,11 @@ extension HotKeyProcessor {
             // we want to delay starting recording until we see the double-tap
             if useDoubleTapOnly && hotkey.key != nil {
                 // Record the timestamp but don't start recording
-                lastTapAt = now
+                lastTapAt = now()
                 return nil
             } else {
                 // Normal press => .pressAndHold => .startRecording
-                state = .pressAndHold(startTime: now)
+                state = .pressAndHold(startTime: now())
                 return .startRecording
             }
 
@@ -347,7 +347,7 @@ extension HotKeyProcessor {
                 // If we've seen a tap recently, and now we see a full release, and we're in idle state
                 // Check if the time between taps is within the threshold
                 if let prevTapTime = lastTapAt,
-                   now.timeIntervalSince(prevTapTime) < Self.doubleTapThreshold {
+                   now().timeIntervalSince(prevTapTime) < Self.doubleTapThreshold {
                     // This is the second tap - activate recording in double-tap lock mode
                     state = .doubleTapLock
                     return .startRecording
@@ -363,7 +363,7 @@ extension HotKeyProcessor {
             if isReleaseForActiveHotkey(e) {
                 // Check if this release is close to the prior release => double-tap lock
                 if let prevReleaseTime = lastTapAt,
-                   now.timeIntervalSince(prevReleaseTime) < Self.doubleTapThreshold
+                   now().timeIntervalSince(prevReleaseTime) < Self.doubleTapThreshold
                 {
                     // => Switch to doubleTapLock, remain matched, no new output
                     state = .doubleTapLock
@@ -371,13 +371,13 @@ extension HotKeyProcessor {
                 } else {
                     // Normal stop => idle => record the release time
                     state = .idle
-                    lastTapAt = now
+                    lastTapAt = now()
                     return .stopRecording
                 }
             } else {
                 // User pressed a different key/modifier while holding hotkey
-                let elapsed = now.timeIntervalSince(startTime)
-                
+                let elapsed = now().timeIntervalSince(startTime)
+
                 // Modifier-only hotkeys: Only discard within threshold, ignore after
                 if hotkey.key == nil {
                     let effectiveMinimum = max(minimumKeyTime, RecordingDecisionEngine.modifierOnlyMinimumDuration)

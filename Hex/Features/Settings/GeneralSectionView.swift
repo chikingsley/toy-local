@@ -1,11 +1,10 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct GeneralSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 
 	var body: some View {
 		Section {
@@ -13,7 +12,7 @@ struct GeneralSectionView: View {
 				Toggle("Open on Login",
 				       isOn: Binding(
 				       	get: { store.hexSettings.openOnLogin },
-				       	set: { store.send(.toggleOpenOnLogin($0)) }
+				       	set: { store.toggleOpenOnLogin($0) }
 				       ))
 			} icon: {
 				Image(systemName: "arrow.right.circle")
@@ -44,7 +43,7 @@ struct GeneralSectionView: View {
 					"Prevent System Sleep while Recording",
 					isOn: Binding(
 						get: { store.hexSettings.preventSystemSleep },
-						set: { store.send(.togglePreventSystemSleep($0)) }
+						set: { store.togglePreventSystemSleep($0) }
 					)
 				)
 			} icon: {
@@ -57,7 +56,7 @@ struct GeneralSectionView: View {
 				Spacer()
 					Picker("", selection: Binding(
 						get: { store.hexSettings.recordingAudioBehavior },
-						set: { store.send(.setRecordingAudioBehavior($0)) }
+						set: { store.setRecordingAudioBehavior($0) }
 					)) {
 						Label("Pause Media", systemImage: "pause")
 							.tag(RecordingAudioBehavior.pauseMedia)

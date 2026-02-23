@@ -1,16 +1,15 @@
-import ComposableArchitecture
 import Inject
 import SwiftUI
 
 struct ModelSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	var store: SettingsStore
 	let shouldFlash: Bool
 
 	var body: some View {
 		Section("Transcription Model") {
 			ModelDownloadView(
-				store: store.scope(state: \.modelDownload, action: \.modelDownload),
+				store: store.modelDownload,
 				shouldFlash: shouldFlash
 			)
 		}

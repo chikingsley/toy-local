@@ -1,18 +1,17 @@
-import ComposableArchitecture
 import Inject
 import SwiftUI
 import HexCore
 
 struct HistorySectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 
 	var body: some View {
 		Section {
 			Label {
 				Toggle("Save Transcription History", isOn: Binding(
 					get: { store.hexSettings.saveTranscriptionHistory },
-					set: { store.send(.toggleSaveTranscriptionHistory($0)) }
+					set: { store.toggleSaveTranscriptionHistory($0) }
 				))
 				Text("Save transcriptions and audio recordings for later access")
 					.settingsCaption()
@@ -68,7 +67,7 @@ struct HistorySectionView: View {
 
 private struct PasteLastTranscriptHotkeyRow: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 
 	var body: some View {
 		let pasteHotkey = store.hexSettings.pasteLastTranscriptHotkey
@@ -100,17 +99,17 @@ private struct PasteLastTranscriptHotkeyRow: View {
 				}
 				.contentShape(Rectangle())
 				.onTapGesture {
-					store.send(.startSettingPasteLastTranscriptHotkey)
+					store.startSettingPasteLastTranscriptHotkey()
 				}
 				Spacer()
 			}
 
 			if store.isSettingPasteLastTranscriptHotkey {
-				Text("Use at least one modifier (⌘, ⌥, ⇧, ⌃) plus a key.")
+				Text("Use at least one modifier (\u{2318}, \u{2325}, \u{21E7}, \u{2303}) plus a key.")
 					.settingsCaption()
 			} else if pasteHotkey != nil {
 				Button {
-					store.send(.clearPasteLastTranscriptHotkey)
+					store.clearPasteLastTranscriptHotkey()
 				} label: {
 					Label("Clear shortcut", systemImage: "xmark.circle")
 				}

@@ -1,25 +1,12 @@
-import Dependencies
 import IOKit.pwr_mgt
 
-extension SleepManagementClient: DependencyKey {
-  public static var liveValue: Self {
-    let live = SleepManagementClientLive()
-    return Self(
-      preventSleep: { reason in
-        await live.preventSleep(reason: reason)
-      },
-      allowSleep: {
-        await live.allowSleep()
-      }
-    )
-  }
-}
-
 /// Live implementation of SleepManagementClient that manages assertion lifecycle.
-actor SleepManagementClientLive {
+public actor SleepManagementClientLive: SleepManagementClient {
   private var currentAssertionID: IOPMAssertionID?
 
-  func preventSleep(reason: String) {
+  public init() {}
+
+  public func preventSleep(reason: String) {
     // Release any existing assertion first
     if let existingID = currentAssertionID {
       IOPMAssertionRelease(existingID)
@@ -41,7 +28,7 @@ actor SleepManagementClientLive {
     }
   }
 
-  func allowSleep() {
+  public func allowSleep() {
     if let assertionID = currentAssertionID {
       IOPMAssertionRelease(assertionID)
       currentAssertionID = nil

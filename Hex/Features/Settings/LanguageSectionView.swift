@@ -1,12 +1,9 @@
 import SwiftUI
 import Inject
-#if canImport(ComposableArchitecture)
-	import ComposableArchitecture
-#endif
 
 struct LanguageSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 
 	var body: some View {
 		Label {

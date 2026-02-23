@@ -1,12 +1,6 @@
-import AVFoundation
-import AppKit
-import ComposableArchitecture
-import Dependencies
 import HexCore
 import Inject
 import SwiftUI
-
-private let historyLogger = HexLog.history
 
 // MARK: - Date Extensions
 
@@ -14,202 +8,20 @@ extension Date {
 	func relativeFormatted() -> String {
 		let calendar = Calendar.current
 		let now = Date()
-		
+
 		if calendar.isDateInToday(self) {
 			return "Today"
 		} else if calendar.isDateInYesterday(self) {
 			return "Yesterday"
 		} else if let daysAgo = calendar.dateComponents([.day], from: self, to: now).day, daysAgo < 7 {
 			let formatter = DateFormatter()
-			formatter.dateFormat = "EEEE" // Day of week
+			formatter.dateFormat = "EEEE"
 			return formatter.string(from: self)
 		} else {
 			let formatter = DateFormatter()
 			formatter.dateStyle = .medium
 			formatter.timeStyle = .none
 			return formatter.string(from: self)
-		}
-	}
-}
-
-// MARK: - Models
-
-extension SharedReaderKey
-	where Self == FileStorageKey<TranscriptionHistory>.Default
-{
-	static var transcriptionHistory: Self {
-		Self[
-			.fileStorage(.transcriptionHistoryURL),
-			default: .init()
-		]
-	}
-}
-
-// MARK: - Storage Migration
-
-extension URL {
-	static var transcriptionHistoryURL: URL {
-		get {
-			let newURL = (try? URL.hexApplicationSupport.appending(component: "transcription_history.json"))
-				?? URL.documentsDirectory.appending(component: "transcription_history.json")
-			let legacyURL = URL.legacyDocumentsDirectory.appending(component: "transcription_history.json")
-			FileManager.default.migrateIfNeeded(from: legacyURL, to: newURL)
-			return newURL
-		}
-	}
-}
-
-class AudioPlayerController: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
-	private var player: AVAudioPlayer?
-	var onPlaybackFinished: (() -> Void)?
-
-	func play(url: URL) throws -> AVAudioPlayer {
-		let player = try AVAudioPlayer(contentsOf: url)
-		player.delegate = self
-		player.play()
-		self.player = player
-		return player
-	}
-
-	func stop() {
-		player?.stop()
-		player = nil
-	}
-
-	// AVAudioPlayerDelegate method
-	func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-		self.player = nil
-		Task { @MainActor in
-			onPlaybackFinished?()
-		}
-	}
-}
-
-// MARK: - History Feature
-
-@Reducer
-struct HistoryFeature {
-	@ObservableState
-	struct State: Equatable {
-		@Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
-		var playingTranscriptID: UUID?
-		var audioPlayer: AVAudioPlayer?
-		var audioPlayerController: AudioPlayerController?
-
-		mutating func stopAudioPlayback() {
-			audioPlayerController?.stop()
-			audioPlayer = nil
-			audioPlayerController = nil
-			playingTranscriptID = nil
-		}
-	}
-
-	enum Action {
-		case playTranscript(UUID)
-		case stopPlayback
-		case copyToClipboard(String)
-		case deleteTranscript(UUID)
-		case deleteAllTranscripts
-		case confirmDeleteAll
-		case playbackFinished
-		case navigateToSettings
-	}
-
-	@Dependency(\.pasteboard) var pasteboard
-
-	var body: some ReducerOf<Self> {
-		Reduce { state, action in
-			switch action {
-			case let .playTranscript(id):
-				if state.playingTranscriptID == id {
-					// Stop playback if tapping the same transcript
-					state.stopAudioPlayback()
-					return .none
-				}
-
-				// Stop any existing playback
-				state.stopAudioPlayback()
-
-				// Find the transcript and play its audio
-				guard let transcript = state.transcriptionHistory.history.first(where: { $0.id == id }) else {
-					return .none
-				}
-
-				do {
-					let controller = AudioPlayerController()
-					let player = try controller.play(url: transcript.audioPath)
-
-					state.audioPlayer = player
-					state.audioPlayerController = controller
-					state.playingTranscriptID = id
-
-					return .run { send in
-						// Using non-throwing continuation since we don't need to throw errors
-						await withCheckedContinuation { continuation in
-							controller.onPlaybackFinished = {
-								continuation.resume()
-
-								// Use Task to switch to MainActor for sending the action
-								Task { @MainActor in
-									send(.playbackFinished)
-								}
-							}
-						}
-					}
-				} catch {
-					historyLogger.error("Failed to play audio: \(error.localizedDescription)")
-					return .none
-				}
-
-			case .stopPlayback, .playbackFinished:
-				state.stopAudioPlayback()
-				return .none
-
-			case let .copyToClipboard(text):
-				return .run { [pasteboard] _ in
-					await pasteboard.copy(text)
-				}
-
-			case let .deleteTranscript(id):
-				guard let index = state.transcriptionHistory.history.firstIndex(where: { $0.id == id }) else {
-					return .none
-				}
-
-				let transcript = state.transcriptionHistory.history[index]
-
-				if state.playingTranscriptID == id {
-					state.stopAudioPlayback()
-				}
-
-				_ = state.$transcriptionHistory.withLock { history in
-					history.history.remove(at: index)
-				}
-
-				return .run { _ in
-					try? FileManager.default.removeItem(at: transcript.audioPath)
-				}
-
-			case .deleteAllTranscripts:
-				return .send(.confirmDeleteAll)
-
-			case .confirmDeleteAll:
-				let transcripts = state.transcriptionHistory.history
-				state.stopAudioPlayback()
-
-				state.$transcriptionHistory.withLock { history in
-					history.history.removeAll()
-				}
-
-				return .run { _ in
-					for transcript in transcripts {
-						try? FileManager.default.removeItem(at: transcript.audioPath)
-					}
-				}
-				
-			case .navigateToSettings:
-				// This will be handled by the parent reducer
-				return .none
-			}
 		}
 	}
 }
@@ -243,14 +55,14 @@ struct TranscriptView: View {
 						if let appName = transcript.sourceAppName {
 							Text(appName)
 						}
-						Text("•")
+						Text("\u{2022}")
 					}
-					
+
 					Image(systemName: "clock")
 					Text(transcript.timestamp.relativeFormatted())
-					Text("•")
+					Text("\u{2022}")
 					Text(transcript.timestamp.formatted(date: .omitted, time: .shortened))
-					Text("•")
+					Text("\u{2022}")
 					Text(String(format: "%.1fs", transcript.duration))
 				}
 				.font(.subheadline)
@@ -340,57 +152,60 @@ struct TranscriptView: View {
 
 struct HistoryView: View {
 	@ObserveInjection var inject
-	let store: StoreOf<HistoryFeature>
+	var store: HistoryStore
 	@State private var showingDeleteConfirmation = false
-	@Shared(.hexSettings) var hexSettings: HexSettings
 
 	var body: some View {
-      Group {
-        if !hexSettings.saveTranscriptionHistory {
-          ContentUnavailableView {
-            Label("History Disabled", systemImage: "clock.arrow.circlepath")
-          } description: {
-            Text("Transcription history is currently disabled.")
-          } actions: {
-            Button("Enable in Settings") {
-              store.send(.navigateToSettings)
-            }
-          }
-        } else if store.transcriptionHistory.history.isEmpty {
-          ContentUnavailableView {
-            Label("No Transcriptions", systemImage: "text.bubble")
-          } description: {
-            Text("Your transcription history will appear here.")
-          }
-        } else {
-          ScrollView {
-            LazyVStack(spacing: 12) {
-              ForEach(store.transcriptionHistory.history) { transcript in
-                TranscriptView(
-                  transcript: transcript,
-                  isPlaying: store.playingTranscriptID == transcript.id,
-                  onPlay: { store.send(.playTranscript(transcript.id)) },
-                  onCopy: { store.send(.copyToClipboard(transcript.text)) },
-                  onDelete: { store.send(.deleteTranscript(transcript.id)) }
-                )
-              }
-            }
-            .padding()
-          }
-          .toolbar {
-            Button(role: .destructive, action: { showingDeleteConfirmation = true }) {
-              Label("Delete All", systemImage: "trash")
-            }
-          }
-          .alert("Delete All Transcripts", isPresented: $showingDeleteConfirmation) {
-            Button("Delete All", role: .destructive) {
-              store.send(.confirmDeleteAll)
-            }
-            Button("Cancel", role: .cancel) {}
-          } message: {
-            Text("Are you sure you want to delete all transcripts? This action cannot be undone.")
-          }
-        }
-      }.enableInjection()
+		Group {
+			if !store.saveTranscriptionHistory {
+				ContentUnavailableView {
+					Label("History Disabled", systemImage: "clock.arrow.circlepath")
+				} description: {
+					Text("Transcription history is currently disabled.")
+				} actions: {
+					Button("Enable in Settings") {
+						store.navigateToSettings()
+					}
+				}
+			} else if store.transcriptionHistory.history.isEmpty {
+				ContentUnavailableView {
+					Label("No Transcriptions", systemImage: "text.bubble")
+				} description: {
+					Text("Your transcription history will appear here.")
+				}
+			} else {
+				historyContent
+			}
+		}.enableInjection()
+	}
+
+	private var historyContent: some View {
+		ScrollView {
+			LazyVStack(spacing: 12) {
+				ForEach(store.transcriptionHistory.history) { transcript in
+					TranscriptView(
+						transcript: transcript,
+						isPlaying: store.playingTranscriptID == transcript.id,
+						onPlay: { store.playTranscript(transcript.id) },
+						onCopy: { store.copyToClipboard(transcript.text) },
+						onDelete: { store.deleteTranscript(transcript.id) }
+					)
+				}
+			}
+			.padding()
+		}
+		.toolbar {
+			Button(role: .destructive, action: { showingDeleteConfirmation = true }) {
+				Label("Delete All", systemImage: "trash")
+			}
+		}
+		.alert("Delete All Transcripts", isPresented: $showingDeleteConfirmation) {
+			Button("Delete All", role: .destructive) {
+				store.confirmDeleteAll()
+			}
+			Button("Cancel", role: .cancel) {}
+		} message: {
+			Text("Are you sure you want to delete all transcripts? This action cannot be undone.")
+		}
 	}
 }

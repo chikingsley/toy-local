@@ -1,15 +1,14 @@
-import ComposableArchitecture
 import Darwin
 import Inject
 import SwiftUI
 
 struct CuratedRow: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<ModelDownloadFeature>
+	var store: ModelDownloadStore
 	let model: CuratedModelInfo
 
 	var isSelected: Bool {
-		let selected = store.hexSettings.selectedModel
+		let selected = store.selectedModel
 		if model.internalName.contains("*") || model.internalName.contains("?") {
 			return fnmatch(model.internalName, selected, 0) == 0
 		}
@@ -21,7 +20,7 @@ struct CuratedRow: View {
 	}
 
 	var body: some View {
-		Button(action: { store.send(.selectModel(model.internalName)) }) {
+		Button(action: { store.selectModel(model.internalName) }) {
 			HStack(alignment: .center, spacing: 12) {
 				// Radio selector
 				Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
@@ -72,7 +71,7 @@ struct CuratedRow: View {
 								.controlSize(.small)
 								.tint(.blue)
 								.frame(width: 24, height: 24)
-								.help("Downloading… \(Int(store.downloadProgress * 100))%")
+								.help("Downloading... \(Int(store.downloadProgress * 100))%")
 						} else if model.isDownloaded {
 							Image(systemName: "checkmark.circle.fill")
 								.foregroundStyle(.green)
@@ -80,8 +79,8 @@ struct CuratedRow: View {
 								.help("Downloaded")
 						} else {
 							Button {
-								store.send(.selectModel(model.internalName))
-								store.send(.downloadSelectedModel)
+								store.selectModel(model.internalName)
+								store.downloadSelectedModel()
 							} label: {
 								Image(systemName: "arrow.down.circle")
 							}
@@ -107,16 +106,16 @@ struct CuratedRow: View {
 		// Keep context menu as an alternative path
 		.contextMenu {
 			if store.isDownloading, store.downloadingModelName == model.internalName {
-				Button("Cancel Download", role: .destructive) { store.send(.cancelDownload) }
+				Button("Cancel Download", role: .destructive) { store.cancelDownload() }
 			}
 			if model.isDownloaded || (store.isDownloading && store.downloadingModelName == model.internalName) {
-				Button("Show in Finder") { store.send(.openModelLocation) }
+				Button("Show in Finder") { store.openModelLocation() }
 			}
 			if model.isDownloaded {
 				Divider()
 				Button("Delete", role: .destructive) {
-					store.send(.selectModel(model.internalName))
-					store.send(.deleteSelectedModel)
+					store.selectModel(model.internalName)
+					store.deleteSelectedModel()
 				}
 			}
 		}

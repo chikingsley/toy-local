@@ -5,7 +5,6 @@
 //  Created by Kit Langton on 1/27/25.
 //
 
-import Dependencies
 import Foundation
 @testable import HexCore
 import Sauce
@@ -404,9 +403,9 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // MARK: - Additional Coverage Tests
-    
+
     // Tests ESC cancellation from hold state
     @Test
     func escape_cancelsFromHold() throws {
@@ -420,7 +419,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests ESC cancellation from lock state
     @Test
     func escape_cancelsFromLock() throws {
@@ -439,7 +438,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that ESC while holding hotkey doesn't restart recording (issue #36)
     @Test
     func escape_whileHoldingHotkey_doesNotRestart() throws {
@@ -459,7 +458,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that modifier-only hotkey doesn't trigger when used with other keys (issue #87)
     @Test
     func modifierOnly_doesNotTriggerWithOtherKeys() throws {
@@ -479,7 +478,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that partially releasing multiple modifiers counts as full release
     @Test
     func multipleModifiers_partialRelease() throws {
@@ -493,7 +492,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that adding extra modifier to multiple-modifier hotkey after threshold is ignored
     @Test
     func multipleModifiers_addingExtra_ignoredAfterThreshold() throws {
@@ -507,7 +506,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that changing modifiers on same key cancels within 1s
     @Test
     func keyModifier_changingModifiers_cancelsWithin1s() throws {
@@ -521,7 +520,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that dirty state blocks all input until full release
     @Test
     func dirtyState_blocksInputUntilFullRelease() throws {
@@ -543,7 +542,7 @@ struct HotKeyProcessorTests {
             ]
         )
     }
-    
+
     // Tests that you can't activate by releasing extra modifiers (backslide)
     @Test
     func multipleModifiers_noBackslideActivation() throws {
@@ -612,55 +611,47 @@ func runScenario(
     var currentTime: TimeInterval = 0
 
     // Create the processor with an initial date
-    var processor = withDependencies {
-        $0.date.now = Date(timeIntervalSince1970: currentTime)
-    } operation: {
-        HotKeyProcessor(hotkey: hotkey)
-    }
+    var processor = HotKeyProcessor(hotkey: hotkey)
+    processor.now = { Date(timeIntervalSince1970: currentTime) }
 
     // We'll step through each event
     for step in sortedSteps {
-        // let delta = step.time - currentTime
         currentTime = step.time
-        // Sleep or jump time
-        withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: currentTime)
-        } operation: {
-            // Build a KeyEvent from step's chord
-            let keyEvent = KeyEvent(key: step.key, modifiers: step.modifiers)
 
-            // Process
-            let actualOutput = processor.process(keyEvent: keyEvent)
+        // Build a KeyEvent from step's chord
+        let keyEvent = KeyEvent(key: step.key, modifiers: step.modifiers)
 
-            // If step.expectedOutput != nil, #expect that it matches actualOutput
-            if let expected = step.expectedOutput {
-                #expect(
-                    actualOutput == expected,
-                    "\(step.time)s: expected output \(expected), got \(String(describing: actualOutput))"
-                )
-            } else {
-                // We expect no output
-                #expect(
-                    actualOutput == nil,
-                    "\(step.time)s: expected no output, got \(String(describing: actualOutput))"
-                )
-            }
+        // Process
+        let actualOutput = processor.process(keyEvent: keyEvent)
 
-            // If step.expectedIsMatched != nil, #expect that it matches processor.isMatched
-            if let expMatch = step.expectedIsMatched {
-                #expect(
-                    processor.isMatched == expMatch,
-                    "\(step.time)s: expected isMatched=\(expMatch), got \(processor.isMatched)"
-                )
-            }
+        // If step.expectedOutput != nil, #expect that it matches actualOutput
+        if let expected = step.expectedOutput {
+            #expect(
+                actualOutput == expected,
+                "\(step.time)s: expected output \(expected), got \(String(describing: actualOutput))"
+            )
+        } else {
+            // We expect no output
+            #expect(
+                actualOutput == nil,
+                "\(step.time)s: expected no output, got \(String(describing: actualOutput))"
+            )
+        }
 
-            // If we want to test the entire state:
-            if let expState = step.expectedState {
-                #expect(
-                    processor.state == expState,
-                    "\(step.time)s: expected state=\(expState), got \(processor.state)"
-                )
-            }
+        // If step.expectedIsMatched != nil, #expect that it matches processor.isMatched
+        if let expMatch = step.expectedIsMatched {
+            #expect(
+                processor.isMatched == expMatch,
+                "\(step.time)s: expected isMatched=\(expMatch), got \(processor.isMatched)"
+            )
+        }
+
+        // If we want to test the entire state:
+        if let expState = step.expectedState {
+            #expect(
+                processor.state == expState,
+                "\(step.time)s: expected state=\(expState), got \(processor.state)"
+            )
         }
     }
 }
@@ -712,30 +703,30 @@ struct RecordingDecisionTests {
         )
         #expect(RecordingDecisionEngine.decide(ctx) == .discardShortRecording)
     }
-    
+
     // MARK: - Modifier-Only Minimum Duration Tests
-    
+
     @Test
     func modifierOnly_enforcesMinimumDuration_0_3s() {
         // User sets minimumKeyTime to 0.1s, but modifier-only enforces modifierOnlyMinimumDuration (0.3s)
         let ctx = makeContext(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.1, duration: 0.25)
         #expect(RecordingDecisionEngine.decide(ctx) == .discardShortRecording)
     }
-    
+
     @Test
     func modifierOnly_proceedsWhenAboveMinimumDuration() {
         // User sets minimumKeyTime to 0.1s, recording is 0.35s (above modifierOnlyMinimumDuration)
         let ctx = makeContext(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.1, duration: 0.35)
         #expect(RecordingDecisionEngine.decide(ctx) == .proceedToTranscription)
     }
-    
+
     @Test
     func modifierOnly_respectsUserPreferenceWhenHigher() {
         // User sets minimumKeyTime to 0.5s (higher than modifierOnlyMinimumDuration)
         let ctx = makeContext(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.5, duration: 0.4)
         #expect(RecordingDecisionEngine.decide(ctx) == .discardShortRecording)
     }
-    
+
     @Test
     func printableKey_doesNotEnforceModifierOnlyMinimum() {
         // Printable key hotkeys use user's minimumKeyTime, not modifierOnlyMinimumDuration
@@ -749,145 +740,96 @@ struct RecordingDecisionTests {
 struct MouseClickTests {
     @Test
     func mouseClick_discardsQuickModifierOnlyRecording() throws {
-        var processor = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.15)
-        }
-        
+        var currentTime: TimeInterval = 0
+        var processor = HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.15)
+        processor.now = { Date(timeIntervalSince1970: currentTime) }
+
         // Start recording with modifier-only hotkey
-        let startOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
-        }
+        currentTime = 0
+        let startOutput = processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
         #expect(startOutput == .startRecording)
-        
+
         // Mouse click 0.25s later (< 0.3s threshold for modifier-only) should discard silently
-        let clickOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.25)
-        } operation: {
-            processor.processMouseClick()
-        }
+        currentTime = 0.25
+        let clickOutput = processor.processMouseClick()
         #expect(clickOutput == .discard)
     }
-    
+
     @Test
     func mouseClick_ignoredAfterThreshold() throws {
-        var processor = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.15)
-        }
-        
+        var currentTime: TimeInterval = 0
+        var processor = HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.15)
+        processor.now = { Date(timeIntervalSince1970: currentTime) }
+
         // Start recording with modifier-only hotkey
-        let startOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
-        }
+        currentTime = 0
+        let startOutput = processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
         #expect(startOutput == .startRecording)
-        
+
         // Mouse click 0.35s later (> 0.3s threshold) should be ignored - only ESC cancels
-        let clickOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.35)
-        } operation: {
-            processor.processMouseClick()
-        }
+        currentTime = 0.35
+        let clickOutput = processor.processMouseClick()
         #expect(clickOutput == nil)
     }
-    
+
     @Test
     func mouseClick_ignoredInDoubleTapLock() throws {
-        var processor = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.15)
-        }
-        
+        var currentTime: TimeInterval = 0
+        var processor = HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.15)
+        processor.now = { Date(timeIntervalSince1970: currentTime) }
+
         // First tap
-        _ = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
-        }
-        _ = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.2)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: []))
-        }
-        
+        currentTime = 0
+        _ = processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
+        currentTime = 0.2
+        _ = processor.process(keyEvent: KeyEvent(key: nil, modifiers: []))
+
         // Second tap within threshold - should lock
-        _ = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.4)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
-        }
-        _ = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.5)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: []))
-        }
-        
+        currentTime = 0.4
+        _ = processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
+        currentTime = 0.5
+        _ = processor.process(keyEvent: KeyEvent(key: nil, modifiers: []))
+
         // Should be in double-tap lock now
         #expect(processor.state == .doubleTapLock)
-        
+
         // Mouse click should be ignored - only ESC cancels locked recordings
-        let clickOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.6)
-        } operation: {
-            processor.processMouseClick()
-        }
+        currentTime = 0.6
+        let clickOutput = processor.processMouseClick()
         #expect(clickOutput == nil)
     }
-    
+
     @Test
     func mouseClick_ignoresKeyPlusModifierHotkey() throws {
-        var processor = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            HotKeyProcessor(hotkey: HotKey(key: .a, modifiers: [.command]), minimumKeyTime: 0.15)
-        }
-        
+        var currentTime: TimeInterval = 0
+        var processor = HotKeyProcessor(hotkey: HotKey(key: .a, modifiers: [.command]), minimumKeyTime: 0.15)
+        processor.now = { Date(timeIntervalSince1970: currentTime) }
+
         // Start recording with key+modifier hotkey
-        let startOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: .a, modifiers: [.command]))
-        }
+        currentTime = 0
+        let startOutput = processor.process(keyEvent: KeyEvent(key: .a, modifiers: [.command]))
         #expect(startOutput == .startRecording)
-        
+
         // Mouse click should be ignored for key+modifier hotkeys
-        let clickOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.1)
-        } operation: {
-            processor.processMouseClick()
-        }
+        currentTime = 0.1
+        let clickOutput = processor.processMouseClick()
         #expect(clickOutput == nil)
     }
-    
+
     @Test
     func mouseClick_respectsHigherUserPreference() throws {
-        var processor = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.5)
-        }
-        
+        var currentTime: TimeInterval = 0
+        var processor = HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]), minimumKeyTime: 0.5)
+        processor.now = { Date(timeIntervalSince1970: currentTime) }
+
         // Start recording with modifier-only hotkey
-        let startOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0)
-        } operation: {
-            processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
-        }
+        currentTime = 0
+        let startOutput = processor.process(keyEvent: KeyEvent(key: nil, modifiers: [.option]))
         #expect(startOutput == .startRecording)
-        
+
         // Mouse click 0.4s later (> 0.3s but < 0.5s user preference) should still discard
-        let clickOutput = withDependencies {
-            $0.date.now = Date(timeIntervalSince1970: 0.4)
-        } operation: {
-            processor.processMouseClick()
-        }
+        currentTime = 0.4
+        let clickOutput = processor.processMouseClick()
         #expect(clickOutput == .discard)
     }
 }

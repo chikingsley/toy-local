@@ -1,5 +1,4 @@
 import Combine
-import ComposableArchitecture
 import Inject
 import Sparkle
 import SwiftUI
@@ -34,7 +33,7 @@ struct CheckForUpdatesView: View {
 	@ObserveInjection var inject
 
 	var body: some View {
-		Button("Check for Updates…", action: viewModel.checkForUpdates)
+		Button("Check for Updates...", action: viewModel.checkForUpdates)
 			.disabled(!viewModel.canCheckForUpdates)
 			.enableInjection()
 	}

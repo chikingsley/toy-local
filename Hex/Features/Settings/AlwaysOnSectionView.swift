@@ -1,12 +1,11 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct AlwaysOnSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
-	var alwaysOnStore: StoreOf<AlwaysOnFeature>
+	@Bindable var store: SettingsStore
+	var alwaysOnStore: AlwaysOnStore
 
 	var body: some View {
 		Section {

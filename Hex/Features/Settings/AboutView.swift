@@ -1,11 +1,10 @@
-import ComposableArchitecture
 import Inject
 import SwiftUI
 import Sparkle
 
 struct AboutView: View {
     @ObserveInjection var inject
-    @Bindable var store: StoreOf<SettingsFeature>
+    var store: SettingsStore
     @State var viewModel = CheckForUpdatesViewModel.shared
     @State private var showingChangelog = false
 
@@ -39,7 +38,7 @@ struct AboutView: View {
                     Spacer()
                     Link("Visit our GitHub", destination: URL(string: "https://github.com/kitlangton/Hex/")!)
                 }
-                
+
                 HStack {
                     Label("Support the developer", systemImage: "heart")
                     Spacer()

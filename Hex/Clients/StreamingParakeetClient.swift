@@ -103,7 +103,7 @@ actor StreamingParakeetClient {
 
 	func setupCallbacks() async -> (partials: AsyncStream<String>, utterances: AsyncStream<String>) {
 		guard let manager else {
-			return (.finished, .finished)
+			return (AsyncStream { $0.finish() }, AsyncStream { $0.finish() })
 		}
 
 		// Finish any previous continuations

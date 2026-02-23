@@ -1,4 +1,3 @@
-import ComposableArchitecture
 import Inject
 import Sparkle
 import AppKit
@@ -6,25 +5,24 @@ import SwiftUI
 
 @main
 struct HexApp: App {
-	static let appStore = Store(initialState: AppFeature.State()) {
-		AppFeature()
-	}
+	static let services = ServiceContainer()
+	static let appStore = AppStore(services: services)
 
 	@NSApplicationDelegateAdaptor(HexAppDelegate.self) var appDelegate
-  
+
     var body: some Scene {
         MenuBarExtra {
             CheckForUpdatesView()
 
             // Copy last transcript to clipboard
-            MenuBarCopyLastTranscriptButton()
+            MenuBarCopyLastTranscriptButton(store: HexApp.appStore)
 
             Button("Settings...") {
                 appDelegate.presentSettingsView()
             }.keyboardShortcut(",")
-			
+
 			Divider()
-			
+
 			Button("Quit") {
 				NSApplication.shared.terminate(nil)
 			}.keyboardShortcut("q")

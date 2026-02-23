@@ -1,11 +1,10 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct HotKeySectionView: View {
     @ObserveInjection var inject
-    @Bindable var store: StoreOf<SettingsFeature>
+    @Bindable var store: SettingsStore
 
     var body: some View {
         Section("Hot Key") {
@@ -24,7 +23,7 @@ struct HotKeySectionView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    store.send(.startSettingHotKey)
+                    store.startSettingHotKey()
                 }
 
                 if !store.isSettingHotKey,
@@ -33,7 +32,7 @@ struct HotKeySectionView: View {
                     ModifierSideControls(
                         modifiers: hotKey.modifiers,
                         onSelect: { kind, side in
-                            store.send(.setModifierSide(kind, side))
+                            store.setModifierSide(kind, side)
                         }
                     )
                     .transition(.opacity)

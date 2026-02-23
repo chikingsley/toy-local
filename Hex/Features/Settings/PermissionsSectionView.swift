@@ -1,11 +1,10 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct PermissionsSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	var store: SettingsStore
 	let microphonePermission: PermissionStatus
 	let accessibilityPermission: PermissionStatus
 	let inputMonitoringPermission: PermissionStatus
@@ -18,17 +17,17 @@ struct PermissionsSectionView: View {
 					title: "Microphone",
 					icon: "mic.fill",
 					status: microphonePermission,
-					action: { store.send(.requestMicrophone) }
+					action: { store.requestMicrophone() }
 				)
-				
+
 			// Accessibility + Keyboard
 			permissionCard(
 				title: "Accessibility",
 				icon: "accessibility",
 				status: combinedAccessibilityStatus,
 				action: {
-					store.send(.requestAccessibility)
-					store.send(.requestInputMonitoring)
+					store.requestAccessibility()
+					store.requestInputMonitoring()
 				}
 			)
 		}
@@ -45,7 +44,7 @@ struct PermissionsSectionView: View {
 				}
 
 				Button {
-					store.send(.requestInputMonitoring)
+					store.requestInputMonitoring()
 				} label: {
 					Text("Open Input Monitoring Settings")
 				}
@@ -62,7 +61,7 @@ struct PermissionsSectionView: View {
 		}
 		.enableInjection()
 	}
-	
+
 	@ViewBuilder
 	private func permissionCard(
 		title: String,
@@ -75,15 +74,15 @@ struct PermissionsSectionView: View {
 				.font(.body)
 				.foregroundStyle(.secondary)
 				.frame(width: 16)
-			
+
 			Text(title)
 				.font(.body.weight(.medium))
 				.lineLimit(1)
 				.truncationMode(.tail)
 				.layoutPriority(1)
-			
+
 			Spacer()
-			
+
 			switch status {
 			case .granted:
 				Image(systemName: "checkmark.circle.fill")

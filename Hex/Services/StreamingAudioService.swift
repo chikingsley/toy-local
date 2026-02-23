@@ -1,45 +1,12 @@
 @preconcurrency import AVFoundation
 import CoreAudio
-import Dependencies
-import DependenciesMacros
 import HexCore
 
 extension AVAudioPCMBuffer: @unchecked @retroactive Sendable {}
 
-// MARK: - Client Interface
-
-@DependencyClient
-struct StreamingAudioClient: Sendable {
-	var startCapture: @Sendable () async throws -> AsyncStream<AVAudioPCMBuffer> = { .finished }
-	var stopCapture: @Sendable () async -> Void = {}
-	var isCapturing: @Sendable () async -> Bool = { false }
-}
-
-extension StreamingAudioClient: TestDependencyKey {
-	static let testValue = StreamingAudioClient()
-}
-
-extension DependencyValues {
-	var streamingAudio: StreamingAudioClient {
-		get { self[StreamingAudioClient.self] }
-		set { self[StreamingAudioClient.self] = newValue }
-	}
-}
-
 // MARK: - Live Implementation
 
-extension StreamingAudioClient: DependencyKey {
-	static let liveValue: StreamingAudioClient = {
-		let live = StreamingAudioClientLive()
-		return StreamingAudioClient(
-			startCapture: { try await live.startCapture() },
-			stopCapture: { await live.stopCapture() },
-			isCapturing: { await live.isCapturing }
-		)
-	}()
-}
-
-private actor StreamingAudioClientLive {
+actor StreamingAudioClientLive {
 	private let logger = HexLog.streaming
 	private var engine: AVAudioEngine?
 	private var continuation: AsyncStream<AVAudioPCMBuffer>.Continuation?

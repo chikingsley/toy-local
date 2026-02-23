@@ -1,10 +1,9 @@
-import ComposableArchitecture
 import Inject
 import SwiftUI
 
 struct MicrophoneSelectionSectionView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
+	@Bindable var store: SettingsStore
 
 	var body: some View {
 		Section {
@@ -30,7 +29,7 @@ struct MicrophoneSelectionSectionView: View {
 				}
 
 				Button(action: {
-					store.send(.loadAvailableInputDevices)
+					store.loadAvailableInputDevices()
 				}) {
 					Image(systemName: "arrow.clockwise")
 				}

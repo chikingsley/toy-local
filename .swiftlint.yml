@@ -48,6 +48,8 @@ excluded:
   - .swiftpm
   - Hex.xcodeproj
   - HexTests
+  - HexCore/.build
+  - _archive
 
 line_length:
   warning: 150

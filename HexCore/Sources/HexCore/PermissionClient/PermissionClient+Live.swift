@@ -1,41 +1,22 @@
 @preconcurrency import AppKit
 import AVFoundation
 import CoreGraphics
-import Dependencies
 import Foundation
 import IOKit
 import IOKit.hidsystem
 
 private let logger = HexLog.permissions
 
-extension PermissionClient: DependencyKey {
-  public static var liveValue: Self {
-    let live = PermissionClientLive()
-    return Self(
-      microphoneStatus: { await live.microphoneStatus() },
-      accessibilityStatus: { live.accessibilityStatus() },
-      inputMonitoringStatus: { live.inputMonitoringStatus() },
-      requestMicrophone: { await live.requestMicrophone() },
-      requestAccessibility: { await live.requestAccessibility() },
-      requestInputMonitoring: { await live.requestInputMonitoring() },
-      openMicrophoneSettings: { await live.openMicrophoneSettings() },
-      openAccessibilitySettings: { await live.openAccessibilitySettings() },
-      openInputMonitoringSettings: { await live.openInputMonitoringSettings() },
-      observeAppActivation: { live.observeAppActivation() }
-    )
-  }
-}
-
 /// Live implementation of the PermissionClient.
 ///
 /// This actor manages permission checking, requesting, and app activation monitoring.
 /// It uses NotificationCenter to observe app lifecycle events and provides an AsyncStream
 /// for reactive permission updates.
-actor PermissionClientLive {
+public actor PermissionClientLive: PermissionClient {
   private let (activationStream, activationContinuation) = AsyncStream<AppActivation>.makeStream()
   private nonisolated(unsafe) var observations: [Any] = []
 
-  init() {
+  public init() {
     logger.debug("Initializing PermissionClient, setting up app activation observers")
     // Subscribe to app activation notifications
     let didBecomeActiveObserver = NotificationCenter.default.addObserver(
@@ -69,7 +50,7 @@ actor PermissionClientLive {
 
   // MARK: - Microphone Permissions
 
-  func microphoneStatus() async -> PermissionStatus {
+  public func microphoneStatus() async -> PermissionStatus {
     let status = AVCaptureDevice.authorizationStatus(for: .audio)
     let result: PermissionStatus
     switch status {
@@ -86,7 +67,7 @@ actor PermissionClientLive {
     return result
   }
 
-  func requestMicrophone() async -> Bool {
+  public func requestMicrophone() async -> Bool {
     logger.info("Requesting microphone permission...")
     let granted = await withCheckedContinuation { continuation in
       AVCaptureDevice.requestAccess(for: .audio) { granted in
@@ -97,7 +78,7 @@ actor PermissionClientLive {
     return granted
   }
 
-  func openMicrophoneSettings() async {
+  public func openMicrophoneSettings() async {
     logger.info("Opening microphone settings in System Preferences...")
     await MainActor.run {
       _ = NSWorkspace.shared.open(
@@ -108,7 +89,7 @@ actor PermissionClientLive {
 
   // MARK: - Accessibility Permissions
 
-  nonisolated func accessibilityStatus() -> PermissionStatus {
+  nonisolated public func accessibilityStatus() -> PermissionStatus {
     // Check without prompting (kAXTrustedCheckOptionPrompt: false)
     let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
     let result = AXIsProcessTrustedWithOptions(options) ? PermissionStatus.granted : .denied
@@ -116,14 +97,14 @@ actor PermissionClientLive {
     return result
   }
 
-  nonisolated func inputMonitoringStatus() -> PermissionStatus {
+  nonisolated public func inputMonitoringStatus() -> PermissionStatus {
     let access = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
     let result = mapIOHIDAccess(access)
     logger.info("Input monitoring status: \(String(describing: result)) (IOHIDAccess: \(String(describing: access)))")
     return result
   }
 
-  func requestAccessibility() async {
+  public func requestAccessibility() async {
     logger.info("Requesting accessibility permission...")
     // First, trigger the system prompt (on main actor for safety)
     await MainActor.run {
@@ -135,7 +116,7 @@ actor PermissionClientLive {
     await openAccessibilitySettings()
   }
 
-  func requestInputMonitoring() async -> Bool {
+  public func requestInputMonitoring() async -> Bool {
     logger.info("Requesting input monitoring permission...")
     let granted = await MainActor.run {
       if CGPreflightListenEventAccess() {
@@ -154,7 +135,7 @@ actor PermissionClientLive {
     return granted
   }
 
-  func openAccessibilitySettings() async {
+  public func openAccessibilitySettings() async {
     logger.info("Opening accessibility settings in System Preferences...")
     await MainActor.run {
       _ = NSWorkspace.shared.open(
@@ -163,7 +144,7 @@ actor PermissionClientLive {
     }
   }
 
-  func openInputMonitoringSettings() async {
+  public func openInputMonitoringSettings() async {
     logger.info("Opening input monitoring settings in System Preferences...")
     await MainActor.run {
       _ = NSWorkspace.shared.open(
@@ -174,7 +155,7 @@ actor PermissionClientLive {
 
   // MARK: - Reactive Monitoring
 
-  nonisolated func observeAppActivation() -> AsyncStream<AppActivation> {
+  nonisolated public func observeAppActivation() -> AsyncStream<AppActivation> {
     activationStream
   }
 

@@ -1,10 +1,9 @@
-import ComposableArchitecture
 import Inject
 import SwiftUI
 
 struct CuratedList: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<ModelDownloadFeature>
+	var store: ModelDownloadStore
 
 	private var visibleModels: [CuratedModelInfo] {
 		if store.showAllModels {
@@ -27,7 +26,7 @@ struct CuratedList: View {
 
 			// Show "Show more"/"Show less" button
 			if !hiddenModels.isEmpty {
-				Button(action: { store.send(.toggleModelDisplay) }) {
+				Button(action: { store.toggleModelDisplay() }) {
 					HStack {
                       Spacer()
 						Text(store.showAllModels ? "Show less" : "Show more")
@@ -42,4 +41,3 @@ struct CuratedList: View {
 		.enableInjection()
 	}
 }
-

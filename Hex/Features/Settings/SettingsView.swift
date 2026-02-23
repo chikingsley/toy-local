@@ -1,16 +1,15 @@
-import ComposableArchitecture
 import HexCore
 import Inject
 import SwiftUI
 
 struct SettingsView: View {
 	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
-	var alwaysOnStore: StoreOf<AlwaysOnFeature>
+	@Bindable var store: SettingsStore
+	var alwaysOnStore: AlwaysOnStore
 	let microphonePermission: PermissionStatus
 	let accessibilityPermission: PermissionStatus
 	let inputMonitoringPermission: PermissionStatus
-  
+
 	var body: some View {
 		Form {
 			if microphonePermission != .granted
@@ -44,7 +43,7 @@ struct SettingsView: View {
 		}
 		.formStyle(.grouped)
 		.task {
-			await store.send(.task).finish()
+			store.start()
 		}
 		.enableInjection()
 	}

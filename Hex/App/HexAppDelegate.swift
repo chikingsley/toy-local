@@ -1,18 +1,21 @@
-import ComposableArchitecture
 import HexCore
 import SwiftUI
 
 private let appLogger = HexLog.app
 private let cacheLogger = HexLog.caches
 
+private var isTesting: Bool {
+	NSClassFromString("XCTestCase") != nil || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+}
+
 class HexAppDelegate: NSObject, NSApplicationDelegate {
 	var invisibleWindow: InvisibleWindow?
 	var settingsWindow: NSWindow?
 	var statusItem: NSStatusItem!
 
-	@Dependency(\.soundEffects) var soundEffect
-	@Dependency(\.recording) var recording
-	@Shared(.hexSettings) var hexSettings: HexSettings
+	private var settingsManager: SettingsManager { HexApp.services.settings }
+	private var soundEffects: SoundEffectsClientLive { HexApp.services.soundEffects }
+	private var recording: RecordingClientLive { HexApp.services.recording }
 
 	func applicationDidFinishLaunching(_: Notification) {
 		DiagnosticsLogging.bootstrapIfNeeded()
@@ -24,7 +27,7 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		Task {
-			await soundEffect.preloadSounds()
+			await soundEffects.preloadSounds()
 		}
 		appLogger.info("Application did finish launching")
 
@@ -50,7 +53,7 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 
 	private func startLifecycleTasksIfNeeded() {
 		Task { @MainActor in
-			await HexApp.appStore.send(.task).finish()
+			HexApp.appStore.start()
 		}
 	}
 
@@ -78,11 +81,9 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 		let appStore = HexApp.appStore
-		let transcriptionStore = appStore.scope(state: \.transcription, action: \.transcription)
-		let alwaysOnStore = appStore.scope(state: \.alwaysOn, action: \.alwaysOn)
 		let transcriptionView = IndicatorHostView(
-			transcriptionStore: transcriptionStore,
-			alwaysOnStore: alwaysOnStore
+			transcriptionStore: appStore.transcription,
+			alwaysOnStore: appStore.alwaysOn
 		).padding().padding(.top).padding(.top)
 			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 		invisibleWindow = InvisibleWindow.fromView(transcriptionView)
@@ -113,16 +114,15 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 		self.settingsWindow = settingsWindow
 	}
 
-	@objc private func handleAppModeUpdate() {
-		Task {
-			await updateAppMode()
-		}
+	@MainActor @objc private func handleAppModeUpdate() {
+		updateAppMode()
 	}
 
 	@MainActor
 	private func updateAppMode() {
-		appLogger.debug("showDockIcon = \(self.hexSettings.showDockIcon)")
-		if self.hexSettings.showDockIcon {
+		let hexSettings = settingsManager.settings
+		appLogger.debug("showDockIcon = \(hexSettings.showDockIcon)")
+		if hexSettings.showDockIcon {
 			NSApp.setActivationPolicy(.regular)
 		} else {
 			NSApp.setActivationPolicy(.accessory)
