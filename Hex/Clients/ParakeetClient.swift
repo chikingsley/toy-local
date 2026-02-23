@@ -25,11 +25,9 @@ actor ParakeetClient {
     if currentVariant == variant, asr != nil { return true }
 
     logger.debug("Checking Parakeet availability variant=\(variant.identifier)")
-    for dir in modelDirectories(variant) {
-      if directoryContainsMLModelC(dir) {
-        logger.notice("Found Parakeet cache at \(dir.path)")
-        return true
-      }
+    for dir in modelDirectories(variant) where directoryContainsMLModelC(dir) {
+      logger.notice("Found Parakeet cache at \(dir.path)")
+      return true
     }
     logger.debug("No Parakeet cache detected variant=\(variant.identifier)")
     return false
@@ -129,11 +127,9 @@ actor ParakeetClient {
     let fm = FileManager.default
 
     var removedAny = false
-    for dir in modelDirectories(variant) {
-      if fm.fileExists(atPath: dir.path) {
-        try? fm.removeItem(at: dir)
-        removedAny = true
-      }
+    for dir in modelDirectories(variant) where fm.fileExists(atPath: dir.path) {
+      try? fm.removeItem(at: dir)
+      removedAny = true
     }
 
     // Reset live objects so a future download can proceed cleanly

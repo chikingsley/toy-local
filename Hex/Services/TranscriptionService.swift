@@ -61,7 +61,7 @@ actor TranscriptionClientLive {
 				domain: "TranscriptionClient",
 				code: -3,
 				userInfo: [
-					NSLocalizedDescriptionKey: "Cannot download model: Empty model name",
+					NSLocalizedDescriptionKey: "Cannot download model: Empty model name"
 				]
 			)
 		}
@@ -164,8 +164,8 @@ actor TranscriptionClientLive {
 	func getAvailableModels() async throws -> [String] {
 		var names = try await WhisperKit.fetchAvailableModels()
 		#if canImport(FluidAudio)
-		for model in ParakeetModel.allCases.reversed() {
-			if !names.contains(model.identifier) { names.insert(model.identifier, at: 0) }
+		for model in ParakeetModel.allCases.reversed() where !names.contains(model.identifier) {
+			names.insert(model.identifier, at: 0)
 		}
 		#endif
 		return names
@@ -210,7 +210,7 @@ actor TranscriptionClientLive {
 				domain: "TranscriptionClient",
 				code: -1,
 				userInfo: [
-					NSLocalizedDescriptionKey: "Failed to initialize WhisperKit for model: \(model)",
+					NSLocalizedDescriptionKey: "Failed to initialize WhisperKit for model: \(model)"
 				]
 			)
 		}
@@ -292,11 +292,10 @@ actor TranscriptionClientLive {
 			let tempFolder = try await WhisperKit.download(
 				variant: variant,
 				downloadBase: nil,
-				useBackgroundSession: false,
-				progressCallback: { progress in
-					progressCallback(progress)
-				}
-			)
+				useBackgroundSession: false
+			) { progress in
+				progressCallback(progress)
+			}
 
 			try FileManager.default.createDirectory(at: modelFolder, withIntermediateDirectories: true)
 			try moveContents(of: tempFolder, to: modelFolder)

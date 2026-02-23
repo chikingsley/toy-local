@@ -243,8 +243,7 @@ private func sendMediaKey() {
 		                                  context: nil,
 		                                  subtype: 8,
 		                                  data1: data1,
-		                                  data2: -1)
-		{
+		                                  data2: -1) {
 			event.cgEvent?.post(tap: .cghidEventTap)
 		}
 	}
@@ -268,7 +267,7 @@ actor RecordingClientLive {
 		AVLinearPCMBitDepthKey: 32,
 		AVLinearPCMIsFloatKey: true,
 		AVLinearPCMIsBigEndianKey: false,
-		AVLinearPCMIsNonInterleaved: false,
+		AVLinearPCMIsNonInterleaved: false
 	]
 	private let (meterStream, meterContinuation) = AsyncStream<Meter>.makeStream()
 	private var meterTask: Task<Void, Never>?
@@ -395,7 +394,7 @@ actor RecordingClientLive {
 	private func getDeviceName(deviceID: AudioDeviceID) -> String? {
 		var address = audioPropertyAddress(kAudioDevicePropertyDeviceNameCFString)
 
-		var deviceName: CFString? = nil
+		var deviceName: CFString?
 		var size = UInt32(MemoryLayout<CFString?>.size)
 		let deviceNamePtr: UnsafeMutableRawPointer = .allocate(byteCount: Int(size), alignment: MemoryLayout<CFString?>.alignment)
 		defer { deviceNamePtr.deallocate() }
@@ -547,11 +546,9 @@ actor RecordingClientLive {
 			}
 		}
 
-		for deviceID in deviceIDsToCheck {
-			if isInputDeviceMuted(deviceID) {
-				recordingLogger.error("Input device \(deviceID) is MUTED at Core Audio level! This causes silent recordings.")
-				unmuteInputDevice(deviceID)
-			}
+		for deviceID in deviceIDsToCheck where isInputDeviceMuted(deviceID) {
+			recordingLogger.error("Input device \(deviceID) is MUTED at Core Audio level! This causes silent recordings.")
+			unmuteInputDevice(deviceID)
 		}
 	}
 
@@ -777,12 +774,10 @@ actor RecordingClientLive {
 			Task {
 				if let volume = volumeToRestore {
 					await self.restoreSystemVolume(volume)
-				}
-				else if !playersToResume.isEmpty {
+				} else if !playersToResume.isEmpty {
 					mediaLogger.notice("Resuming players: \(playersToResume.joined(separator: ", "))")
 					await resumeMediaApplications(playersToResume)
-				}
-				else if shouldResumeViaMediaRemote {
+				} else if shouldResumeViaMediaRemote {
 					if mediaRemoteController?.send(.play) == true {
 						mediaLogger.notice("Resuming media via MediaRemote")
 					} else {
@@ -791,8 +786,7 @@ actor RecordingClientLive {
 							sendMediaKey()
 						}
 					}
-				}
-				else if shouldResumeMedia {
+				} else if shouldResumeMedia {
 					await MainActor.run {
 						sendMediaKey()
 					}

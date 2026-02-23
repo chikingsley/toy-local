@@ -11,8 +11,7 @@ struct ModelDownloadView: View {
 		VStack(alignment: .leading, spacing: 12) {
 			if !store.modelBootstrapState.isModelReady,
 			   let message = store.modelBootstrapState.lastError,
-			   !message.isEmpty
-			{
+			   !message.isEmpty {
 				AutoDownloadBannerView(
 					title: "Download failed",
 					subtitle: message,

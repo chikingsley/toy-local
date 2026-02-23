@@ -30,17 +30,16 @@ struct MicrophoneSelectionSectionView: View {
 
 				Button(action: {
 					store.loadAvailableInputDevices()
-				}) {
+				}, label: {
 					Image(systemName: "arrow.clockwise")
-				}
+				})
 				.buttonStyle(.borderless)
 				.help("Refresh available input devices")
 			}
 
 			// Show fallback note for selected device not connected
 			if let selectedID = store.hexSettings.selectedMicrophoneID,
-			   !store.availableInputDevices.contains(where: { $0.id == selectedID })
-			{
+			   !store.availableInputDevices.contains(where: { $0.id == selectedID }) {
 				Text("Selected device not connected. System default will be used.")
 					.settingsCaption()
 			}

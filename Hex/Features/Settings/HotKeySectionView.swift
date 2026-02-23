@@ -30,11 +30,8 @@ struct HotKeySectionView: View {
                    hotKey.key == nil,
                    !hotKey.modifiers.isEmpty {
                     ModifierSideControls(
-                        modifiers: hotKey.modifiers,
-                        onSelect: { kind, side in
-                            store.setModifierSide(kind, side)
-                        }
-                    )
+                        modifiers: hotKey.modifiers
+                    ) { kind, side in store.setModifierSide(kind, side) }
                     .transition(.opacity)
                 }
             }

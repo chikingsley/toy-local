@@ -127,8 +127,7 @@ final class TranscriptionStore {
 					switch inputEvent {
 					case .keyboard(let keyEvent):
 						if keyEvent.key == .escape, keyEvent.modifiers.isEmpty,
-						   self.hotKeyProcessor.state == .idle
-						{
+						   self.hotKeyProcessor.state == .idle {
 							Task { @MainActor in self.cancel() }
 							return false
 						}
@@ -157,8 +156,7 @@ final class TranscriptionStore {
 						case .none:
 							if let pressedKey = keyEvent.key,
 							   pressedKey == self.hotKeyProcessor.hotkey.key,
-							   keyEvent.modifiers == self.hotKeyProcessor.hotkey.modifiers
-							{
+							   keyEvent.modifiers == self.hotKeyProcessor.hotkey.modifiers {
 								return true
 							}
 							return false
@@ -300,9 +298,8 @@ final class TranscriptionStore {
 				let result = try await self.transcription.transcribe(
 					url: capturedURL,
 					model: model,
-					options: decodeOptions,
-					progressCallback: { _ in }
-				)
+					options: decodeOptions
+				) { _ in }
 
 				transcriptionFeatureLogger.notice("Transcribed audio to text length \(result.count)")
 				self.handleTranscriptionResult(

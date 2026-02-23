@@ -91,7 +91,6 @@ enum ParakeetClipPreparer {
         dest.advanced(by: Int(framesRead)).initialize(repeating: 0, count: padCount)
       }
     }
-    
 
     paddedBuffer.frameLength = minimumFrames
 

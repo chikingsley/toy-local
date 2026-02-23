@@ -76,8 +76,9 @@ private enum CuratedModelLoader {
 			assertionFailure("models.json not found in bundle")
 			return []
 		}
-		do { return try JSONDecoder().decode([CuratedModelInfo].self, from: Data(contentsOf: url)) }
-		catch { assertionFailure("Failed to decode models.json – \(error)"); return [] }
+		do { return try JSONDecoder().decode([CuratedModelInfo].self, from: Data(contentsOf: url)) } catch {
+			assertionFailure("Failed to decode models.json – \(error)"); return []
+		}
 	}
 }
 
@@ -125,11 +126,11 @@ final class ModelDownloadStore {
 	var selectedModel: String { hexSettings.selectedModel }
 
 	var selectedModelIsDownloaded: Bool {
-		availableModels.first(where: { $0.id == selectedModel })?.isDownloaded ?? false
+		availableModels.first { $0.id == selectedModel }?.isDownloaded ?? false
 	}
 
 	var anyModelDownloaded: Bool {
-		availableModels.contains(where: { $0.isDownloaded })
+		availableModels.contains { $0.isDownloaded }
 	}
 
 	var preferredParakeetIdentifier: String {
@@ -265,10 +266,9 @@ final class ModelDownloadStore {
 
 	private func handleModelsLoaded(recommended: String, available: [ModelInfo]) {
 		var availablePlus = available
-		for model in ParakeetModel.allCases.reversed() {
-			if !availablePlus.contains(where: { $0.name == model.identifier }) {
-				availablePlus.insert(ModelInfo(name: model.identifier, isDownloaded: false), at: 0)
-			}
+		for model in ParakeetModel.allCases.reversed()
+			where !availablePlus.contains(where: { $0.name == model.identifier }) {
+			availablePlus.insert(ModelInfo(name: model.identifier, isDownloaded: false), at: 0)
 		}
 
 		if availablePlus.contains(where: { $0.name == preferredParakeetIdentifier }) {
@@ -316,12 +316,10 @@ final class ModelDownloadStore {
 			let ns = error as NSError
 			var message = ns.localizedDescription
 			if let url = ns.userInfo[NSURLErrorFailingURLErrorKey] as? URL,
-			   let host = url.host
-			{
+			   let host = url.host {
 				message += " (\(host))"
 			} else if let str = ns.userInfo[NSURLErrorFailingURLStringErrorKey] as? String,
-			          let u = URL(string: str), let host = u.host
-			{
+			          let u = URL(string: str), let host = u.host {
 				message += " (\(host))"
 			}
 			downloadError = message

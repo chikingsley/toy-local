@@ -195,9 +195,9 @@ struct HistoryView: View {
 			.padding()
 		}
 		.toolbar {
-			Button(role: .destructive, action: { showingDeleteConfirmation = true }) {
+			Button(role: .destructive, action: { showingDeleteConfirmation = true }, label: {
 				Label("Delete All", systemImage: "trash")
-			}
+			})
 		}
 		.alert("Delete All Transcripts", isPresented: $showingDeleteConfirmation) {
 			Button("Delete All", role: .destructive) {

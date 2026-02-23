@@ -84,8 +84,11 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 		let transcriptionView = IndicatorHostView(
 			transcriptionStore: appStore.transcription,
 			alwaysOnStore: appStore.alwaysOn
-		).padding().padding(.top).padding(.top)
-			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+		)
+		.padding()
+		.padding(.top)
+		.padding(.top)
+		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 		invisibleWindow = InvisibleWindow.fromView(transcriptionView)
 		invisibleWindow?.makeKeyAndOrderFront(nil)
 	}

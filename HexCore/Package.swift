@@ -5,24 +5,24 @@ let package = Package(
     name: "HexCore",
     platforms: [.macOS(.v15)],
     products: [
-        .library(name: "HexCore", targets: ["HexCore"]),
+        .library(name: "HexCore", targets: ["HexCore"])
     ],
-	    dependencies: [
-	        .package(url: "https://github.com/Clipy/Sauce", branch: "master"),
-	        .package(url: "https://github.com/apple/swift-log", from: "1.6.4"),
-	    ],
+    dependencies: [
+        .package(url: "https://github.com/Clipy/Sauce", branch: "master"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.6.4")
+    ],
     targets: [
-	    .target(
-	        name: "HexCore",
-	        dependencies: [
-	            "Sauce",
-	            .product(name: "Logging", package: "swift-log"),
-	        ],
-	        path: "Sources/HexCore",
-	        linkerSettings: [
-	            .linkedFramework("IOKit")
-	        ]
-	    ),
+        .target(
+            name: "HexCore",
+            dependencies: [
+                "Sauce",
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/HexCore",
+            linkerSettings: [
+                .linkedFramework("IOKit")
+            ]
+        ),
         .testTarget(
             name: "HexCoreTests",
             dependencies: ["HexCore"],
@@ -30,6 +30,6 @@ let package = Package(
             resources: [
                 .copy("Fixtures")
             ]
-        ),
+        )
     ]
 )

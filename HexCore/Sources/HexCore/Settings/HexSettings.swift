@@ -220,6 +220,7 @@ private enum HexSettingsSchema {
 		SettingsField(.selectedModel, keyPath: \.selectedModel, default: defaults.selectedModel).eraseToAny(),
 		SettingsField(.useClipboardPaste, keyPath: \.useClipboardPaste, default: defaults.useClipboardPaste).eraseToAny(),
 		SettingsField(.preventSystemSleep, keyPath: \.preventSystemSleep, default: defaults.preventSystemSleep).eraseToAny(),
+		// swiftlint:disable trailing_closure
 		SettingsField(
 			.recordingAudioBehavior,
 			keyPath: \.recordingAudioBehavior,
@@ -234,9 +235,11 @@ private enum HexSettingsSchema {
 				return defaultValue
 			}
 		).eraseToAny(),
+		// swiftlint:enable trailing_closure
 		SettingsField(.minimumKeyTime, keyPath: \.minimumKeyTime, default: defaults.minimumKeyTime).eraseToAny(),
 		SettingsField(.copyToClipboard, keyPath: \.copyToClipboard, default: defaults.copyToClipboard).eraseToAny(),
 		SettingsField(.useDoubleTapOnly, keyPath: \.useDoubleTapOnly, default: defaults.useDoubleTapOnly).eraseToAny(),
+		// swiftlint:disable trailing_closure
 		SettingsField(
 			.outputLanguage,
 			keyPath: \.outputLanguage,
@@ -300,6 +303,7 @@ private enum HexSettingsSchema {
 				try container.encodeIfPresent(value, forKey: key)
 			}
 		).eraseToAny(),
+		// swiftlint:enable trailing_closure
 		SettingsField(.alwaysOnStreamingModel, keyPath: \.alwaysOnStreamingModel, default: defaults.alwaysOnStreamingModel).eraseToAny()
 	]
 }

@@ -8,7 +8,7 @@ import SwiftUI
 final class CheckForUpdatesViewModel {
 	init() {
 		anyCancellable = controller.updater.publisher(for: \.canCheckForUpdates)
-			.sink(receiveValue: { self.canCheckForUpdates = $0 })
+			.sink { self.canCheckForUpdates = $0 }
 	}
 
 	static let shared = CheckForUpdatesViewModel()

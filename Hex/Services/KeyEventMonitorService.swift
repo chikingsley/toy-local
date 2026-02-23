@@ -21,7 +21,7 @@ struct KeyEventMonitorToken: Sendable {
 		cancelHandler()
 	}
 
-	static let noop = KeyEventMonitorToken(cancel: {})
+	static let noop = KeyEventMonitorToken {}
 }
 
 public extension KeyEvent {
@@ -414,9 +414,11 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 		handlers: [UUID: @Sendable (T) -> Bool]
 	) -> Bool {
 		let handlerList = queue.sync { Array(handlers.values) }
-		return handlerList.reduce(false) { handled, handler in
-			handler(event) || handled
+		var handled = false
+		for handler in handlerList where handler(event) {
+			handled = true
 		}
+		return handled
 	}
 
 	private func processKeyEvent(_ keyEvent: KeyEvent) -> Bool {

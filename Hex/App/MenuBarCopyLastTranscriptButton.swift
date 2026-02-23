@@ -18,7 +18,7 @@ struct MenuBarCopyLastTranscriptButton: View {
 			if lastText != nil {
 				store.pasteLastTranscript()
 			}
-		}) {
+		}, label: {
 			HStack(spacing: 6) {
 				Text("Paste Last Transcript")
 				if !preview.isEmpty {
@@ -26,7 +26,7 @@ struct MenuBarCopyLastTranscriptButton: View {
 						.foregroundStyle(.secondary)
 				}
 			}
-		}
+		})
 		.disabled(lastText == nil)
 
 		let hexSettings = store.settings.hexSettings

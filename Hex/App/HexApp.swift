@@ -36,7 +36,6 @@ struct HexApp: App {
 			Image(nsImage: image)
 		}
 
-
 		WindowGroup {}.defaultLaunchBehavior(.suppressed)
 			.commands {
 				CommandGroup(after: .appInfo) {

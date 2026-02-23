@@ -29,9 +29,9 @@ struct AboutView: View {
                     .buttonStyle(.bordered)
                     .sheet(isPresented: $showingChangelog, onDismiss: {
                         showingChangelog = false
-                    }) {
+                    }, content: {
                         ChangelogView()
-                    }
+                    })
                 }
                 HStack {
                     Label("Hex is open source", systemImage: "apple.terminal.on.rectangle")

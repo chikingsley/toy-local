@@ -19,7 +19,7 @@ struct HotKeyProcessorTests {
         runScenario(
             hotkey: HotKey(key: .a, modifiers: [.command]),
             steps: [
-                ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -29,7 +29,7 @@ struct HotKeyProcessorTests {
         runScenario(
             hotkey: HotKey(key: nil, modifiers: [.option]),
             steps: [
-                ScenarioStep(time: 0.0, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.0, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -41,7 +41,7 @@ struct HotKeyProcessorTests {
             hotkey: HotKey(key: .a, modifiers: [.command]),
             steps: [
                 ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
-                ScenarioStep(time: 0.2, key: nil, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.2, key: nil, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -52,7 +52,7 @@ struct HotKeyProcessorTests {
             hotkey: HotKey(key: nil, modifiers: [.option]),
             steps: [
                 ScenarioStep(time: 0.0, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
-                ScenarioStep(time: 0.2, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.2, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -64,7 +64,7 @@ struct HotKeyProcessorTests {
             steps: [
                 ScenarioStep(time: 0.0, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: false),
                 ScenarioStep(time: 0.1, key: nil, modifiers: [.option, .command], expectedOutput: .startRecording, expectedIsMatched: true),
-                ScenarioStep(time: 0.2, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.2, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -81,7 +81,7 @@ struct HotKeyProcessorTests {
                 // Release the modifier while holding the key
                 ScenarioStep(time: 1.5, key: .u, modifiers: [], expectedOutput: nil, expectedIsMatched: true),
                 // Release the key a beat later — should stop recording automatically
-                ScenarioStep(time: 1.55, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 1.55, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -95,7 +95,7 @@ struct HotKeyProcessorTests {
                 // Initial hotkey press
                 ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Different key press within cancel threshold
-                ScenarioStep(time: 0.5, key: .b, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.5, key: .b, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -109,7 +109,7 @@ struct HotKeyProcessorTests {
                 // Initial hotkey press (option)
                 ScenarioStep(time: 0.0, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Press a different modifier after threshold (0.5s > 0.3s) - should be ignored
-                ScenarioStep(time: 0.5, key: nil, modifiers: [.option, .command], expectedOutput: nil, expectedIsMatched: true),
+                ScenarioStep(time: 0.5, key: nil, modifiers: [.option, .command], expectedOutput: nil, expectedIsMatched: true)
             ]
         )
     }
@@ -123,7 +123,7 @@ struct HotKeyProcessorTests {
                 // Initial hotkey press
                 ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Different key press after cancel threshold
-                ScenarioStep(time: 1.5, key: .b, modifiers: [.command], expectedOutput: nil, expectedIsMatched: true),
+                ScenarioStep(time: 1.5, key: .b, modifiers: [.command], expectedOutput: nil, expectedIsMatched: true)
             ]
         )
     }
@@ -136,7 +136,7 @@ struct HotKeyProcessorTests {
                 // Initial hotkey press
                 ScenarioStep(time: 0.0, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Different modifier press after cancel threshold
-                ScenarioStep(time: 1.5, key: nil, modifiers: [.option, .command], expectedOutput: nil, expectedIsMatched: true),
+                ScenarioStep(time: 1.5, key: nil, modifiers: [.option, .command], expectedOutput: nil, expectedIsMatched: true)
             ]
         )
     }
@@ -155,7 +155,7 @@ struct HotKeyProcessorTests {
                 // Then if they release everything, the hotkey should trigger
                 ScenarioStep(time: 0.2, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: false),
                 // And try to press the hotkey again, it should start recording
-                ScenarioStep(time: 0.3, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.3, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -177,7 +177,7 @@ struct HotKeyProcessorTests {
                 // Second tap within threshold
                 ScenarioStep(time: 0.2, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Second release (should stay recording)
-                ScenarioStep(time: 0.3, key: nil, modifiers: [.command], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock),
+                ScenarioStep(time: 0.3, key: nil, modifiers: [.command], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock)
             ]
         )
     }
@@ -194,7 +194,7 @@ struct HotKeyProcessorTests {
                 // Second tap within threshold
                 ScenarioStep(time: 0.2, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Second release (should stay recording)
-                ScenarioStep(time: 0.3, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock),
+                ScenarioStep(time: 0.3, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock)
             ]
         )
     }
@@ -212,7 +212,7 @@ struct HotKeyProcessorTests {
                 // Second tap within threshold
                 ScenarioStep(time: 0.2, key: nil, modifiers: [.option, .command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Second release (should stay recording)
-                ScenarioStep(time: 0.3, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock),
+                ScenarioStep(time: 0.3, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock)
             ]
         )
     }
@@ -228,7 +228,7 @@ struct HotKeyProcessorTests {
                 // First release
                 ScenarioStep(time: 0.1, key: nil, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false),
                 // Second tap after threshold
-                ScenarioStep(time: 0.4, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.4, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -243,7 +243,7 @@ struct HotKeyProcessorTests {
                 // First release
                 ScenarioStep(time: 0.1, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
                 // Second tap after threshold
-                ScenarioStep(time: 0.4, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.4, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -263,7 +263,7 @@ struct HotKeyProcessorTests {
                 // Second release (should stay recording)
                 ScenarioStep(time: 0.3, key: nil, modifiers: [.command], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock),
                 // Third tap to stop recording
-                ScenarioStep(time: 1.0, key: .a, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 1.0, key: .a, modifiers: [.command], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -282,7 +282,7 @@ struct HotKeyProcessorTests {
                 // Second release (should stay recording)
                 ScenarioStep(time: 0.3, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock),
                 // Third tap to stop recording
-                ScenarioStep(time: 1.0, key: nil, modifiers: [.option], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 1.0, key: nil, modifiers: [.option], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -301,7 +301,7 @@ struct HotKeyProcessorTests {
                 // Press a different key within cancel threshold - should discard silently since < minimumKeyTime
                 ScenarioStep(time: 0.1, key: .c, modifiers: [.option], expectedOutput: .discard, expectedIsMatched: false),
                 // Release the C
-                ScenarioStep(time: 0.2, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: false),
+                ScenarioStep(time: 0.2, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: false)
             ]
         )
     }
@@ -317,13 +317,13 @@ struct HotKeyProcessorTests {
             hotkey: HotKey(key: nil, modifiers: [.fn]),
             steps: [
                 // Simulate using an Arrow with Fn held (use .c as a stand-in key for arrows in unit tests)
-                ScenarioStep(time: 0.00, key: .c,  modifiers: [.fn], expectedOutput: nil, expectedIsMatched: false),
+                ScenarioStep(time: 0.00, key: .c, modifiers: [.fn], expectedOutput: nil, expectedIsMatched: false),
                 // Fully release everything
-                ScenarioStep(time: 0.05, key: nil, modifiers: [],    expectedOutput: nil, expectedIsMatched: false),
+                ScenarioStep(time: 0.05, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: false),
                 // Next standalone Fn press should trigger recording
                 ScenarioStep(time: 0.20, key: nil, modifiers: [.fn], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Release Fn should stop recording (must exceed modifierOnlyMinimumDuration)
-                ScenarioStep(time: 0.40, key: nil, modifiers: [],    expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.40, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -336,14 +336,14 @@ struct HotKeyProcessorTests {
             hotkey: HotKey(key: nil, modifiers: [.fn]),
             steps: [
                 // Use Fn with another key (stand-in for arrow)
-                ScenarioStep(time: 0.00, key: .c,  modifiers: [.fn], expectedOutput: nil, expectedIsMatched: false),
+                ScenarioStep(time: 0.00, key: .c, modifiers: [.fn], expectedOutput: nil, expectedIsMatched: false),
                 // Release the key but keep Fn held — should not start
                 ScenarioStep(time: 0.05, key: nil, modifiers: [.fn], expectedOutput: nil, expectedIsMatched: false),
                 // Only once the user fully releases and presses Fn again should it start
-                ScenarioStep(time: 0.10, key: nil, modifiers: [],    expectedOutput: nil, expectedIsMatched: false),
+                ScenarioStep(time: 0.10, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: false),
                 ScenarioStep(time: 0.25, key: nil, modifiers: [.fn], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Must exceed modifierOnlyMinimumDuration before stopping
-                ScenarioStep(time: 0.60, key: nil, modifiers: [],    expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.60, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -361,7 +361,7 @@ struct HotKeyProcessorTests {
                 // Release command
                 ScenarioStep(time: 2.1, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: true),
                 // Release option
-                ScenarioStep(time: 2.2, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 2.2, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -379,7 +379,7 @@ struct HotKeyProcessorTests {
                 // Second tap within threshold - should start a new recording but not lock yet
                 ScenarioStep(time: 0.2, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true, expectedState: .pressAndHold(startTime: Date(timeIntervalSince1970: 0.2))),
                 // Second release - NOW it should lock
-                ScenarioStep(time: 0.3, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock),
+                ScenarioStep(time: 0.3, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: true, expectedState: .doubleTapLock)
             ]
         )
     }
@@ -399,7 +399,7 @@ struct HotKeyProcessorTests {
                 // Hold for 2 seconds (should stay in press-and-hold mode)
                 ScenarioStep(time: 2.2, key: nil, modifiers: [.option], expectedOutput: nil, expectedIsMatched: true),
                 // Release - should stop recording since it was a hold
-                ScenarioStep(time: 2.3, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 2.3, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -415,7 +415,7 @@ struct HotKeyProcessorTests {
                 // Start recording
                 ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Press ESC
-                ScenarioStep(time: 0.5, key: .escape, modifiers: [], expectedOutput: .cancel, expectedIsMatched: false),
+                ScenarioStep(time: 0.5, key: .escape, modifiers: [], expectedOutput: .cancel, expectedIsMatched: false)
             ]
         )
     }
@@ -434,7 +434,7 @@ struct HotKeyProcessorTests {
                 ScenarioStep(time: 0.2, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
                 ScenarioStep(time: 0.3, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: true),
                 // Now locked - press ESC
-                ScenarioStep(time: 1.0, key: .escape, modifiers: [], expectedOutput: .cancel, expectedIsMatched: false),
+                ScenarioStep(time: 1.0, key: .escape, modifiers: [], expectedOutput: .cancel, expectedIsMatched: false)
             ]
         )
     }
@@ -454,7 +454,7 @@ struct HotKeyProcessorTests {
                 // Full release
                 ScenarioStep(time: 0.7, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: false),
                 // Now pressing hotkey should work again
-                ScenarioStep(time: 0.8, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.8, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -474,7 +474,7 @@ struct HotKeyProcessorTests {
                 // Now press just cmd-option (no key) - should trigger
                 ScenarioStep(time: 0.3, key: nil, modifiers: [.command, .option], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Release
-                ScenarioStep(time: 0.4, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.4, key: nil, modifiers: [], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -488,7 +488,7 @@ struct HotKeyProcessorTests {
                 // Press both modifiers
                 ScenarioStep(time: 0.0, key: nil, modifiers: [.option, .command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Release Command (keep Option) - should stop recording
-                ScenarioStep(time: 0.5, key: nil, modifiers: [.option], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.5, key: nil, modifiers: [.option], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -502,7 +502,7 @@ struct HotKeyProcessorTests {
                 // Press both required modifiers
                 ScenarioStep(time: 0.0, key: nil, modifiers: [.option, .command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Add Shift after threshold (0.5s > 0.3s) - should be ignored
-                ScenarioStep(time: 0.5, key: nil, modifiers: [.option, .command, .shift], expectedOutput: nil, expectedIsMatched: true),
+                ScenarioStep(time: 0.5, key: nil, modifiers: [.option, .command, .shift], expectedOutput: nil, expectedIsMatched: true)
             ]
         )
     }
@@ -516,7 +516,7 @@ struct HotKeyProcessorTests {
                 // Initial hotkey press
                 ScenarioStep(time: 0.0, key: .a, modifiers: [.command], expectedOutput: .startRecording, expectedIsMatched: true),
                 // Add Shift modifier while keeping same key, within 1s
-                ScenarioStep(time: 0.5, key: .a, modifiers: [.command, .shift], expectedOutput: .stopRecording, expectedIsMatched: false),
+                ScenarioStep(time: 0.5, key: .a, modifiers: [.command, .shift], expectedOutput: .stopRecording, expectedIsMatched: false)
             ]
         )
     }
@@ -538,7 +538,7 @@ struct HotKeyProcessorTests {
                 // Full release - clears dirty
                 ScenarioStep(time: 0.4, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: false),
                 // Now hotkey works again
-                ScenarioStep(time: 0.5, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.5, key: nil, modifiers: [.option], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }
@@ -556,7 +556,7 @@ struct HotKeyProcessorTests {
                 // Full release
                 ScenarioStep(time: 0.2, key: nil, modifiers: [], expectedOutput: nil, expectedIsMatched: false),
                 // NOW pressing hotkey should work
-                ScenarioStep(time: 0.3, key: nil, modifiers: [.option, .command], expectedOutput: .startRecording, expectedIsMatched: true),
+                ScenarioStep(time: 0.3, key: nil, modifiers: [.option, .command], expectedOutput: .startRecording, expectedIsMatched: true)
             ]
         )
     }

@@ -33,7 +33,9 @@ struct TranscriptionView: View {
 
 	var body: some View {
 		// Force observation of always-on state changes
+		// swiftlint:disable:next redundant_discardable_let
 		let _ = alwaysOnStore?.isListening
+		// swiftlint:disable:next redundant_discardable_let
 		let _ = alwaysOnStore?.meter
 
 		TranscriptionIndicatorView(

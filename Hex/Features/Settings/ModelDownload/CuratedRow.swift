@@ -20,8 +20,10 @@ struct CuratedRow: View {
 	}
 
 	var body: some View {
-		Button(action: { store.selectModel(model.internalName) }) {
-			HStack(alignment: .center, spacing: 12) {
+		Button(
+			action: { store.selectModel(model.internalName) },
+			label: {
+				HStack(alignment: .center, spacing: 12) {
 				// Radio selector
 				Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
 					.foregroundStyle(isSelected ? .blue : .secondary)
@@ -102,6 +104,7 @@ struct CuratedRow: View {
 			)
 			.contentShape(.rect)
 		}
+		)
 		.buttonStyle(.plain)
 		// Keep context menu as an alternative path
 		.contextMenu {

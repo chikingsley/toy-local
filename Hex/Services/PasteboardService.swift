@@ -234,9 +234,8 @@ struct PasteboardClientLive {
 	@MainActor
 	private func performPaste(_ text: String) async -> Bool {
 		for strategy in PasteStrategy.allCases {
-			if await attemptPaste(text, using: strategy) {
-				return true
-			}
+			let succeeded = await attemptPaste(text, using: strategy)
+			if succeeded { return true }
 		}
 		return false
 	}

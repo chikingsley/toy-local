@@ -110,8 +110,7 @@ final class SettingsStore {
 	private func loadLanguages() {
 		if let url = Bundle.main.url(forResource: "languages", withExtension: "json"),
 		   let data = try? Data(contentsOf: url),
-		   let langs = try? JSONDecoder().decode([Language].self, from: data)
-		{
+		   let langs = try? JSONDecoder().decode([Language].self, from: data) {
 			languages = langs
 		} else {
 			settingsLogger.error("Failed to load languages JSON from bundle")

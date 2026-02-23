@@ -26,14 +26,14 @@ struct CuratedList: View {
 
 			// Show "Show more"/"Show less" button
 			if !hiddenModels.isEmpty {
-				Button(action: { store.toggleModelDisplay() }) {
+				Button(action: { store.toggleModelDisplay() }, label: {
 					HStack {
                       Spacer()
 						Text(store.showAllModels ? "Show less" : "Show more")
 							.font(.subheadline)
 						Spacer()
 					}
-				}
+				})
 				.buttonStyle(.plain)
 				.foregroundStyle(.secondary)
 			}

@@ -180,11 +180,11 @@ public struct Modifiers: Codable, Equatable, ExpressibleByArrayLiteral, Sendable
   }
 
   public func contains(_ modifier: Modifier) -> Bool {
-    modifiers.contains(where: { $0.matches(modifier) })
+    modifiers.contains { $0.matches(modifier) }
   }
 
   public func contains(kind: Modifier.Kind) -> Bool {
-    modifiers.contains(where: { $0.kind == kind })
+    modifiers.contains { $0.kind == kind }
   }
 
   public var kinds: [Modifier.Kind] {
@@ -228,7 +228,7 @@ public struct Modifiers: Codable, Equatable, ExpressibleByArrayLiteral, Sendable
   }
 
   public func side(for kind: Modifier.Kind) -> Modifier.Side? {
-    modifiers.first(where: { $0.kind == kind })?.side
+    modifiers.first { $0.kind == kind }?.side
   }
 
   public func setting(kind: Modifier.Kind, to side: Modifier.Side) -> Modifiers {

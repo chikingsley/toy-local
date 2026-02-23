@@ -16,20 +16,18 @@ struct PermissionsSectionView: View {
 				permissionCard(
 					title: "Microphone",
 					icon: "mic.fill",
-					status: microphonePermission,
-					action: { store.requestMicrophone() }
-				)
+					status: microphonePermission
+				) { store.requestMicrophone() }
 
 			// Accessibility + Keyboard
 			permissionCard(
 				title: "Accessibility",
 				icon: "accessibility",
-				status: combinedAccessibilityStatus,
-				action: {
-					store.requestAccessibility()
-					store.requestInputMonitoring()
-				}
-			)
+				status: combinedAccessibilityStatus
+			) {
+				store.requestAccessibility()
+				store.requestInputMonitoring()
+			}
 		}
 
 		if store.hotkeyPermissionState.inputMonitoring != .granted {
