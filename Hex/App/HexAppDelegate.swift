@@ -77,8 +77,13 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 		guard invisibleWindow == nil else {
 			return
 		}
-		let transcriptionStore = HexApp.appStore.scope(state: \.transcription, action: \.transcription)
-		let transcriptionView = TranscriptionView(store: transcriptionStore).padding().padding(.top).padding(.top)
+		let appStore = HexApp.appStore
+		let transcriptionStore = appStore.scope(state: \.transcription, action: \.transcription)
+		let alwaysOnStore = appStore.scope(state: \.alwaysOn, action: \.alwaysOn)
+		let transcriptionView = IndicatorHostView(
+			transcriptionStore: transcriptionStore,
+			alwaysOnStore: alwaysOnStore
+		).padding().padding(.top).padding(.top)
 			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 		invisibleWindow = InvisibleWindow.fromView(transcriptionView)
 		invisibleWindow?.makeKeyAndOrderFront(nil)

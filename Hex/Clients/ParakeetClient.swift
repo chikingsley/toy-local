@@ -2,7 +2,7 @@ import Foundation
 import HexCore
 
 #if canImport(FluidAudio)
-import FluidAudio
+@preconcurrency import FluidAudio
 
 actor ParakeetClient {
   private var asr: AsrManager?
@@ -46,12 +46,19 @@ actor ParakeetClient {
     return false
   }
 
-  func ensureLoaded(modelName: String, progress: @escaping (Progress) -> Void) async throws {
+  func ensureLoaded(modelName: String, progress: @Sendable @escaping (Progress) -> Void) async throws {
     guard let variant = ParakeetModel(rawValue: modelName) else {
       throw NSError(
         domain: "Parakeet",
         code: -4,
         userInfo: [NSLocalizedDescriptionKey: "Unsupported Parakeet variant: \(modelName)"]
+      )
+    }
+    guard let version = variant.asrVersion else {
+      throw NSError(
+        domain: "Parakeet",
+        code: -5,
+        userInfo: [NSLocalizedDescriptionKey: "Streaming models are not supported by batch ParakeetClient. Use StreamingParakeetClient instead."]
       )
     }
     if currentVariant == variant, asr != nil { return }
@@ -84,7 +91,7 @@ actor ParakeetClient {
     defer { pollTask.cancel() }
 
     // Download + load the requested variant (returns when all assets are present)
-    let models = try await AsrModels.downloadAndLoad(version: variant.asrVersion)
+    let models = try await AsrModels.downloadAndLoad(version: version)
     self.models = models
     let manager = AsrManager(config: .init())
     try await manager.initialize(models: models)
@@ -173,10 +180,11 @@ actor ParakeetClient {
 }
 
 private extension ParakeetModel {
-  var asrVersion: AsrModelVersion {
+  var asrVersion: AsrModelVersion? {
     switch self {
     case .englishV2: return .v2
     case .multilingualV3: return .v3
+    case .streamingEou160, .streamingEou320: return nil // Handled by StreamingParakeetClient
     }
   }
 }
@@ -185,7 +193,7 @@ private extension ParakeetModel {
 
 actor ParakeetClient {
   func isModelAvailable(_ modelName: String) async -> Bool { false }
-  func ensureLoaded(modelName: String, progress: @escaping (Progress) -> Void) async throws {
+  func ensureLoaded(modelName: String, progress: @Sendable @escaping (Progress) -> Void) async throws {
     throw NSError(
       domain: "Parakeet",
       code: -2,

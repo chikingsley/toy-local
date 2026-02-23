@@ -19,7 +19,7 @@ class InvisibleWindow: NSPanel {
   override var canBecomeMain: Bool { true }
 
   private var currentScreen: NSScreen?
-  private var mouseMonitor: Any?
+  private nonisolated(unsafe) var mouseMonitor: Any?
 
   init() {
     let screen = NSScreen.main ?? NSScreen.screens[0]

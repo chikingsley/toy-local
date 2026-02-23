@@ -15,6 +15,12 @@ import WhisperKit
 
 private let transcriptionFeatureLogger = HexLog.transcription
 
+/// Thread-safe mutable reference wrapper for value types in @Sendable closures.
+private final class MutableRef<Value>: @unchecked Sendable {
+	var value: Value
+	init(_ value: Value) { self.value = value }
+}
+
 @Reducer
 struct TranscriptionFeature {
   @ObservableState
@@ -160,44 +166,53 @@ private extension TranscriptionFeature {
   /// Effect to start monitoring hotkey events through the `keyEventMonitor`.
   func startHotKeyMonitoringEffect() -> Effect<Action> {
     .run { send in
-      var hotKeyProcessor: HotKeyProcessor = .init(hotkey: HotKey(key: nil, modifiers: [.option]))
+      let processor = MutableRef(HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option])))
       @Shared(.isSettingHotKey) var isSettingHotKey: Bool
       @Shared(.hexSettings) var hexSettings: HexSettings
 
+      // Capture Sendable Shared<T> values for the @Sendable closure
+      let sharedSettings = $hexSettings
+      let sharedIsSettingHotKey = $isSettingHotKey
+
       // Handle incoming input events (keyboard and mouse)
       let token = keyEventMonitor.handleInputEvent { inputEvent in
+        // Skip if always-on mode is active (it handles its own hotkeys)
+        if sharedSettings.wrappedValue.alwaysOnEnabled {
+          return false
+        }
+
         // Skip if the user is currently setting a hotkey
-        if isSettingHotKey {
+        if sharedIsSettingHotKey.wrappedValue {
           return false
         }
 
         // Always keep hotKeyProcessor in sync with current user hotkey preference
-        hotKeyProcessor.hotkey = hexSettings.hotkey
-        hotKeyProcessor.useDoubleTapOnly = hexSettings.useDoubleTapOnly
-        hotKeyProcessor.minimumKeyTime = hexSettings.minimumKeyTime
+        processor.value.hotkey = sharedSettings.wrappedValue.hotkey
+        processor.value.useDoubleTapOnly = sharedSettings.wrappedValue.useDoubleTapOnly
+        processor.value.minimumKeyTime = sharedSettings.wrappedValue.minimumKeyTime
 
         switch inputEvent {
         case .keyboard(let keyEvent):
           // If Escape is pressed with no modifiers while idle, let's treat that as `cancel`.
           if keyEvent.key == .escape, keyEvent.modifiers.isEmpty,
-             hotKeyProcessor.state == .idle
+             processor.value.state == .idle
           {
             Task { await send(.cancel) }
             return false
           }
 
           // Process the key event
-          switch hotKeyProcessor.process(keyEvent: keyEvent) {
+          switch processor.value.process(keyEvent: keyEvent) {
           case .startRecording:
             // If double-tap lock is triggered, we start recording immediately
-            if hotKeyProcessor.state == .doubleTapLock {
+            if processor.value.state == .doubleTapLock {
               Task { await send(.startRecording) }
             } else {
               Task { await send(.hotKeyPressed) }
             }
             // If the hotkey is purely modifiers, return false to keep it from interfering with normal usage
             // But if useDoubleTapOnly is true, always intercept the key
-            return hexSettings.useDoubleTapOnly || keyEvent.key != nil
+            return sharedSettings.wrappedValue.useDoubleTapOnly || keyEvent.key != nil
 
           case .stopRecording:
             Task { await send(.hotKeyReleased) }
@@ -214,8 +229,8 @@ private extension TranscriptionFeature {
           case .none:
             // If we detect repeated same chord, maybe intercept.
             if let pressedKey = keyEvent.key,
-               pressedKey == hotKeyProcessor.hotkey.key,
-               keyEvent.modifiers == hotKeyProcessor.hotkey.modifiers
+               pressedKey == processor.value.hotkey.key,
+               keyEvent.modifiers == processor.value.hotkey.modifiers
             {
               return true
             }
@@ -224,7 +239,7 @@ private extension TranscriptionFeature {
 
         case .mouseClick:
           // Process mouse click - for modifier-only hotkeys, this may cancel/discard
-          switch hotKeyProcessor.processMouseClick() {
+          switch processor.value.processMouseClick() {
           case .cancel:
             Task { await send(.cancel) }
             return false // Don't intercept the click itself
@@ -554,10 +569,13 @@ private extension TranscriptionFeature {
 
 struct TranscriptionView: View {
   @Bindable var store: StoreOf<TranscriptionFeature>
+  var alwaysOnListening: Bool = false
   @ObserveInjection var inject
 
   var status: TranscriptionIndicatorView.Status {
-    if store.isTranscribing {
+    if alwaysOnListening {
+      return .alwaysOnListening
+    } else if store.isTranscribing {
       return .transcribing
     } else if store.isRecording {
       return .recording
@@ -577,6 +595,24 @@ struct TranscriptionView: View {
       await store.send(.task).finish()
     }
     .enableInjection()
+  }
+}
+
+// MARK: - Indicator Host (combines TranscriptionView + AlwaysOn state)
+
+/// Wraps TranscriptionView and passes always-on listening state for the indicator.
+struct IndicatorHostView: View {
+  let transcriptionStore: StoreOf<TranscriptionFeature>
+  let alwaysOnStore: StoreOf<AlwaysOnFeature>
+
+  var body: some View {
+    TranscriptionView(
+      store: transcriptionStore,
+      alwaysOnListening: alwaysOnStore.isListening
+    )
+    .task {
+      await alwaysOnStore.send(.task).finish()
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import SwiftUI
 struct SettingsView: View {
 	@ObserveInjection var inject
 	@Bindable var store: StoreOf<SettingsFeature>
+	var alwaysOnStore: StoreOf<AlwaysOnFeature>
 	let microphonePermission: PermissionStatus
 	let accessibilityPermission: PermissionStatus
 	let inputMonitoringPermission: PermissionStatus
@@ -30,7 +31,9 @@ struct SettingsView: View {
 			}
 
 			HotKeySectionView(store: store)
-          
+
+			AlwaysOnSectionView(store: store, alwaysOnStore: alwaysOnStore)
+
 			if microphonePermission == .granted && !store.availableInputDevices.isEmpty {
 				MicrophoneSelectionSectionView(store: store)
 			}

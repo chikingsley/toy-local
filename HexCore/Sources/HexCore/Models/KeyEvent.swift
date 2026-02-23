@@ -5,14 +5,14 @@
 //  Created by Kit Langton on 1/28/25.
 //
 
-import Sauce
+@preconcurrency import Sauce
 
-public enum InputEvent {
+public enum InputEvent: Sendable {
     case keyboard(KeyEvent)
     case mouseClick
 }
 
-public struct KeyEvent {
+public struct KeyEvent: Sendable {
     public let key: Key?
     public let modifiers: Modifiers
     

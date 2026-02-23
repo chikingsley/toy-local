@@ -5,12 +5,12 @@
 //  Created by Kit Langton on 1/24/25.
 //
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import Dependencies
 import DependenciesMacros
 import Foundation
 import HexCore
-import WhisperKit
+@preconcurrency import WhisperKit
 
 private let transcriptionLogger = HexLog.transcription
 private let modelsLogger = HexLog.models
@@ -22,10 +22,10 @@ private let parakeetLogger = HexLog.parakeet
 struct TranscriptionClient {
   /// Transcribes an audio file at the specified `URL` using the named `model`.
   /// Reports transcription progress via `progressCallback`.
-  var transcribe: @Sendable (URL, String, DecodingOptions, @escaping (Progress) -> Void) async throws -> String
+  var transcribe: @Sendable (URL, String, DecodingOptions, @Sendable @escaping (Progress) -> Void) async throws -> String
 
   /// Ensures a model is downloaded (if missing) and loaded into memory, reporting progress via `progressCallback`.
-  var downloadModel: @Sendable (String, @escaping (Progress) -> Void) async throws -> Void
+  var downloadModel: @Sendable (String, @Sendable @escaping (Progress) -> Void) async throws -> Void
 
   /// Deletes a model from disk if it exists
   var deleteModel: @Sendable (String) async throws -> Void
@@ -73,6 +73,7 @@ actor TranscriptionClientLive {
   /// The name of the currently loaded model, if any.
   private var currentModelName: String?
   private var parakeet: ParakeetClient = ParakeetClient()
+  private var streamingParakeet: StreamingParakeetClient = StreamingParakeetClient()
 
   /// The base folder under which we store model data (e.g., ~/Library/Application Support/...).
   private lazy var modelsBaseFolder: URL = {
@@ -98,8 +99,13 @@ actor TranscriptionClientLive {
 
   /// Ensures the given `variant` model is downloaded and loaded, reporting
   /// overall progress (0%–50% for downloading, 50%–100% for loading).
-  func downloadAndLoadModel(variant: String, progressCallback: @escaping (Progress) -> Void) async throws {
-    // If Parakeet, use Parakeet client path
+  func downloadAndLoadModel(variant: String, progressCallback: @Sendable @escaping (Progress) -> Void) async throws {
+    // Streaming Parakeet models use StreamingParakeetClient
+    if isStreamingParakeet(variant) {
+      try await streamingParakeet.ensureLoaded(progress: progressCallback)
+      return
+    }
+    // If batch Parakeet, use ParakeetClient path
     if isParakeet(variant) {
       try await parakeet.ensureLoaded(modelName: variant, progress: progressCallback)
       currentModelName = variant
@@ -151,6 +157,10 @@ actor TranscriptionClientLive {
 
   /// Deletes a model from disk if it exists
   func deleteModel(variant: String) async throws {
+    if isStreamingParakeet(variant) {
+      try await streamingParakeet.deleteCaches()
+      return
+    }
     if isParakeet(variant) {
       try await parakeet.deleteCaches(modelName: variant)
       if currentModelName == variant { unloadCurrentModel() }
@@ -178,6 +188,11 @@ actor TranscriptionClientLive {
   /// Returns `true` if the model is already downloaded to the local folder.
   /// Performs a thorough check to ensure the model files are actually present and usable.
   func isModelDownloaded(_ modelName: String) async -> Bool {
+    if isStreamingParakeet(modelName) {
+      let available = await streamingParakeet.isModelAvailable()
+      parakeetLogger.debug("Streaming Parakeet available? \(available)")
+      return available
+    }
     if isParakeet(modelName) {
       let available = await parakeet.isModelAvailable(modelName)
       parakeetLogger.debug("Parakeet available? \(available)")
@@ -236,7 +251,7 @@ actor TranscriptionClientLive {
     url: URL,
     model: String,
     options: DecodingOptions,
-    progressCallback: @escaping (Progress) -> Void
+    progressCallback: @Sendable @escaping (Progress) -> Void
   ) async throws -> String {
     let startAll = Date()
     if isParakeet(model) {
@@ -309,7 +324,13 @@ actor TranscriptionClientLive {
   }
 
   private func isParakeet(_ name: String) -> Bool {
-    ParakeetModel(rawValue: name) != nil
+    guard let model = ParakeetModel(rawValue: name) else { return false }
+    return !model.isStreaming
+  }
+
+  private func isStreamingParakeet(_ name: String) -> Bool {
+    guard let model = ParakeetModel(rawValue: name) else { return false }
+    return model.isStreaming
   }
 
   /// Creates or returns the local folder (on disk) for a given `variant` model.
@@ -338,7 +359,7 @@ actor TranscriptionClientLive {
   /// then moves it into its final folder in `modelsBaseFolder`.
   private func downloadModelIfNeeded(
     variant: String,
-    progressCallback: @escaping (Progress) -> Void
+    progressCallback: @Sendable @escaping (Progress) -> Void
   ) async throws {
     let modelFolder = modelPath(for: variant)
 
@@ -395,7 +416,7 @@ actor TranscriptionClientLive {
   /// Loads a local model folder via `WhisperKitConfig`, optionally reporting load progress.
   private func loadWhisperKitModel(
     _ modelName: String,
-    progressCallback: @escaping (Progress) -> Void
+    progressCallback: @Sendable @escaping (Progress) -> Void
   ) async throws {
     let loadingProgress = Progress(totalUnitCount: 100)
     loadingProgress.completedUnitCount = 0

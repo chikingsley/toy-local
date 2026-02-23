@@ -17,12 +17,15 @@ struct TranscriptionIndicatorView: View {
     case recording
     case transcribing
     case prewarming
+    case alwaysOnListening
   }
 
   var status: Status
   var meter: Meter
 
   let transcribeBaseColor: Color = .blue
+  let alwaysOnBaseColor: Color = .green
+
   private var backgroundColor: Color {
     switch status {
     case .hidden: return Color.clear
@@ -30,6 +33,7 @@ struct TranscriptionIndicatorView: View {
     case .recording: return .red.mix(with: .black, by: 0.5).mix(with: .red, by: meter.averagePower * 3)
     case .transcribing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .prewarming: return transcribeBaseColor.mix(with: .black, by: 0.5)
+    case .alwaysOnListening: return alwaysOnBaseColor.mix(with: .black, by: 0.5)
     }
   }
 
@@ -40,6 +44,7 @@ struct TranscriptionIndicatorView: View {
     case .recording: return Color.red.mix(with: .white, by: 0.1).opacity(0.6)
     case .transcribing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .prewarming: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
+    case .alwaysOnListening: return alwaysOnBaseColor.mix(with: .white, by: 0.1).opacity(0.4)
     }
   }
 
@@ -50,6 +55,7 @@ struct TranscriptionIndicatorView: View {
     case .recording: return Color.red
     case .transcribing: return transcribeBaseColor
     case .prewarming: return transcribeBaseColor
+    case .alwaysOnListening: return alwaysOnBaseColor
     }
   }
 

@@ -184,17 +184,37 @@ struct WordRemappingsView: View {
 	}
 
 	private func removalBinding(for id: UUID) -> Binding<WordRemoval>? {
-		guard let index = store.hexSettings.wordRemovals.firstIndex(where: { $0.id == id }) else {
+		guard store.hexSettings.wordRemovals.contains(where: { $0.id == id }) else {
 			return nil
 		}
-		return $store.hexSettings.wordRemovals[index]
+		return Binding(
+			get: {
+				store.hexSettings.wordRemovals.first { $0.id == id }
+					?? WordRemoval(pattern: "")
+			},
+			set: { newValue in
+				if let idx = store.hexSettings.wordRemovals.firstIndex(where: { $0.id == id }) {
+					$store.hexSettings.wordRemovals.wrappedValue[idx] = newValue
+				}
+			}
+		)
 	}
 
 	private func remappingBinding(for id: UUID) -> Binding<WordRemapping>? {
-		guard let index = store.hexSettings.wordRemappings.firstIndex(where: { $0.id == id }) else {
+		guard store.hexSettings.wordRemappings.contains(where: { $0.id == id }) else {
 			return nil
 		}
-		return $store.hexSettings.wordRemappings[index]
+		return Binding(
+			get: {
+				store.hexSettings.wordRemappings.first { $0.id == id }
+					?? WordRemapping(match: "", replacement: "")
+			},
+			set: { newValue in
+				if let idx = store.hexSettings.wordRemappings.firstIndex(where: { $0.id == id }) {
+					$store.hexSettings.wordRemappings.wrappedValue[idx] = newValue
+				}
+			}
+		)
 	}
 
 	private var previewText: String {

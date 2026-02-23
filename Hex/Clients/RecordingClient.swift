@@ -122,7 +122,7 @@ class MediaRemoteController {
 }
 
 // Global instance of MediaRemoteController
-private let mediaRemoteController = MediaRemoteController()
+private nonisolated(unsafe) let mediaRemoteController = MediaRemoteController()
 
 func isAudioPlayingOnDefaultOutput() async -> Bool {
   // Refresh the state before checking
@@ -159,8 +159,8 @@ private let installedMediaPlayers: [String: String] = {
 }()
 
 // Backoff to avoid spamming AppleScript errors on systems without controllable players
-private var mediaControlErrorCount = 0
-private var mediaControlDisabled = false
+private nonisolated(unsafe) var mediaControlErrorCount = 0
+private nonisolated(unsafe) var mediaControlDisabled = false
 
 func pauseAllMediaApplications() async -> [String] {
   if mediaControlDisabled { return [] }

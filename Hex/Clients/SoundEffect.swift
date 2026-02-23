@@ -14,7 +14,7 @@ import HexCore
 import SwiftUI
 
 // Thank you. Never mind then.What a beautiful idea.
-public enum SoundEffect: String, CaseIterable {
+public enum SoundEffect: String, CaseIterable, Sendable {
   case pasteTranscript
   case startRecording
   case stopRecording
@@ -30,7 +30,7 @@ public enum SoundEffect: String, CaseIterable {
 }
 
 @DependencyClient
-public struct SoundEffectsClient {
+public struct SoundEffectsClient: Sendable {
   public var play: @Sendable (SoundEffect) -> Void
   public var stop: @Sendable (SoundEffect) -> Void
   public var stopAll: @Sendable () -> Void

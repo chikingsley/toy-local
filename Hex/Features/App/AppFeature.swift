@@ -25,6 +25,7 @@ struct AppFeature {
 		var transcription: TranscriptionFeature.State = .init()
 		var settings: SettingsFeature.State = .init()
 		var history: HistoryFeature.State = .init()
+		var alwaysOn: AlwaysOnFeature.State = .init()
 		var activeTab: ActiveTab = .settings
 		@Shared(.hexSettings) var hexSettings: HexSettings
 		@Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
@@ -40,6 +41,7 @@ struct AppFeature {
     case transcription(TranscriptionFeature.Action)
     case settings(SettingsFeature.Action)
     case history(HistoryFeature.Action)
+    case alwaysOn(AlwaysOnFeature.Action)
     case setActiveTab(ActiveTab)
     case task
     case pasteLastTranscript
@@ -72,6 +74,10 @@ struct AppFeature {
 
     Scope(state: \.history, action: \.history) {
       HistoryFeature()
+    }
+
+    Scope(state: \.alwaysOn, action: \.alwaysOn) {
+      AlwaysOnFeature()
     }
 
     Reduce { state, action in
@@ -118,6 +124,9 @@ struct AppFeature {
         state.activeTab = .settings
         return .none
       case .history:
+        return .none
+
+      case .alwaysOn:
         return .none
 		case let .setActiveTab(tab):
 			state.activeTab = tab
@@ -178,14 +187,18 @@ struct AppFeature {
       @Shared(.isSettingPasteLastTranscriptHotkey) var isSettingPasteLastTranscriptHotkey: Bool
       @Shared(.hexSettings) var hexSettings: HexSettings
 
+      // Capture Sendable Shared<T> values for the @Sendable closure
+      let sharedSettings = $hexSettings
+      let sharedIsSettingHotKey = $isSettingPasteLastTranscriptHotkey
+
       let token = keyEventMonitor.handleKeyEvent { keyEvent in
         // Skip if user is setting a hotkey
-        if isSettingPasteLastTranscriptHotkey {
+        if sharedIsSettingHotKey.wrappedValue {
           return false
         }
 
         // Check if this matches the paste last transcript hotkey
-        guard let pasteHotkey = hexSettings.pasteLastTranscriptHotkey,
+        guard let pasteHotkey = sharedSettings.wrappedValue.pasteLastTranscriptHotkey,
               let key = keyEvent.key,
               key == pasteHotkey.key,
               keyEvent.modifiers.matchesExactly(pasteHotkey.modifiers) else {
@@ -299,6 +312,7 @@ struct AppView: View {
       case .settings:
         SettingsView(
           store: store.scope(state: \.settings, action: \.settings),
+          alwaysOnStore: store.scope(state: \.alwaysOn, action: \.alwaysOn),
           microphonePermission: store.microphonePermission,
           accessibilityPermission: store.accessibilityPermission,
           inputMonitoringPermission: store.inputMonitoringPermission

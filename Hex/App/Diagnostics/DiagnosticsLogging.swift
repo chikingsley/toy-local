@@ -2,7 +2,7 @@ import HexCore
 import OSLog
 
 enum DiagnosticsLogging {
-  private static var isBootstrapped = false
+  private nonisolated(unsafe) static var isBootstrapped = false
   private static let logger = Logger(subsystem: HexLog.subsystem, category: "Diagnostics")
 
   static func bootstrapIfNeeded() {

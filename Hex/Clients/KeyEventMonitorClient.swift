@@ -1,5 +1,5 @@
 import AppKit
-import ApplicationServices
+@preconcurrency import ApplicationServices
 import Carbon
 import ComposableArchitecture
 import CoreGraphics
@@ -89,7 +89,7 @@ extension DependencyValues {
   }
 }
 
-class KeyEventMonitorClientLive {
+class KeyEventMonitorClientLive: @unchecked Sendable {
   private var eventTapPort: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
   private var continuations: [UUID: @Sendable (KeyEvent) -> Bool] = [:]

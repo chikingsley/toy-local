@@ -45,6 +45,10 @@ public struct HexSettings: Codable, Equatable, Sendable {
 	public var wordRemovalsEnabled: Bool
 	public var wordRemovals: [WordRemoval]
 	public var wordRemappings: [WordRemapping]
+	public var alwaysOnEnabled: Bool
+	public var alwaysOnPasteHotkey: HotKey?
+	public var alwaysOnDumpHotkey: HotKey?
+	public var alwaysOnStreamingModel: String
 
 	public init(
 		soundEffectsEnabled: Bool = true,
@@ -68,7 +72,11 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		hasCompletedStorageMigration: Bool = false,
 		wordRemovalsEnabled: Bool = false,
 		wordRemovals: [WordRemoval] = HexSettings.defaultWordRemovals,
-		wordRemappings: [WordRemapping] = []
+		wordRemappings: [WordRemapping] = [],
+		alwaysOnEnabled: Bool = false,
+		alwaysOnPasteHotkey: HotKey? = HotKey(key: nil, modifiers: [.fn]),
+		alwaysOnDumpHotkey: HotKey? = nil,
+		alwaysOnStreamingModel: String = ParakeetModel.streamingEou160.identifier
 	) {
 		self.soundEffectsEnabled = soundEffectsEnabled
 		self.soundEffectsVolume = soundEffectsVolume
@@ -92,6 +100,10 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		self.wordRemovalsEnabled = wordRemovalsEnabled
 		self.wordRemovals = wordRemovals
 		self.wordRemappings = wordRemappings
+		self.alwaysOnEnabled = alwaysOnEnabled
+		self.alwaysOnPasteHotkey = alwaysOnPasteHotkey
+		self.alwaysOnDumpHotkey = alwaysOnDumpHotkey
+		self.alwaysOnStreamingModel = alwaysOnStreamingModel
 	}
 
 	public init(from decoder: Decoder) throws {
@@ -136,6 +148,10 @@ private enum HexSettingKey: String, CodingKey, CaseIterable {
 	case wordRemovalsEnabled
 	case wordRemovals
 	case wordRemappings
+	case alwaysOnEnabled
+	case alwaysOnPasteHotkey
+	case alwaysOnDumpHotkey
+	case alwaysOnStreamingModel
 }
 
 private struct SettingsField<Value: Codable & Sendable> {
@@ -266,6 +282,24 @@ private enum HexSettingsSchema {
 			.wordRemappings,
 			keyPath: \.wordRemappings,
 			default: defaults.wordRemappings
-		).eraseToAny()
+		).eraseToAny(),
+		SettingsField(.alwaysOnEnabled, keyPath: \.alwaysOnEnabled, default: defaults.alwaysOnEnabled).eraseToAny(),
+		SettingsField(
+			.alwaysOnPasteHotkey,
+			keyPath: \.alwaysOnPasteHotkey,
+			default: defaults.alwaysOnPasteHotkey,
+			encode: { container, key, value in
+				try container.encodeIfPresent(value, forKey: key)
+			}
+		).eraseToAny(),
+		SettingsField(
+			.alwaysOnDumpHotkey,
+			keyPath: \.alwaysOnDumpHotkey,
+			default: defaults.alwaysOnDumpHotkey,
+			encode: { container, key, value in
+				try container.encodeIfPresent(value, forKey: key)
+			}
+		).eraseToAny(),
+		SettingsField(.alwaysOnStreamingModel, keyPath: \.alwaysOnStreamingModel, default: defaults.alwaysOnStreamingModel).eraseToAny()
 	]
 }

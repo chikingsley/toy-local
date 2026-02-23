@@ -59,7 +59,7 @@ extension URL {
 	}
 }
 
-class AudioPlayerController: NSObject, AVAudioPlayerDelegate {
+class AudioPlayerController: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
 	private var player: AVAudioPlayer?
 	var onPlaybackFinished: (() -> Void)?
 

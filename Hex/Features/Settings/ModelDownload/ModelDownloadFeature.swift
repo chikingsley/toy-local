@@ -210,7 +210,12 @@ public struct ModelDownloadFeature {
 			// If the curated item is a glob (e.g., "distil*large-v3"),
 			// resolve it to a concrete available model so both tabs stay in sync
 			let resolved = resolvePattern(model, from: Array(state.availableModels)) ?? model
-			state.$hexSettings.withLock { $0.selectedModel = resolved }
+			let isStreaming = ParakeetModel(rawValue: resolved)?.isStreaming == true
+			state.$hexSettings.withLock {
+				$0.selectedModel = resolved
+				// Auto-toggle always-on mode based on model type
+				$0.alwaysOnEnabled = isStreaming
+			}
 			updateBootstrapState(&state)
 			return .none
 
