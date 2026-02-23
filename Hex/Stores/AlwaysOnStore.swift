@@ -250,10 +250,21 @@ final class AlwaysOnStore {
 				}
 
 				_ = try await sharedStreamingClient.finish()
+			} catch is CancellationError {
+				// Intentional cancellation from stopListening — don't restart
+				return
 			} catch {
 				logger.error("Audio capture error: \(error.localizedDescription)")
-				self.error = error.localizedDescription
 			}
+
+			// If we're still supposed to be listening but the pipeline died,
+			// restart it after a brief delay to avoid tight retry loops.
+			guard !Task.isCancelled, self.isListening else { return }
+			logger.notice("Audio capture ended unexpectedly — restarting")
+			self.meter = .init(averagePower: 0, peakPower: 0)
+			try? await Task.sleep(for: .milliseconds(300))
+			guard !Task.isCancelled, self.isListening else { return }
+			self.startAudioCapture()
 		}
 	}
 
