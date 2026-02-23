@@ -118,6 +118,7 @@ final class SettingsManager {
 		self.transcriptionHistory = Self.load(TranscriptionHistory.self, from: resolvedHistoryURL) ?? .init()
 
 		logger.info("SettingsManager initialized. Settings URL: \(resolvedSettingsURL.path)")
+		logger.info("Loaded \(self.settings.wordRemappings.count) word remappings from disk")
 	}
 
 	// MARK: - Persistence Helpers

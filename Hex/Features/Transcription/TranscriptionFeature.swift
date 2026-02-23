@@ -32,6 +32,10 @@ struct TranscriptionView: View {
 	}
 
 	var body: some View {
+		// Force observation of always-on state changes
+		let _ = alwaysOnStore?.isListening
+		let _ = alwaysOnStore?.meter
+
 		TranscriptionIndicatorView(
 			status: status,
 			meter: activeMeter
