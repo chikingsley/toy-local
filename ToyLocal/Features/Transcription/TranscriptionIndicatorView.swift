@@ -10,7 +10,7 @@ import SwiftUI
 
 struct TranscriptionIndicatorView: View {
   @ObserveInjection var inject
-  
+
   enum Status {
     case hidden
     case optionKeyPressed
@@ -80,7 +80,7 @@ struct TranscriptionIndicatorView: View {
     status == .hidden
   }
 
-  @State var transcribeEffect = 0
+  @State private var transcribeEffect = 0
 
   var body: some View {
     let averagePower = min(1, meter.averagePower * 3)
@@ -144,7 +144,7 @@ struct TranscriptionIndicatorView: View {
             try? await Task.sleep(for: .seconds(0.25))
           }
         }
-      
+
       // Show tooltip when prewarming
       if status == .prewarming {
         VStack(spacing: 4) {
