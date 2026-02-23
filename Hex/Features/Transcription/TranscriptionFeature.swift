@@ -6,11 +6,11 @@ import SwiftUI
 
 struct TranscriptionView: View {
 	var store: TranscriptionStore
-	var alwaysOnListening: Bool = false
+	var alwaysOnStore: AlwaysOnStore?
 	@ObserveInjection var inject
 
 	var status: TranscriptionIndicatorView.Status {
-		if alwaysOnListening {
+		if alwaysOnStore?.isListening == true {
 			return .alwaysOnListening
 		} else if store.isTranscribing {
 			return .transcribing
@@ -23,10 +23,18 @@ struct TranscriptionView: View {
 		}
 	}
 
+	/// Use the always-on meter when listening, otherwise the transcription meter.
+	var activeMeter: Meter {
+		if let alwaysOnStore, alwaysOnStore.isListening {
+			return alwaysOnStore.meter
+		}
+		return store.meter
+	}
+
 	var body: some View {
 		TranscriptionIndicatorView(
 			status: status,
-			meter: store.meter
+			meter: activeMeter
 		)
 		.enableInjection()
 	}
@@ -42,7 +50,7 @@ struct IndicatorHostView: View {
 	var body: some View {
 		TranscriptionView(
 			store: transcriptionStore,
-			alwaysOnListening: alwaysOnStore.isListening
+			alwaysOnStore: alwaysOnStore
 		)
 	}
 }

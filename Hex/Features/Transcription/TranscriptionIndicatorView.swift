@@ -26,14 +26,27 @@ struct TranscriptionIndicatorView: View {
   let transcribeBaseColor: Color = .blue
   let alwaysOnBaseColor: Color = .green
 
+  /// The accent color used for the active/recording glow effects.
+  private var activeColor: Color {
+    switch status {
+    case .alwaysOnListening: return alwaysOnBaseColor
+    case .recording: return .red
+    default: return .red
+    }
+  }
+
+  private var isActive: Bool {
+    status == .recording || status == .alwaysOnListening
+  }
+
   private var backgroundColor: Color {
     switch status {
     case .hidden: return Color.clear
     case .optionKeyPressed: return Color.black
-    case .recording: return .red.mix(with: .black, by: 0.5).mix(with: .red, by: meter.averagePower * 3)
+    case .recording: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .transcribing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .prewarming: return transcribeBaseColor.mix(with: .black, by: 0.5)
-    case .alwaysOnListening: return alwaysOnBaseColor.mix(with: .black, by: 0.5)
+    case .alwaysOnListening: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     }
   }
 
@@ -41,10 +54,10 @@ struct TranscriptionIndicatorView: View {
     switch status {
     case .hidden: return Color.clear
     case .optionKeyPressed: return Color.black
-    case .recording: return Color.red.mix(with: .white, by: 0.1).opacity(0.6)
+    case .recording: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .transcribing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .prewarming: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
-    case .alwaysOnListening: return alwaysOnBaseColor.mix(with: .white, by: 0.1).opacity(0.4)
+    case .alwaysOnListening: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     }
   }
 
@@ -52,10 +65,10 @@ struct TranscriptionIndicatorView: View {
     switch status {
     case .hidden: return Color.clear
     case .optionKeyPressed: return Color.clear
-    case .recording: return Color.red
+    case .recording: return activeColor
     case .transcribing: return transcribeBaseColor
     case .prewarming: return transcribeBaseColor
-    case .alwaysOnListening: return alwaysOnBaseColor
+    case .alwaysOnListening: return activeColor
     }
   }
 
@@ -82,14 +95,14 @@ struct TranscriptionIndicatorView: View {
         }
         .overlay(alignment: .center) {
           RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(Color.red.opacity(status == .recording ? (averagePower < 0.1 ? averagePower / 0.1 : 1) : 0))
+            .fill(activeColor.opacity(isActive ? (averagePower < 0.1 ? averagePower / 0.1 : 1) : 0))
             .blur(radius: 2)
             .blendMode(.screen)
             .padding(6)
         }
         .overlay(alignment: .center) {
           RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(Color.white.opacity(status == .recording ? (averagePower < 0.1 ? averagePower / 0.1 : 0.5) : 0))
+            .fill(Color.white.opacity(isActive ? (averagePower < 0.1 ? averagePower / 0.1 : 0.5) : 0))
             .blur(radius: 1)
             .blendMode(.screen)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -98,7 +111,7 @@ struct TranscriptionIndicatorView: View {
         .overlay(alignment: .center) {
           GeometryReader { proxy in
             RoundedRectangle(cornerRadius: cornerRadius)
-              .fill(Color.red.opacity(status == .recording ? (peakPower < 0.1 ? (peakPower / 0.1) * 0.5 : 0.5) : 0))
+              .fill(activeColor.opacity(isActive ? (peakPower < 0.1 ? (peakPower / 0.1) * 0.5 : 0.5) : 0))
               .frame(width: max(proxy.size.width * (peakPower + 0.6), 0), height: proxy.size.height, alignment: .center)
               .frame(maxWidth: .infinity, alignment: .center)
               .blur(radius: 4)
@@ -107,23 +120,23 @@ struct TranscriptionIndicatorView: View {
         }
         .cornerRadius(cornerRadius)
         .shadow(
-          color: status == .recording ? .red.opacity(averagePower) : .red.opacity(0),
+          color: isActive ? activeColor.opacity(averagePower) : activeColor.opacity(0),
           radius: 4
         )
         .shadow(
-          color: status == .recording ? .red.opacity(averagePower * 0.5) : .red.opacity(0),
+          color: isActive ? activeColor.opacity(averagePower * 0.5) : activeColor.opacity(0),
           radius: 8
         )
         .animation(.interactiveSpring(), value: meter)
         .frame(
-          width: status == .recording ? expandedWidth : baseWidth,
+          width: isActive ? expandedWidth : baseWidth,
           height: baseWidth
         )
         .opacity(status == .hidden ? 0 : 1)
         .scaleEffect(status == .hidden ? 0.0 : 1)
         .blur(radius: status == .hidden ? 4 : 0)
         .animation(.bouncy(duration: 0.3), value: status)
-        .changeEffect(.glow(color: .red.opacity(0.5), radius: 8), value: status)
+        .changeEffect(.glow(color: activeColor.opacity(0.5), radius: 8), value: status)
         .changeEffect(.shine(angle: .degrees(0), duration: 0.6), value: transcribeEffect)
         .compositingGroup()
         .task(id: status == .transcribing) {

@@ -17,6 +17,7 @@ final class AlwaysOnStore {
 	var modelDownloadProgress: Double = 0
 	var confirmedText: String = ""
 	var currentPartial: String = ""
+	var meter: Meter = .init(averagePower: 0, peakPower: 0)
 	var error: String?
 
 	/// Display text: partial includes everything (confirmed + in-progress).
@@ -138,6 +139,7 @@ final class AlwaysOnStore {
 		isListening = false
 		confirmedText = ""
 		currentPartial = ""
+		meter = .init(averagePower: 0, peakPower: 0)
 		logger.notice("Always-on listening stopped")
 
 		audioCaptureTask?.cancel()
@@ -243,6 +245,7 @@ final class AlwaysOnStore {
 
 				let audioStream = try await self.streamingAudio.startCapture()
 				for await buffer in audioStream {
+					self.updateMeter(from: buffer)
 					try await sharedStreamingClient.processBuffer(buffer)
 				}
 
@@ -252,6 +255,24 @@ final class AlwaysOnStore {
 				self.error = error.localizedDescription
 			}
 		}
+	}
+
+	// MARK: - Metering
+
+	private func updateMeter(from buffer: AVAudioPCMBuffer) {
+		guard let channelData = buffer.floatChannelData?[0] else { return }
+		let count = Int(buffer.frameLength)
+		guard count > 0 else { return }
+
+		var sumSquares: Float = 0
+		var peak: Float = 0
+		for i in 0..<count {
+			let sample = abs(channelData[i])
+			sumSquares += sample * sample
+			if sample > peak { peak = sample }
+		}
+		let rms = sqrt(sumSquares / Float(count))
+		meter = Meter(averagePower: Double(rms), peakPower: Double(peak))
 	}
 
 	// MARK: - Hotkey Monitoring
