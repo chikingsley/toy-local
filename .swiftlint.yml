@@ -1,8 +1,8 @@
-# SwiftLint configuration for Hex
+# SwiftLint configuration for toy-local
+strict: true
 
 disabled_rules:
   - trailing_whitespace
-  - line_length
   - identifier_name
   - type_name
 
@@ -34,11 +34,13 @@ opt_in_rules:
 
 # Crash-risk rules — flag prominently
 force_cast:
-  severity: warning
+  severity: error
 force_try:
-  severity: warning
+  severity: error
 force_unwrapping:
-  severity: warning
+  severity: error
+implicitly_unwrapped_optional:
+  severity: error
 
 excluded:
   - build
@@ -46,9 +48,9 @@ excluded:
   - SourcePackages
   - DerivedData
   - .swiftpm
-  - Hex.xcodeproj
-  - HexTests
-  - HexCore/.build
+  - toy-local.xcodeproj
+  - ToyLocalTests
+  - ToyLocalCore/.build
   - _archive
 
 line_length:

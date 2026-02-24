@@ -1,6 +1,6 @@
-# GitHub Actions Workflows for Hex
+# GitHub Actions Workflows for toy-local
 
-This directory contains the CI/CD workflows for the Hex project.
+This directory contains the CI/CD workflows for the ToyLocal project.
 
 ## Workflows
 
@@ -8,9 +8,11 @@ This directory contains the CI/CD workflows for the Hex project.
 - **Trigger**: On every push to main and pull requests
 - **Purpose**: Continuous integration for code quality
 - **Jobs**:
-  - Swift linting with SwiftLint
-  - Build and test in both Debug and Release configurations
-  - Caches Swift Package Manager dependencies
+  - Swift format lint check (`swift format lint`)
+  - SwiftLint linting
+  - `ToyLocalCore` Swift package tests
+  - App-level `xcodebuild test` for the shared `toy-local` scheme
+  - Release configuration `xcodebuild build` smoke check
 
 ### 2. Build and Release (`build-and-release.yml`)
 - **Trigger**: On push to main and on version tags (v*)
@@ -90,7 +92,6 @@ The workflows include placeholders for Sparkle appcast updates. To enable:
 
 ## Notes
 
-- The CI workflow runs on every push and PR for quick feedback
-- Release builds are only created for version tags or manual triggers
-- All builds target macOS 15+ and Apple Silicon
-- SwiftLint is configured but set to continue on error to avoid blocking PRs
+- The CI workflow runs on every push to `main` and on all pull requests.
+- All builds target macOS and Apple Silicon (`platform=macOS,arch=arm64`).
+- SwiftLint now runs as an enforced check (no `|| true` bypass).

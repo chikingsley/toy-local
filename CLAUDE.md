@@ -1,25 +1,25 @@
-# Hex – Dev Notes for Agents
+# ToyLocal – Dev Notes for Agents
 
 This file provides guidance for coding agents working in this repo.
 
 ## Project Overview
 
-Hex is a macOS menu bar application for on‑device voice‑to‑text. It supports Whisper (Core ML via WhisperKit) and Parakeet TDT v3 (Core ML via FluidAudio). Users activate transcription with hotkeys; text can be auto‑pasted into the active app.
+ToyLocal is a macOS menu bar application for on‑device voice‑to‑text. It supports Whisper (Core ML via WhisperKit) and Parakeet TDT v3 (Core ML via FluidAudio). Users activate transcription with hotkeys; text can be auto‑pasted into the active app.
 
 ## Build & Development Commands
 
 ```bash
 # Build the app
-xcodebuild -scheme Hex -configuration Release
+xcodebuild -project toy-local.xcodeproj -scheme "toy-local" -configuration Release
 
-# Run tests (must be run from HexCore directory for unit tests)
-cd HexCore && swift test
+# Run tests (must be run from ToyLocalCore directory for unit tests)
+cd ToyLocalCore && swift test
 
 # Or run all tests via Xcode
-xcodebuild test -scheme Hex
+xcodebuild test -project toy-local.xcodeproj -scheme "toy-local"
 
 # Open in Xcode (recommended for development)
-open Hex.xcodeproj
+open toy-local.xcodeproj
 ```
 
 ## Architecture
@@ -42,7 +42,7 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 - **WhisperKit**: Core ML transcription (tracking main branch)
 - **FluidAudio (Parakeet)**: Core ML ASR (multilingual) default model
 - **Sauce**: Keyboard event monitoring
-- **Sparkle**: Auto-updates (feed: https://hex-updates.s3.amazonaws.com/appcast.xml)
+- **Sparkle**: Auto-updates (feed: https://toy-local-updates.s3.amazonaws.com/appcast.xml)
 - **Swift Composable Architecture**: State management
 - **Inject** Hot Reloading for SwiftUI
 
@@ -54,15 +54,15 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
    - Mouse clicks and extra modifiers are discarded within threshold, ignored after
    - Only ESC cancels recordings after the threshold
 
-2. **Model Management**: Models are managed by `ModelDownloadFeature`. Curated defaults live in `Hex/Resources/Data/models.json`. The Settings UI shows a compact opinionated list (Parakeet + three Whisper sizes). No dropdowns.
+2. **Model Management**: Models are managed by `ModelDownloadFeature`. Curated defaults live in `ToyLocal/Resources/Data/models.json`. The Settings UI shows a compact opinionated list (Parakeet + three Whisper sizes). No dropdowns.
 
 3. **Sound Effects**: Audio feedback is provided via `SoundEffect.swift` using files in `Resources/Audio/`
 
 4. **Window Management**: Uses an `InvisibleWindow` for the transcription indicator overlay
 
-5. **Permissions**: Requires audio input and automation entitlements (see `Hex.entitlements`)
+5. **Permissions**: Requires audio input and automation entitlements (see `ToyLocal.entitlements`)
 
-6. **Logging**: All diagnostics should use the unified logging helper `HexLog` (`HexCore/Sources/HexCore/Logging.swift`). Pick an existing category (e.g., `.transcription`, `.recording`, `.settings`) or add a new case so Console predicates stay consistent. Avoid `print` and prefer privacy annotations (`, privacy: .private`) for anything potentially sensitive like transcript text or file paths.
+6. **Logging**: All diagnostics should use the unified logging helper `ToyLocalLog` (`ToyLocalCore/Sources/ToyLocalCore/Logging.swift`). Pick an existing category (e.g., `.transcription`, `.recording`, `.settings`) or add a new case so Console predicates stay consistent. Avoid `print` and prefer privacy annotations (`, privacy: .private`) for anything potentially sensitive like transcript text or file paths.
 
 ## Models (2025‑11)
 
@@ -73,10 +73,10 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 ### Storage Locations
 
 - WhisperKit models
-  - `~/Library/Application Support/com.kitlangton.Hex/models/argmaxinc/whisperkit-coreml/<model>`
+  - `~/Library/Application Support/com.chiejimofor.toylocal/models/argmaxinc/whisperkit-coreml/<model>`
 - Parakeet (FluidAudio)
   - We set `XDG_CACHE_HOME` on launch so Parakeet caches under the app container:
-  - `~/Library/Containers/com.kitlangton.Hex/Data/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3-coreml`
+  - `~/Library/Containers/com.chiejimofor.toylocal/Data/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3-coreml`
   - Legacy `~/.cache/fluidaudio/Models/…` is not visible to the sandbox; re‑download or import.
 
 ### Progress + Availability
@@ -92,7 +92,7 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 ### Packages
 
 - WhisperKit: `https://github.com/argmaxinc/WhisperKit`
-- FluidAudio: `https://github.com/FluidInference/FluidAudio.git` (link `FluidAudio` to Hex target)
+- FluidAudio: `https://github.com/FluidInference/FluidAudio.git` (link `FluidAudio` to ToyLocal target)
 
 ### Entitlements (Sandbox)
 
@@ -106,7 +106,7 @@ The app uses **The Composable Architecture (TCA)** for state management. Key arc
 Set at app launch and logged:
 
 ```
-XDG_CACHE_HOME = ~/Library/Containers/com.kitlangton.Hex/Data/Library/Application Support/com.kitlangton.Hex/cache
+XDG_CACHE_HOME = ~/Library/Containers/com.chiejimofor.toylocal/Data/Library/Application Support/com.chiejimofor.toylocal/cache
 ```
 
 FluidAudio models reside under `Application Support/FluidAudio/Models`.
@@ -120,7 +120,7 @@ FluidAudio models reside under `Application Support/FluidAudio/Models`.
 
 - Repeated mic prompts during debug: ensure Debug signing uses "Apple Development" so TCC sticks
 - Sandbox network errors (‑1003): add `com.apple.security.network.client = true` (already set)
-- Parakeet not detected: ensure it resides under the container path above; downloading from Hex places it correctly.
+- Parakeet not detected: ensure it resides under the container path above; downloading from ToyLocal places it correctly.
 
 ## Changelog Workflow Expectations
 
@@ -131,7 +131,7 @@ FluidAudio models reside under `Application Support/FluidAudio/Models`.
    bun run changeset:add-ai minor "Add new feature"
    bun run changeset:add-ai major "Breaking change"
    ```
-3. **Only create changesets, don't process them:** Agents should only create changeset fragments. The release tool is responsible for running `changeset version` to collect changesets into `CHANGELOG.md` and syncing to `Hex/Resources/changelog.md`.
+3. **Only create changesets, don't process them:** Agents should only create changeset fragments. The release tool is responsible for running `changeset version` to collect changesets into `CHANGELOG.md` and syncing to `ToyLocal/Resources/changelog.md`.
 4. **Reference GitHub issues:** When a change addresses a filed issue, link it in code comments and the changeset entry (`(#123)`) so release notes and Sparkle updates point users back to the discussion. If the work should close an issue, include "Fixes #123" (or "Closes #123") in the commit or PR description so GitHub auto-closes it once merged.
 
 ## Git Commit Messages
@@ -181,7 +181,7 @@ Releases are automated via a local CLI tool that handles building, signing, nota
 
 1. Checks for clean working tree
 2. Finds pending changesets and applies them (bumps version in `package.json`)
-3. Syncs changelog to `Hex/Resources/changelog.md`
+3. Syncs changelog to `ToyLocal/Resources/changelog.md`
 4. Updates `Info.plist` and `project.pbxproj` with new version
 5. Increments build number
 6. Cleans DerivedData and archives with xcodebuild
@@ -190,7 +190,7 @@ Releases are automated via a local CLI tool that handles building, signing, nota
 9. Creates and signs DMG
 10. Notarizes DMG
 11. Generates Sparkle appcast
-12. Uploads to S3 (versioned DMG + `hex-latest.dmg` + appcast.xml)
+12. Uploads to S3 (versioned DMG + `toy-local-latest.dmg` + appcast.xml)
 13. Commits version changes, creates git tag, pushes
 14. Creates GitHub release with DMG and ZIP attachments
 
@@ -203,9 +203,9 @@ The tool will prompt you to either:
 ### Artifacts
 
 Each release produces:
-- `Hex-{version}.dmg` - Signed, notarized DMG
-- `Hex-{version}.zip` - For Homebrew cask
-- `hex-latest.dmg` - Always points to latest
+- `ToyLocal-{version}.dmg` - Signed, notarized DMG
+- `ToyLocal-{version}.zip` - For Homebrew cask
+- `toy-local-latest.dmg` - Always points to latest
 - `appcast.xml` - Sparkle update feed
 
 ### Troubleshooting

@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+---
+# ToyLocal Overview
+
+ToyLocal is a macOS app that allows you to transcribe your voice into text with a global hotkey. 
+ToyLocal will paste the transcription into your current app.
+
+
+- Swift Composable Architecture
+- Swift 6
+- Swift Async/Await

@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "hex-app",
+      "name": "toy-local-app",
       "devDependencies": {
         "@changesets/cli": "^2.29.7",
       },

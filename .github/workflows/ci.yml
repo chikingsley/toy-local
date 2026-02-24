@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-core-tests:
+    name: Lint + Core Tests
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Select Xcode 16.4
+        run: |
+          if [ -d "/Applications/Xcode_16.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.4.app
+          fi
+          swift --version
+          xcodebuild -version
+
+      - name: Install SwiftLint
+        run: brew install swiftlint || brew upgrade swiftlint
+
+      - name: Swift Format Check
+        run: swift format lint --recursive --configuration .swift-format ToyLocal ToyLocalCore
+
+      - name: SwiftLint
+        run: swiftlint lint --quiet
+
+      - name: ToyLocalCore tests
+        run: cd ToyLocalCore && swift test --parallel
+
+  app-tests:
+    name: App Tests
+    needs: lint-core-tests
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Select Xcode 16.4
+        run: |
+          if [ -d "/Applications/Xcode_16.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.4.app
+          fi
+          xcodebuild -version
+
+      - name: toy-local tests
+        run: |
+          xcodebuild test \
+            -project toy-local.xcodeproj \
+            -scheme "toy-local" \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            -quiet
+
+  release-build:
+    name: Release Build
+    needs: app-tests
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Select Xcode 16.4
+        run: |
+          if [ -d "/Applications/Xcode_16.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.4.app
+          fi
+          xcodebuild -version
+
+      - name: toy-local release build
+        run: |
+          xcodebuild build \
+            -project toy-local.xcodeproj \
+            -scheme "toy-local" \
+            -configuration Release \
+            -destination "platform=macOS,arch=arm64" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            -quiet

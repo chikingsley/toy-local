@@ -1,4 +1,4 @@
-# Hex Release Pipeline - GitHub Actions Plan
+# ToyLocal Release Pipeline - GitHub Actions Plan
 
 ## Context
 
@@ -39,7 +39,7 @@ Need to set up automated release pipeline for macOS app distribution via:
 **Use existing `release.ts` from workflow:**
 ```yaml
 - uses: oven-sh/setup-bun@v2
-- run: bun run tools/release.ts --bucket hex-updates
+- run: bun run tools/release.ts --bucket toy-local-updates
 ```
 
 **Pros:** Test locally, type-safe, reusable, Effect composability
@@ -88,7 +88,7 @@ const getNotarizeArgs = () => {
 ```typescript
 // After DMG creation
 yield* runCommandCheck("ditto", "-c", "-k", "--keepParent",
-  appBundle, join(updatesDir, `Hex-${newVersion}.zip`))
+  appBundle, join(updatesDir, `ToyLocal-${newVersion}.zip`))
 ```
 
 #### 2. Update Workflow
@@ -131,7 +131,7 @@ jobs:
           rm /tmp/cert.p12
 
       - name: Build and release
-        run: bun run tools/release.ts --bucket hex-updates
+        run: bun run tools/release.ts --bucket toy-local-updates
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -143,14 +143,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(cat Hex/Info.plist | grep -A1 CFBundleShortVersionString | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          VERSION=$(cat ToyLocal/Info.plist | grep -A1 CFBundleShortVersionString | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
           # release.ts already tags + creates the release with the aggregated changelog.
           # Keep this step only if we ever skip that behavior in CI.
           gh release create "v$VERSION" \
-            --title "Hex v$VERSION" \
+            --title "ToyLocal v$VERSION" \
             --notes-file build/release-notes-$VERSION.md \
-            updates/Hex-$VERSION.dmg \
-            updates/Hex-$VERSION.zip
+            updates/ToyLocal-$VERSION.dmg \
+            updates/ToyLocal-$VERSION.zip
 ```
 
 ### Required Secrets (9)
@@ -182,7 +182,7 @@ GITHUB_TOKEN               # Auto-available in actions
 ```bash
 # 1. Go to appleid.apple.com
 # 2. Sign in > Security > App-Specific Passwords
-# 3. Generate for "Hex GitHub Actions"
+# 3. Generate for "ToyLocal GitHub Actions"
 # 4. Copy xxxx-xxxx-xxxx-xxxx
 ```
 
@@ -213,13 +213,13 @@ After first release:
 
 ```bash
 # 1. Create cask
-brew create --cask hex
+brew create --cask toy-local
 
 # 2. Test
-brew install --cask hex
+brew install --cask toy-local
 
 # 3. Submit PR to homebrew/cask
-# OR create personal tap: homebrew-hex
+# OR create personal tap: homebrew-toy-local
 ```
 
 **Cask needs:**
@@ -232,7 +232,7 @@ brew install --cask hex
 ### Local Testing
 ```bash
 # Full release (dry-run flag needed?)
-bun run tools/release.ts --bucket hex-updates-test
+bun run tools/release.ts --bucket toy-local-updates-test
 
 # Test specific steps
 bun run tools/release.ts --skip-upload
@@ -281,7 +281,7 @@ gh run view <run-id>
 ### Changelog Automation
 **Solved:** Changesets CLI drives SemVer + release notes
 - Contributors run `bunx changeset` to capture a patch/minor/major summary
-- Release tool enforces pending changesets, runs `changeset version`, and copies the aggregated `CHANGELOG.md` into `Hex/Resources/changelog.md`
+- Release tool enforces pending changesets, runs `changeset version`, and copies the aggregated `CHANGELOG.md` into `ToyLocal/Resources/changelog.md`
 - GitHub releases reuse the generated changelog section via `--notes-file`, so Sparkle, the in-app sheet, and GitHub stay identical
 
 ## Remaining Questions

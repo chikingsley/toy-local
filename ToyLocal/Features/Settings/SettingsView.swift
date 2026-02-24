@@ -1,0 +1,59 @@
+import ToyLocalCore
+import Inject
+import SwiftUI
+
+struct SettingsView: View {
+	@ObserveInjection var inject
+	@Bindable var store: SettingsStore
+	var alwaysOnStore: AlwaysOnStore
+	let microphonePermission: PermissionStatus
+	let accessibilityPermission: PermissionStatus
+	let inputMonitoringPermission: PermissionStatus
+
+	var body: some View {
+		Form {
+			if microphonePermission != .granted
+				|| accessibilityPermission != .granted
+				|| inputMonitoringPermission != .granted {
+				PermissionsSectionView(
+					store: store,
+					microphonePermission: microphonePermission,
+					accessibilityPermission: accessibilityPermission,
+					inputMonitoringPermission: inputMonitoringPermission
+				)
+			}
+
+			ModelSectionView(store: store, shouldFlash: store.shouldFlashModelSection)
+			// Only show language picker for WhisperKit models (not Parakeet)
+			if !store.hexSettings.selectedModel.hasPrefix("parakeet-") {
+				LanguageSectionView(store: store)
+			}
+
+			HotKeySectionView(store: store)
+
+			AlwaysOnSectionView(store: store, alwaysOnStore: alwaysOnStore)
+
+			if microphonePermission == .granted && !store.availableInputDevices.isEmpty {
+				MicrophoneSelectionSectionView(store: store)
+			}
+
+			SoundSectionView(store: store)
+			GeneralSectionView(store: store)
+			HistorySectionView(store: store)
+		}
+		.formStyle(.grouped)
+		.task {
+			store.start()
+		}
+		.enableInjection()
+	}
+}
+
+// MARK: - Shared Styles
+
+extension Text {
+	/// Applies caption font with secondary color, commonly used for helper/description text in settings.
+	func settingsCaption() -> some View {
+		self.font(.caption).foregroundStyle(.secondary)
+	}
+}

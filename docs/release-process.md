@@ -1,4 +1,4 @@
-# Hex Release Process
+# ToyLocal Release Process
 
 ## Overview
 
@@ -17,7 +17,7 @@ git tag v0.2.12
 git push origin v0.2.12
 
 # GitHub Actions will automatically:
-# 1. Build Hex v0.2.12
+# 1. Build ToyLocal v0.2.12
 # 2. Notarize with Apple
 # 3. Upload to S3 (Sparkle)
 # 4. Create GitHub release with DMG + ZIP
@@ -33,7 +33,7 @@ git push origin v0.2.12
 **Effect Config system:**
 ```typescript
 // Reads from environment variables
-BUCKET=hex-updates              // Default
+BUCKET=toy-local-updates              // Default
 VERSION=v0.2.12                  // From git tag
 APPLE_ID=your@email.com         // CI only
 APPLE_ID_PASSWORD=xxxx-xxxx     // CI only
@@ -85,25 +85,25 @@ AWS_SECRET_ACCESS_KEY
 ## Artifacts
 
 Each release creates:
-- `Hex-{version}.dmg` - Signed, notarized DMG
-- `Hex-{version}.zip` - For Homebrew cask
-- `hex-latest.dmg` - Always points to latest
+- `ToyLocal-{version}.dmg` - Signed, notarized DMG
+- `ToyLocal-{version}.zip` - For Homebrew cask
+- `toy-local-latest.dmg` - Always points to latest
 - `appcast.xml` - Sparkle update feed
 
 ## Homebrew Cask
 
-After first release, update `hex.rb`:
+After first release, update `toy-local.rb`:
 
 ```bash
 # Get SHA256
-curl -L https://github.com/kitlangton/Hex/releases/download/v0.2.12/Hex-v0.2.12.zip -o Hex.zip
-shasum -a 256 Hex.zip
+curl -L https://github.com/chikingsley/toy-local/releases/download/v0.2.12/ToyLocal-v0.2.12.zip -o ToyLocal.zip
+shasum -a 256 ToyLocal.zip
 
-# Update hex.rb with version and SHA
+# Update toy-local.rb with version and SHA
 ```
 
 Submit to:
-- **Personal tap**: `homebrew-hex` (easier)
+- **Personal tap**: `homebrew-toy-local` (easier)
 - **Official cask**: PR to `homebrew/homebrew-cask`
 
 ## Critical Constraints
@@ -144,11 +144,11 @@ If you accidentally create a release with a duplicate CFBundleVersion:
 - Verify appcast.xml lists versions in descending CFBundleVersion order
 - Check that CFBundleVersion values are unique and strictly increasing
 - Ensure no duplicate build numbers exist in updates/
-- Test feed URL: https://hex-updates.s3.amazonaws.com/appcast.xml
+- Test feed URL: https://toy-local-updates.s3.amazonaws.com/appcast.xml
 
 ## Files
 
 - `tools/release.ts` - Main release script (Effect)
 - `.github/workflows/release.yml` - CI workflow
 - `bin/generate_appcast` - Sparkle appcast generator
-- `hex.rb` - Homebrew cask formula
+- `toy-local.rb` - Homebrew cask formula

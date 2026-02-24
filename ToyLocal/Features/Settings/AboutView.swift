@@ -7,8 +7,8 @@ struct AboutView: View {
   var store: SettingsStore
   private let viewModel: CheckForUpdatesViewModel = .shared
   @State private var showingChangelog = false
-  private static let gitHubURL = URL(string: "https://github.com/kitlangton/ToyLocal/")
-  private static let sponsorURL = URL(string: "https://github.com/sponsors/kitlangton")
+  private static let gitHubURL = URL(string: "https://github.com/chikingsley/toy-local/")
+  private static let originalHexURL = URL(string: "https://github.com/kitlangton/Hex")
 
   var body: some View {
     Form {
@@ -49,12 +49,12 @@ struct AboutView: View {
         }
 
         HStack {
-          Label("Support the developer", systemImage: "heart")
+          Label("Inspired by the original Hex app", systemImage: "heart")
           Spacer()
-          if let sponsorURL = Self.sponsorURL {
-            Link("Become a Sponsor", destination: sponsorURL)
+          if let originalHexURL = Self.originalHexURL {
+            Link("View Hex by Kit Langton", destination: originalHexURL)
           } else {
-            Text("Become a Sponsor")
+            Text("View Hex by Kit Langton")
           }
         }
       }

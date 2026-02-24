@@ -2,12 +2,12 @@
 
 ## Problem Statement
 - FluidAudio's Parakeet TDT v3 decoder refuses to run (or produces unstable text) when the input WAV is shorter than its internal chunk size.
-- Hex often emits <250 ms clips when users tap-to-talk, so we must “pack” (pad) the PCM before `AsrManager.transcribe(_:)` is called.
+- ToyLocal often emits <250 ms clips when users tap-to-talk, so we must “pack” (pad) the PCM before `AsrManager.transcribe(_:)` is called.
 - WhisperKit already zero-pads to 30 s internally, but Parakeet expects callers to hand it an audio segment that spans an entire chunk.
 
 ## Goals (Parakeet-first)
 1. Detect when a captured recording is below Parakeet’s minimum duration (TBD) and ensure the on-disk file we hand to FluidAudio meets or exceeds that window.
-2. Keep padding transparent to users: no audible artifacts, no extra latency, and logs that explain when/why padding ran (`HexLog.parakeet`).
+2. Keep padding transparent to users: no audible artifacts, no extra latency, and logs that explain when/why padding ran (`ToyLocalLog.parakeet`).
 3. Limit scope to Parakeet for now; Whisper will keep using its existing flow unless we discover regressions.
 
 ## Constraints & Research Tasks
@@ -19,10 +19,10 @@
 - [ ] Verify whether padding must retain the original WAV container (RIFF header). If `AsrManager` only reads PCM floats, we can rewrite the whole file; otherwise we may need to append silence samples and fix the header lengths.
 
 ## Current Pipeline Touchpoints
-1. `Hex/Clients/RecordingClient.swift:667` sets up `AVAudioRecorder` at 16 kHz mono float and writes to `recording.wav` in `FileManager.default.temporaryDirectory`.
-2. `Hex/Features/Transcription/TranscriptionFeature.swift:320` calls `recording.stopRecording()` and passes the resulting URL into `TranscriptionClient.transcribe`.
-3. `Hex/Clients/TranscriptionClient.swift:242` routes Parakeet variants straight to `ParakeetClient.transcribe(_:)` with no preprocessing.
-4. `Hex/Clients/ParakeetClient.swift:118` hands the URL to `AsrManager.transcribe(url)` and returns the text.
+1. `ToyLocal/Clients/RecordingClient.swift:667` sets up `AVAudioRecorder` at 16 kHz mono float and writes to `recording.wav` in `FileManager.default.temporaryDirectory`.
+2. `ToyLocal/Features/Transcription/TranscriptionFeature.swift:320` calls `recording.stopRecording()` and passes the resulting URL into `TranscriptionClient.transcribe`.
+3. `ToyLocal/Clients/TranscriptionClient.swift:242` routes Parakeet variants straight to `ParakeetClient.transcribe(_:)` with no preprocessing.
+4. `ToyLocal/Clients/ParakeetClient.swift:118` hands the URL to `AsrManager.transcribe(url)` and returns the text.
 
 These spots give us two obvious injection points: (a) mutate the WAV immediately after `recording.stopRecording()` returns, or (b) intercept inside `ParakeetClient` before calling FluidAudio.
 
@@ -30,16 +30,16 @@ These spots give us two obvious injection points: (a) mutate the WAV immediately
 
 ### Phase 1 – Instrumentation & Guardrails
 1. Add a lightweight helper (e.g., `ShortClipInspector`) that loads the WAV header, validates sample rate/channels, and returns total duration.
-2. Insert the inspector inside `TranscriptionClient` right before the Parakeet branch so we can log current clip lengths (`HexLog.parakeet.debug("clip=0.18s")`).
+2. Insert the inspector inside `TranscriptionClient` right before the Parakeet branch so we can log current clip lengths (`ToyLocalLog.parakeet.debug("clip=0.18s")`).
 3. Ship this logging first (behind a debug flag if needed) to confirm real-world distributions before we enable padding.
 
 ### Phase 2 – Padding Helper (Parakeet Only)
-1. Create a new utility in `Hex/Audio/ShortClipPadder.swift` (or similar) that:
+1. Create a new utility in `ToyLocal/Audio/ShortClipPadder.swift` (or similar) that:
    - Accepts a source `URL`, desired minimum samples, and output `URL` (can be the same file if we rewrite safely).
    - Reads PCM floats via `AVAudioFile` or `ExtAudioFile`, counts samples, and if below threshold, appends zeros until `minSamples` is met.
    - Rewrites the WAV header chunk sizes so the file stays valid.
-2. Unit test this helper in `HexCoreTests` with fixtures (<50 ms clip, >threshold clip) to guarantee correct math and metadata.
-3. Make the minimum configurable (env var or `HexSettings`) so we can tweak without hard-coding; default to whatever FluidAudio recommends.
+2. Unit test this helper in `ToyLocalCoreTests` with fixtures (<50 ms clip, >threshold clip) to guarantee correct math and metadata.
+3. Make the minimum configurable (env var or `ToyLocalSettings`) so we can tweak without hard-coding; default to whatever FluidAudio recommends.
 
 ### Phase 3 – Integration Path
 1. Inside `TranscriptionClient.transcribe`, when `isParakeet(model)` is true:
