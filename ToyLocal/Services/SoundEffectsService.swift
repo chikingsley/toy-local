@@ -43,7 +43,7 @@ actor SoundEffectsClientLive {
 		let clampedVolume = min(max(settings.soundEffectsVolume, 0), baselineVolume)
 		player.volume = Float(clampedVolume)
 		player.stop()
-		await player.scheduleBuffer(buffer, at: nil, options: [])
+		player.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { _ in }
 		player.play()
 	}
 
