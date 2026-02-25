@@ -1,128 +1,169 @@
-# Future Ideas & Tasks
+# ToyLocal TODO (Execution Board)
 
-## Priority: Settings & UX Overhaul
+Last updated: 2026-02-25
 
-### Word Remappings UX (High Priority)
+## Operating Rules
 
-- Remappings are the most-used feature — shouldn't be buried in a second tab
-- **Add button at the top**, not bottom (currently must scroll past hundreds of entries)
-- **Enter / click-away to confirm** — currently stuck in edit mode with no way to dismiss
-- Better edit pattern: clickable rows with a sidebar/panel that opens for editing (match + replacement fields), dismiss to save
-- Consider making remappings the default/first tab, or promoting to a top-level settings section
+- Work from feature branches, not `main`.
+- Every user-facing code change requires a `.changeset/*.md` entry.
+- Each task below is complete only when its Test Gate passes.
+- Prefer Red-Green-Refactor for bug fixes: reproduce bug in a failing test, then fix.
+- End each session with either a commit or a short checkpoint note in this file.
 
-### Hotkeys & Modes Redesign (High Priority)
+## Priority Rubric
 
-- Current hotkey UI takes up the whole screen for one key — wasteful
-- **Reorganize into two sections**:
-  - **Push to Talk** — single hotkey (hold to record, release to paste)
-  - **Hot Mic (Always-On)** — paste hotkey + dump hotkey
-- **Dump hotkey not settable** currently — needs UI
-- **Three recording modes** (toggle in settings):
-  1. Click-to-start / click-to-paste (tap toggle)
-  2. Hold-to-record / release-to-paste (push-to-talk)
-  3. Always-on (hot mic)
-- All keyboard shortcuts on **one screen** — paste last transcript hotkey should be here too, not scattered
-- Reference: SuperWhisper and Wispr Flow for UI patterns
+- `P0`: Shipping blocker, data loss, major reliability, permission flow breakage.
+- `P1`: High-value UX/product improvements that are not blocking release.
+- `P2`: Experiments and longer-horizon product ideas.
 
-### Dump Action Visual Feedback (High Priority)
+## P0 (Current)
 
-- When dump hotkey is pressed, need clear visual confirmation that the buffer was cleared
-- Ideas: pill flashes red briefly, shows "Dumped" text, shake animation, or a brief strikethrough on the text before it disappears
-- Currently no feedback at all — user has no idea if the dump registered
+### [ ] P0-1 Permission + Hotkey + Paste Reliability
 
-### Model Picker Improvements
+- Scope: Complete and validate the current in-progress permission/paste/hotkey changes.
+- Done when: Hotkeys work with Input Monitoring only; Accessibility is required only for cross-app paste/typing; denial flows are clear and non-spammy.
+- Test Gate:
+  - `xcodebuild -project toy-local.xcodeproj -scheme "toy-local" -configuration Debug build`
+  - `cd ToyLocalCore && swift test`
+  - Manual: fresh launch, deny Accessibility + allow Input Monitoring, confirm hotkeys still record.
+  - Manual: allow Accessibility, confirm paste succeeds in TextEdit/Notes/Slack.
+  - Manual: deny post-event access path and verify no repeated settings pop-open loops.
 
-- Streaming model (Parakeet) not labeled in the model list
-- "Accuracy" vs "Speed" bars are all maxed out — not informative
-- Better labels: "Best for English", "Best for multilingual", "Real-time streaming"
-- Show actual differentiators: latency, language support, model size, streaming vs batch
+### [ ] P0-2 Always-On Hotkey Actions Are Deterministic
 
-## Priority: LLM Output Parsing
+- Scope: Validate paste/dump hotkeys in always-on mode, including edge presses and held-key repeats.
+- Done when: each physical press triggers at most one action; no duplicate paste/dump fire from key repeat.
+- Test Gate:
+  - Add/keep unit coverage for edge matching and latch behavior where practical.
+  - Manual: hold paste hotkey does not spam multiple pastes.
+  - Manual: hold dump hotkey does not spam multiple clears.
 
-### Send Transcript to LLM (High Priority)
+### [ ] P0-3 Release Metadata Consistency
 
-- SuperWhisper pattern: configurable output modes per use case
-- User sets an API key (OpenRouter, Claude, OpenAI, local endpoint)
-- Transcript goes through LLM before pasting — can reformat, clean up, summarize
-- Two fields: system prompt + API config
-- Modes: "Raw transcript", "Clean prose", "Meeting notes", "Code dictation", custom
-- Could be a per-hotkey setting (different hotkeys → different output modes)
+- Scope: ensure all changesets reference the real package name (`toy-local-app`).
+- Done when: changeset tooling can resolve all pending entries without unknown package errors.
+- Test Gate:
+  - `bunx @changesets/cli status --verbose` (or project-local equivalent once deps are installed)
 
-## Feature Ideas
+### [ ] P0-4 Build Config Consistency
 
-### Always-On Voice Commands / Trigger Words
+- Scope: keep Debug/Release sandbox posture intentional and explicit.
+- Done when: Debug and Release settings match intended entitlement behavior for permission testing.
+- Test Gate:
+  - Project builds in Debug and Release.
+  - Permission prompts observed in real app runtime (not bypassed by accidental local config drift).
 
-- Extend always-on mode with configurable trigger words/phrases
-- Detection is simple: after transcription, lowercase text and match against a phrase list
-- Default phrases: "go ahead" / "submit" → flush buffer, "stop" / "cancel" → dump buffer, "paste" → paste immediately
-- System commands: "open [app]", "quit [app]", "play pause", "volume up/down", "lock", "sleep"
-- AppleScript-based execution — we already have the plumbing for this
-- User-configurable phrase → action mappings in settings
-- Key vs word trigger — same mechanism, both just trigger an action on match
+## P1 (Next)
 
-### Send-to-Server Mode
+### [ ] P1-1 Word Remappings UX Pass
 
-- Say a trigger word (e.g. "hey server") and everything after goes to a configurable endpoint instead of pasting locally
-- Use case: "hey server, find the new email that just came in" → POST to gmk-server or n8n webhook
-- Configurable endpoints (URL, auth headers)
-- Could route to different servers based on different trigger words
-- Visual indicator (different color?) when in "server mode" vs normal paste mode
+- Scope: surface remappings earlier; simplify create/edit flow.
+- Done when: adding/editing/removing remappings is fast for large lists.
+- Acceptance:
+  - Add action is visible without scrolling.
+  - Edit mode has explicit confirm/dismiss behavior.
+  - Keyboard-first flow works (Enter/Escape/tab order).
+- Test Gate:
+  - Unit tests for remapping/removal logic remain green.
+  - Manual pass on long list (>100 entries) and normal list.
 
-### Quick LLM Q&A (Voice → Model → TTS)
+### [ ] P1-2 Hotkey + Mode Settings Redesign
 
-- Transcribe voice → send to an LLM (OpenRouter, local model, Claude API) → get response back as TTS
-- For quick questions where you don't need a full IDE/terminal workflow
-- Hook up OpenRouter or local ollama/vllm endpoint
-- Response delivered via macOS TTS (`say` command) or a small overlay window
-- Could also just paste the response as text if preferred
+- Scope: unify Push-to-Talk + Always-On hotkeys and mode controls in one coherent screen.
+- Done when: users can configure all primary shortcuts in one place.
+- Acceptance:
+  - Push-to-Talk shortcut editable.
+  - Always-On paste and dump shortcuts editable.
+  - Paste-last-transcript shortcut discoverable in same workflow.
+- Test Gate:
+  - Settings capture tests pass.
+  - Manual validation for modifier-only and key+modifier hotkeys.
 
-### Alternative ASR Models (Qwen)
+### [ ] P1-3 Dump Action Feedback
 
-- Add Qwen3-ASR-0.6B-8bit as an optional transcription backend via MLX
-- Field Theory runs it as a persistent Python server (stdin/stdout JSON protocol)
-- Model: `mlx-community/Qwen3-ASR-0.6B-8bit`, framework: `mlx-audio`
-- Could integrate similarly — bundle a Python script, spawn a server process, keep model loaded
-- Worth testing accuracy vs Parakeet/WhisperKit
-- Requires Python 3.10+ and Apple Silicon
+- Scope: visible UI feedback when always-on buffer is dumped.
+- Done when: users can immediately tell dump succeeded.
+- Acceptance:
+  - Indicator state change lasts long enough to perceive (~300-800ms).
+  - No ambiguous “did it run?” state.
+- Test Gate:
+  - Manual UX pass in noisy and quiet speaking conditions.
 
-### Editable Transcripts / Smart Remappings
+### [ ] P1-4 Model Picker Clarity
 
-- MacWhisper-style transcript editing — click into a transcript in history, edit it
-- Edits that change specific words could auto-suggest new word remappings
-- Example: you consistently change "cuz" → "because" in transcripts → suggest adding it as a remapping
-- Could also learn from corrections over time (frequency-based suggestions)
-- UI for quickly adding words to remapping/removal lists from the transcript view
+- Scope: clearly communicate streaming vs batch, language strengths, and practical tradeoffs.
+- Done when: users can choose a model without guessing.
+- Acceptance:
+  - Label Parakeet as streaming/multilingual.
+  - Avoid meaningless always-maxed “accuracy/speed” bars.
+  - Show concrete differentiators (latency, size, language support).
+- Test Gate:
+  - Manual verification for new users on first launch.
 
-### Richer History
+## P2 (Exploration)
 
-- Categorize entries by source type: voice transcription, clipboard paste, screenshot, link
-- Visual icons/badges for each type (like Field Theory's four-corner icons)
-- Full-text search across history (SQLite FTS or in-memory)
-- Click-to-copy with visual feedback (cursor dot or brief highlight)
+### [ ] P2-1 Transcript Post-Processing via LLM
 
-### Cursor Status Indicator
+- Modes: raw, clean prose, notes, custom prompt.
+- Needs: provider config, key management, per-mode output handling.
 
-- Small colored dot near cursor during transcription states
-- Green = done, blue = recording, red = error
-- Shows briefly (~800ms) then fades
-- Less intrusive than the current floating indicator for quick interactions
+### [ ] P2-2 Always-On Trigger Phrases
 
----
+- Phrase-to-action mappings (paste/dump/submit/cancel/system actions).
+- Keep safety boundaries explicit for system command execution.
 
-## Research Notes
+### [ ] P2-3 Send-to-Server Mode
 
-### Field Theory Architecture Reference
+- Route selected transcripts to webhook/API endpoints by trigger phrase.
+- Requires auth/header config and visible mode indicator.
 
-- **Qwen ASR**: `mlx-community/Qwen3-ASR-0.6B-8bit` via `mlx-audio` Python package
-- **No streaming inference** — batch mode with VAD-segmented audio chunks
-- **Trigger detection**: Pure string matching post-transcription, not model-level
-- **VLM (separate)**: `mlx-community/nanoLLaVA` for screenshot captioning, unrelated to ASR
-- **Whisper fallback**: Bundled `whisper-cli` (whisper.cpp compiled binary) as backup engine
-- **Native helper**: Swift binary handles mic access, VAD, WAV recording
-- **Claude Code integration**: Writes hooks to `~/.claude/settings.json` for auto-approved file reads
+### [ ] P2-4 Q&A + Optional TTS Response
 
-### UI References to Study
+- Voice query -> LLM response -> spoken or pasted output.
 
-- **SuperWhisper**: Output modes (raw, clean, custom LLM), API key config, per-mode settings
-- **Wispr Flow**: Hotkey setup, mode switching UI
-- **MacWhisper**: Transcript editing, history management
+### [ ] P2-5 Alternative ASR Backend Evaluation (Qwen/MLX)
+
+- Compare quality/latency/resource use vs Parakeet/WhisperKit.
+
+## Test Strategy (Swift)
+
+### Unit Tests
+
+- `ToyLocalCore` for pure logic (hotkey semantics, text transforms, migration behavior).
+- `ToyLocalTests` for store/service helpers with fakes and deterministic inputs.
+
+### Integration Tests (App Logic)
+
+- Prefer dependency-injected store tests for behavior chains (permission -> monitor -> action).
+- Add focused tests for bugs before fixes when possible.
+
+### UI Automation
+
+- Add/expand `XCUITest` flows for critical paths:
+  - first-launch permissions guidance
+  - settings hotkey capture
+  - model selection + download status
+
+### Performance Tests
+
+- Use `XCTestCase.measure` and `XCTMetric` for:
+  - remapping pipeline on long transcripts
+  - always-on meter update path
+  - model list refresh / settings load
+
+## Bug Fix Workflow (TDD-Friendly)
+
+1. Capture repro: one-sentence bug summary + exact steps + expected vs actual.
+2. Add failing test closest to the broken logic.
+3. Implement minimal fix.
+4. Run focused tests, then full gate.
+5. Add changeset summary referencing issue/PR number.
+6. Commit with a user-facing subject and technical context in body.
+
+## Release Gate (Before Merge)
+
+- `git status --short` reviewed.
+- `cd ToyLocalCore && swift test`
+- `xcodebuild -project toy-local.xcodeproj -scheme "toy-local" -configuration Debug build`
+- `xcodebuild -project toy-local.xcodeproj -scheme "toy-local" -configuration Release build`
+- pending `.changeset` entries validated.
