@@ -150,6 +150,7 @@
 			buildConfigurationList = 47E05DFD2D444EC700D26DA6 /* Build configuration list for PBXNativeTarget "toy-local" */;
 			buildPhases = (
 				B5LINT0012E6A000000000001 /* SwiftLint */,
+				B5E1A0012E6A000000000001 /* Inject Bundle */,
 				47E05DEA2D444EC600D26DA6 /* Sources */,
 				47E05DEB2D444EC600D26DA6 /* Frameworks */,
 				47E05DEC2D444EC600D26DA6 /* Resources */,
@@ -244,6 +245,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		B5E1A0012E6A000000000001 /* Inject Bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Inject Bundle";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$CODE_SIGNING_ALLOWED\" != \"YES\" ] || [ -z \"$EXPANDED_CODE_SIGN_IDENTITY\" ]; then\n  exit 0\nfi\nINJECTION_RESOURCES=\"/Applications/InjectionIII.app/Contents/Resources\"\nSCRIPT=\"$INJECTION_RESOURCES/copy_bundle.sh\"\nif [ ! -x \"$SCRIPT\" ]; then\n  echo \"warning: InjectionIII copy_bundle.sh not found at $SCRIPT\"\n  exit 0\nfi\nRESOURCES=\"$INJECTION_RESOURCES\" \"$SCRIPT\"\n";
+		};
 		B5LINT0012E6A000000000001 /* SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
