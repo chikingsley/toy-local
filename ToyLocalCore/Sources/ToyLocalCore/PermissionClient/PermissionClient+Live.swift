@@ -2,8 +2,6 @@
 import AVFoundation
 import CoreGraphics
 import Foundation
-import IOKit
-import IOKit.hidsystem
 
 private let logger = ToyLocalLog.permissions
 
@@ -100,9 +98,8 @@ public actor PermissionClientLive: PermissionClient {
   }
 
   nonisolated public func inputMonitoringStatus() -> PermissionStatus {
-    let access = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
-    let result = mapIOHIDAccess(access)
-    logger.info("Input monitoring status: \(String(describing: result)) (IOHIDAccess: \(String(describing: access)))")
+    let result: PermissionStatus = CGPreflightListenEventAccess() ? .granted : .denied
+    logger.info("Input monitoring status: \(String(describing: result))")
     return result
   }
 
@@ -163,16 +160,5 @@ public actor PermissionClientLive: PermissionClient {
 
   nonisolated public func observeAppActivation() -> AsyncStream<AppActivation> {
     activationStream
-  }
-
-  private nonisolated func mapIOHIDAccess(_ access: IOHIDAccessType) -> PermissionStatus {
-    switch access {
-    case kIOHIDAccessTypeGranted:
-      return .granted
-    case kIOHIDAccessTypeDenied:
-      return .denied
-    default:
-      return .notDetermined
-    }
   }
 }

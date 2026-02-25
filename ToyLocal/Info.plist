@@ -11,7 +11,7 @@
 	<key>CFBundleVersion</key>
 	<string>78</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>ToyLocal needs accessibility access to monitor keyboard events for hotkey detection.</string>
+	<string>ToyLocal needs accessibility access to control typing and paste actions in other apps.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

@@ -134,6 +134,8 @@ struct TranscriptionIndicatorView: View {
         .opacity(status == .hidden ? 0 : 1)
         .scaleEffect(status == .hidden ? 0.0 : 1)
         .blur(radius: status == .hidden ? 4 : 0)
+        .animation(.easeOut(duration: 0.12), value: averagePower)
+        .animation(.easeOut(duration: 0.16), value: peakPower)
         .animation(.bouncy(duration: 0.3), value: status)
         .changeEffect(.glow(color: activeColor.opacity(0.5), radius: 8), value: status)
         .changeEffect(.shine(angle: .degrees(0), duration: 0.6), value: transcribeEffect)

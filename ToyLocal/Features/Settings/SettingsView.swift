@@ -40,14 +40,11 @@ struct SettingsView: View {
 			SoundSectionView(store: store)
 			GeneralSectionView(store: store)
 			HistorySectionView(store: store)
+			}
+			.formStyle(.grouped)
+			.enableInjection()
 		}
-		.formStyle(.grouped)
-		.task {
-			store.start()
-		}
-		.enableInjection()
 	}
-}
 
 // MARK: - Shared Styles
 

@@ -3,7 +3,6 @@ import Foundation
 import ToyLocalCore
 import SwiftUI
 import WhisperKit
-
 private let transcriptionFeatureLogger = ToyLocalLog.transcription
 
 // MARK: - Force Quit Command
@@ -274,7 +273,6 @@ final class TranscriptionStore {
 		isPrewarming = false
 		self.error = error.localizedDescription
 	}
-
 	private func finalizeRecordingAndStoreTranscript(
 		result: String,
 		duration: TimeInterval,
@@ -310,8 +308,12 @@ final class TranscriptionStore {
 			try? FileManager.default.removeItem(at: audioURL)
 		}
 
-		await pasteboard.paste(text: result)
-		await soundEffects.play(.pasteTranscript)
+		let didPaste = await pasteboard.paste(text: result)
+		if didPaste {
+			await soundEffects.play(.pasteTranscript)
+		} else {
+			transcriptionFeatureLogger.notice("Paste did not complete; transcript remains in clipboard.")
+		}
 	}
 }
 

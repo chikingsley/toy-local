@@ -39,6 +39,7 @@ final class AppStore {
 	@ObservationIgnored private var pasteLastTranscriptTask: Task<Void, Never>?
 	@ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
 	@ObservationIgnored private var modelReadinessTask: Task<Void, Never>?
+	@ObservationIgnored private var hasStarted = false
 
 	// MARK: - Init
 
@@ -53,6 +54,9 @@ final class AppStore {
 		self.settings = SettingsStore(services: services)
 		self.history = HistoryStore(services: services)
 		self.alwaysOn = AlwaysOnStore(services: services)
+		self.alwaysOn.onModelStateChanged = { [weak self] in
+			self?.settings.modelDownload.fetchModels()
+		}
 
 		// Wire up child callbacks
 		transcription.onModelMissing = { [weak self] in
@@ -72,6 +76,9 @@ final class AppStore {
 	// MARK: - Lifecycle
 
 	func start() {
+		guard !hasStarted else { return }
+		hasStarted = true
+
 		transcription.start()
 		settings.start()
 		alwaysOn.start()
@@ -93,7 +100,7 @@ final class AppStore {
 			return
 		}
 		Task {
-			await pasteboard.paste(text: lastTranscript)
+			_ = await pasteboard.paste(text: lastTranscript)
 		}
 	}
 
