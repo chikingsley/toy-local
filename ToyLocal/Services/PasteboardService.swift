@@ -1,7 +1,7 @@
+import AppKit
 import Foundation
-import ToyLocalCore
 import Sauce
-import SwiftUI
+import ToyLocalCore
 
 private let pasteboardLogger = ToyLocalLog.pasteboard
 
@@ -43,11 +43,11 @@ struct PasteboardClientLive {
 	}
 
 	@MainActor
-	func paste(text: String) async {
+	func paste(text: String) async -> Bool {
 		if hexSettings.useClipboardPaste {
-			await pasteWithClipboard(text)
+			return await pasteWithClipboard(text)
 		} else {
-			simulateTypingWithAppleScript(text)
+			return insertTextWithAccessibility(text)
 		}
 	}
 
@@ -60,6 +60,10 @@ struct PasteboardClientLive {
 
 	@MainActor
 	func sendKeyboardCommand(_ command: KeyboardCommand) async {
+		guard ensurePostEventAccess(context: "send keyboard command", promptIfMissing: true) else {
+			return
+		}
+
 		let source = CGEventSource(stateID: .combinedSessionState)
 
 		// Convert modifiers to CGEventFlags and key codes for modifier keys
@@ -114,56 +118,8 @@ struct PasteboardClientLive {
 		pasteboardLogger.debug("Sent keyboard command: \(command.displayName)")
 	}
 
-	/// Pastes current clipboard content to the frontmost application
-	static func pasteToFrontmostApp() -> Bool {
-		let script = """
-		if application "System Events" is not running then
-			tell application "System Events" to launch
-			delay 0.1
-		end if
-		tell application "System Events"
-			tell process (name of first application process whose frontmost is true)
-				tell (menu item "Paste" of menu of menu item "Paste" of menu "Edit" of menu bar item "Edit" of menu bar 1)
-					if exists then
-						log (get properties of it)
-						if enabled then
-							click it
-							return true
-						else
-							return false
-						end if
-					end if
-				end tell
-				tell (menu item "Paste" of menu "Edit" of menu bar item "Edit" of menu bar 1)
-					if exists then
-						if enabled then
-							click it
-							return true
-						else
-							return false
-						end if
-					else
-						return false
-					end if
-				end tell
-			end tell
-		end tell
-		"""
-
-		var error: NSDictionary?
-		if let scriptObject = NSAppleScript(source: script) {
-			let result = scriptObject.executeAndReturnError(&error)
-			if let error = error {
-				pasteboardLogger.error("AppleScript paste failed: \(error)")
-				return false
-			}
-			return result.booleanValue
-		}
-		return false
-	}
-
 	@MainActor
-	func pasteWithClipboard(_ text: String) async {
+	func pasteWithClipboard(_ text: String) async -> Bool {
 		let pasteboard = NSPasteboard.general
 		let snapshot = PasteboardSnapshot(pasteboard: pasteboard)
 		let targetChangeCount = writeAndTrackChangeCount(pasteboard: pasteboard, text: text)
@@ -190,6 +146,8 @@ struct PasteboardClientLive {
 			// Keep the transcribed text in clipboard regardless of setting
 			pasteboardLogger.notice("Paste operation failed; text remains in clipboard as fallback.")
 		}
+
+		return pasteSucceeded
 	}
 
 	@MainActor
@@ -227,7 +185,6 @@ struct PasteboardClientLive {
 	@MainActor
 	private enum PasteStrategy: CaseIterable {
 		case cmdV
-		case menuItem
 		case accessibility
 	}
 
@@ -245,8 +202,6 @@ struct PasteboardClientLive {
 		switch strategy {
 		case .cmdV:
 			return await postCmdV(delayMs: 0)
-		case .menuItem:
-			return PasteboardClientLive.pasteToFrontmostApp()
 		case .accessibility:
 			return (try? Self.insertTextAtCursor(text)) != nil
 		}
@@ -256,6 +211,10 @@ struct PasteboardClientLive {
 
 	@MainActor
 	private func postCmdV(delayMs: Int) async -> Bool {
+		guard ensurePostEventAccess(context: "paste command", promptIfMissing: false) else {
+			return false
+		}
+
 		try? await wait(milliseconds: delayMs)
 		let source = CGEventSource(stateID: .combinedSessionState)
 		let vKey = vKeyCode()
@@ -274,6 +233,48 @@ struct PasteboardClientLive {
 	}
 
 	@MainActor
+	private func ensurePostEventAccess(context: String, promptIfMissing: Bool) -> Bool {
+		if CGPreflightPostEventAccess() {
+			return true
+		}
+
+		// Some environments report stale post-event preflight even after the user grants
+		// Accessibility trust. Treat AX trust as sufficient for synthetic key posting.
+		if isAccessibilityTrustedForAutomation() {
+			pasteboardLogger.notice("Post-event preflight denied for \(context), but Accessibility is granted; continuing.")
+			return true
+		}
+
+		guard promptIfMissing else {
+			pasteboardLogger.notice("Event posting permission missing for \(context); skipping synthesized key events.")
+			return false
+		}
+
+		let granted = CGRequestPostEventAccess()
+		guard granted else {
+			pasteboardLogger.error("Event posting permission denied for \(context); opening Accessibility settings.")
+			openAccessibilitySettings()
+			return false
+		}
+
+		return true
+	}
+
+	@MainActor
+	private func isAccessibilityTrustedForAutomation() -> Bool {
+		AXIsProcessTrusted()
+	}
+
+	@MainActor
+	private func openAccessibilitySettings() {
+		guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
+			pasteboardLogger.error("Failed to construct Accessibility settings URL")
+			return
+		}
+		NSWorkspace.shared.open(url)
+	}
+
+	@MainActor
 	private func vKeyCode() -> CGKeyCode {
 		if Thread.isMainThread { return Sauce.shared.keyCode(for: .v) }
 		return DispatchQueue.main.sync { Sauce.shared.keyCode(for: .v) }
@@ -285,18 +286,21 @@ struct PasteboardClientLive {
 		try await Task.sleep(nanoseconds: UInt64(milliseconds) * 1_000_000)
 	}
 
-	func simulateTypingWithAppleScript(_ text: String) {
-		let escapedText = text.replacingOccurrences(of: "\"", with: "\\\"")
-		let script = NSAppleScript(source: "tell application \"System Events\" to keystroke \"\(escapedText)\"")
-		var error: NSDictionary?
-		script?.executeAndReturnError(&error)
-		if let error = error {
-			pasteboardLogger.error("Error executing AppleScript typing fallback: \(error)")
+	@MainActor
+	private func insertTextWithAccessibility(_ text: String) -> Bool {
+		do {
+			try Self.insertTextAtCursor(text)
+			return true
+		} catch {
+			pasteboardLogger.notice("Accessibility insert failed for non-clipboard mode: \(String(describing: error))")
+			return false
 		}
 	}
 
+}
+
+private extension PasteboardClientLive {
 	enum PasteError: Error {
-		case systemWideElementCreationFailed
 		case focusedElementNotFound
 		case elementDoesNotSupportTextEditing
 		case failedToInsertText
@@ -307,9 +311,8 @@ struct PasteboardClientLive {
 
 		var focusedElementRef: CFTypeRef?
 		let axError = AXUIElementCopyAttributeValue(systemWideElement, kAXFocusedUIElementAttribute as CFString, &focusedElementRef)
-
-		guard axError == .success, 
-		      let focusedElementRef = focusedElementRef,
+		guard axError == .success,
+		      let focusedElementRef,
 		      CFGetTypeID(focusedElementRef) == AXUIElementGetTypeID() else {
 			throw PasteError.focusedElementNotFound
 		}
@@ -319,14 +322,12 @@ struct PasteboardClientLive {
 		var value: CFTypeRef?
 		let supportsText = AXUIElementCopyAttributeValue(focusedElement, kAXValueAttribute as CFString, &value) == .success
 		let supportsSelectedText = AXUIElementCopyAttributeValue(focusedElement, kAXSelectedTextAttribute as CFString, &value) == .success
-
-		if !supportsText && !supportsSelectedText {
+		guard supportsText || supportsSelectedText else {
 			throw PasteError.elementDoesNotSupportTextEditing
 		}
 
 		let insertResult = AXUIElementSetAttributeValue(focusedElement, kAXSelectedTextAttribute as CFString, text as CFTypeRef)
-
-		if insertResult != .success {
+		guard insertResult == .success else {
 			throw PasteError.failedToInsertText
 		}
 	}

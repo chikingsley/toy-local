@@ -98,6 +98,8 @@ final class ModelDownloadStore {
 	var downloadingModelName: String?
 
 	private var activeDownloadTask: Task<Void, Never>?
+	@ObservationIgnored private var fetchModelsTask: Task<Void, Never>?
+	@ObservationIgnored private var needsFetchAfterCurrent = false
 
 	// MARK: - Dependencies
 
@@ -147,7 +149,20 @@ final class ModelDownloadStore {
 	// MARK: - Methods
 
 	func fetchModels() {
-		Task {
+		guard fetchModelsTask == nil else {
+			needsFetchAfterCurrent = true
+			return
+		}
+		fetchModelsTask = Task { [weak self] in
+			guard let self else { return }
+			defer {
+				self.fetchModelsTask = nil
+				if self.needsFetchAfterCurrent {
+					self.needsFetchAfterCurrent = false
+					self.fetchModels()
+				}
+			}
+
 			do {
 				let recommended = await transcription.getRecommendedModels().default
 				let names = try await transcription.getAvailableModels()

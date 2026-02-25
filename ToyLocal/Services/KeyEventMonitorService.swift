@@ -4,8 +4,6 @@ import Carbon
 import CoreGraphics
 import Foundation
 import ToyLocalCore
-import IOKit
-import IOKit.hidsystem
 import Sauce
 
 private let logger = ToyLocalLog.keyEvent
@@ -39,7 +37,7 @@ public extension KeyEvent {
 		}
 
 		var modifiers = Modifiers.from(carbonFlags: cgEvent.flags)
-		if !isFnPressed {
+		if !isFnPressed && !cgEvent.flags.contains(.maskSecondaryFn) {
 			modifiers = modifiers.removing(kind: .fn)
 		}
 		self.init(key: key, modifiers: modifiers)
@@ -59,6 +57,7 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 	private var trustMonitorTask: Task<Void, Never>?
 	private var isFnPressed = false
 	private var hasPromptedForAccessibilityTrust = false
+	private var hasPromptedForInputMonitoringTrust = false
 	private let settingsManager: SettingsManager
 
 	private let trustCheckIntervalNanoseconds: UInt64 = 100_000_000 // 100ms
@@ -73,7 +72,7 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 	}
 
 	private var hasRequiredPermissions: Bool {
-		queue.sync { accessibilityTrusted && inputMonitoringTrusted }
+		queue.sync { inputMonitoringTrusted }
 	}
 
 	private var hasHandlers: Bool {
@@ -89,7 +88,6 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 	private func desiredMonitoringState() -> Bool {
 		queue.sync {
 			wantsMonitoring
-				&& accessibilityTrusted
 				&& inputMonitoringTrusted
 				&& !(continuations.isEmpty && inputContinuations.isEmpty)
 		}
@@ -226,19 +224,19 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 			)
 
 			if current.accessibility != last.accessibility || current.input != last.input {
-				let combinedBefore = last.accessibility && last.input
-				let combinedAfter = current.accessibility && current.input
+				let inputBefore = last.input
+				let inputAfter = current.input
 				let reason: String
-				if combinedAfter && !combinedBefore {
+				if inputAfter && !inputBefore {
 					reason = "regained"
-				} else if !combinedAfter && combinedBefore {
+				} else if !inputAfter && inputBefore {
 					reason = "revoked"
 				} else {
 					reason = "updated"
 				}
 				await handlePermissionChange(accessibility: current.accessibility, input: current.input, reason: reason)
 				last = current
-			} else if current.accessibility && current.input {
+			} else if current.input {
 				await ensureTapIsRunning()
 			}
 		}
@@ -247,15 +245,13 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 	private func handlePermissionChange(accessibility: Bool, input: Bool, reason: String) async {
 		setPermissionFlags(accessibility: accessibility, input: input)
 		logger.notice("Permission update: accessibility=\(accessibility), inputMonitoring=\(input), reason=\(reason)")
-		if accessibility && input {
-			logger.notice("Keyboard monitoring permissions granted (\(reason)).")
-		} else {
+		if input {
+			logger.notice("Input Monitoring permission granted (\(reason)); hotkeys can run.")
 			if !accessibility {
-				logger.error("Accessibility permission missing (\(reason)); suspending tap.")
+				logger.notice("Accessibility permission missing (\(reason)); automated paste may be limited.")
 			}
-			if !input {
-				logger.error("Input Monitoring permission missing (\(reason)); waiting for approval before restarting hotkeys.")
-			}
+		} else {
+			logger.error("Input Monitoring permission missing (\(reason)); waiting for approval before restarting hotkeys.")
 		}
 		await refreshMonitoringState(reason: "trust_\(reason)")
 	}
@@ -333,8 +329,6 @@ class KeyEventMonitorClientLive: @unchecked Sendable {
 extension KeyEventMonitorClientLive {
 	fileprivate func updateFnStateIfNeeded(type: CGEventType, cgEvent: CGEvent) {
 		guard type == .flagsChanged else { return }
-		let keyCode = Int(cgEvent.getIntegerValueField(.keyboardEventKeycode))
-		guard keyCode == kVK_Function else { return }
 		isFnPressed = cgEvent.flags.contains(.maskSecondaryFn)
 	}
 
@@ -346,7 +340,13 @@ extension KeyEventMonitorClientLive {
 			logger.notice("Prompted for accessibility trust")
 		}
 
-		let inputMonitoringTrusted = currentInputMonitoringTrust()
+		var inputMonitoringTrusted = currentInputMonitoringTrust()
+		if !inputMonitoringTrusted && promptIfUntrusted && !hasPromptedForInputMonitoringTrust {
+			inputMonitoringTrusted = requestInputMonitoringTrustPrompt()
+			hasPromptedForInputMonitoringTrust = true
+			logger.notice("Prompted for input monitoring access")
+		}
+
 		setPermissionFlags(accessibility: accessibilityTrusted, input: inputMonitoringTrusted)
 	}
 
@@ -361,7 +361,16 @@ extension KeyEventMonitorClientLive {
 	}
 
 	fileprivate func currentInputMonitoringTrust() -> Bool {
-		IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
+		CGPreflightListenEventAccess()
+	}
+
+	private func requestInputMonitoringTrustPrompt() -> Bool {
+		if Thread.isMainThread {
+			return CGRequestListenEventAccess()
+		}
+		return DispatchQueue.main.sync {
+			CGRequestListenEventAccess()
+		}
 	}
 }
 
@@ -372,14 +381,11 @@ private extension KeyEventMonitorClientLive {
 		let inputMonitoringTrusted = currentInputMonitoringTrust()
 		setPermissionFlags(accessibility: accessibilityTrusted, input: inputMonitoringTrusted)
 
-		guard accessibilityTrusted else {
-			logger.error("Cannot start key event monitoring (reason: \(reason)); accessibility permission is not granted.")
+		guard inputMonitoringTrusted else {
+			logger.error("Cannot start key event monitoring (reason: \(reason)); input monitoring permission is not granted.")
 			return false
 		}
 
-		if !inputMonitoringTrusted {
-			logger.notice("Input Monitoring not yet granted; creating event tap will trigger permission prompt (reason: \(reason)).")
-		}
 		return true
 	}
 

@@ -39,6 +39,7 @@ final class SettingsStore {
 	@ObservationIgnored nonisolated(unsafe) private var deviceConnectionObserver: Any?
 	@ObservationIgnored nonisolated(unsafe) private var deviceDisconnectionObserver: Any?
 	@ObservationIgnored private var deviceUpdateTask: Task<Void, Never>?
+	@ObservationIgnored private var hasStarted = false
 
 	// MARK: - Init
 
@@ -97,6 +98,9 @@ final class SettingsStore {
 	// MARK: - Lifecycle
 
 	func start() {
+		guard !hasStarted else { return }
+		hasStarted = true
+
 		loadLanguages()
 		modelDownload.fetchModels()
 		loadAvailableInputDevices()

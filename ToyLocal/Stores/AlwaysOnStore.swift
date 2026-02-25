@@ -19,6 +19,7 @@ final class AlwaysOnStore {
 	var currentPartial: String = ""
 	var meter: Meter = .init(averagePower: 0, peakPower: 0)
 	var error: String?
+	var onModelStateChanged: (() -> Void)?
 
 	/// Display text: partial includes everything (confirmed + in-progress).
 	var accumulatedText: String {
@@ -42,6 +43,8 @@ final class AlwaysOnStore {
 	@ObservationIgnored private var settingsObserverTask: Task<Void, Never>?
 	@ObservationIgnored private var audioCaptureTask: Task<Void, Never>?
 	@ObservationIgnored private var hotkeyMonitorTask: Task<Void, Never>?
+	@ObservationIgnored private var pasteHotkeyWasPressed = false
+	@ObservationIgnored private var dumpHotkeyWasPressed = false
 
 	// MARK: - Init
 
@@ -112,6 +115,7 @@ final class AlwaysOnStore {
 				}
 				self.isModelLoading = false
 				self.isModelLoaded = true
+				self.onModelStateChanged?()
 				if self.settings.settings.alwaysOnEnabled {
 					self.startListening()
 				}
@@ -120,6 +124,7 @@ final class AlwaysOnStore {
 				self.isModelLoading = false
 				self.isModelLoaded = false
 				self.error = error.localizedDescription
+				self.onModelStateChanged?()
 			}
 		}
 	}
@@ -140,6 +145,7 @@ final class AlwaysOnStore {
 		confirmedText = ""
 		currentPartial = ""
 		meter = .init(averagePower: 0, peakPower: 0)
+		resetHotkeyLatchState()
 		logger.notice("Always-on listening stopped")
 
 		audioCaptureTask?.cancel()
@@ -191,8 +197,12 @@ final class AlwaysOnStore {
 		logger.notice("Pasting buffer (\(finalText.count) chars)")
 		Task {
 			await sharedStreamingClient.reset()
-			await pasteboard.paste(text: finalText)
-			await soundEffects.play(.pasteTranscript)
+			let didPaste = await pasteboard.paste(text: finalText)
+			if didPaste {
+				await soundEffects.play(.pasteTranscript)
+			} else {
+				logger.notice("Always-on paste did not complete; transcript remains in clipboard.")
+			}
 		}
 	}
 
@@ -282,8 +292,26 @@ final class AlwaysOnStore {
 			sumSquares += sample * sample
 			if sample > peak { peak = sample }
 		}
-		let rms = sqrt(sumSquares / Float(count))
-		meter = Meter(averagePower: Double(rms), peakPower: Double(peak))
+		let rms = Double(sqrt(sumSquares / Float(count)))
+		let rawPeak = Double(peak)
+
+		// Smooth meter transitions so the indicator remains fluid even with 160ms chunks.
+		let averageAlpha = 0.35
+		let smoothedAverage = meter.averagePower + ((rms - meter.averagePower) * averageAlpha)
+
+		let peakRiseAlpha = 0.6
+		let peakFallMultiplier = 0.88
+		let smoothedPeak: Double
+		if rawPeak > meter.peakPower {
+			smoothedPeak = meter.peakPower + ((rawPeak - meter.peakPower) * peakRiseAlpha)
+		} else {
+			smoothedPeak = meter.peakPower * peakFallMultiplier
+		}
+
+		meter = Meter(
+			averagePower: max(0, min(1, smoothedAverage)),
+			peakPower: max(0, min(1, smoothedPeak))
+		)
 	}
 
 	// MARK: - Hotkey Monitoring
@@ -293,49 +321,23 @@ final class AlwaysOnStore {
 		hotkeyMonitorTask = Task { [weak self] in
 			guard let self else { return }
 
-			let token = self.keyEventMonitor.handleKeyEvent { [weak self] keyEvent in
-				guard let self else { return false }
-
-				// Must be on MainActor to read settings
-				let shouldHandle = MainActor.assumeIsolated {
-					if self.settings.isSettingHotKey { return false }
-					guard self.settings.settings.alwaysOnEnabled else { return false }
-					return true
-				}
-				guard shouldHandle else { return false }
-
-				let hexSettings = MainActor.assumeIsolated { self.settings.settings }
-
-				// Check paste hotkey
-				if let pasteHotkey = hexSettings.alwaysOnPasteHotkey {
-					let keyMatches: Bool
-					if let hotkeyKey = pasteHotkey.key {
-						keyMatches = keyEvent.key == hotkeyKey
-					} else {
-						keyMatches = keyEvent.key == nil
+				let token = self.keyEventMonitor.handleKeyEvent { [weak self] keyEvent in
+					guard let self else { return false }
+					let action = MainActor.assumeIsolated {
+						self.resolveHotkeyAction(for: keyEvent)
 					}
-					if keyMatches, keyEvent.modifiers.matchesExactly(pasteHotkey.modifiers) {
+
+					switch action {
+					case .paste:
 						Task { @MainActor [weak self] in self?.pasteBuffer() }
 						return true
-					}
-				}
-
-				// Check dump hotkey
-				if let dumpHotkey = hexSettings.alwaysOnDumpHotkey {
-					let keyMatches: Bool
-					if let hotkeyKey = dumpHotkey.key {
-						keyMatches = keyEvent.key == hotkeyKey
-					} else {
-						keyMatches = keyEvent.key == nil
-					}
-					if keyMatches, keyEvent.modifiers.matchesExactly(dumpHotkey.modifiers) {
+					case .dump:
 						Task { @MainActor [weak self] in self?.dumpBuffer() }
 						return true
+					case .none:
+						return false
 					}
 				}
-
-				return false
-			}
 
 			defer { token.cancel() }
 
@@ -347,5 +349,55 @@ final class AlwaysOnStore {
 				token.cancel()
 			}
 		}
+	}
+
+}
+
+private extension AlwaysOnStore {
+	@MainActor
+	enum AlwaysOnHotkeyAction {
+		case none
+		case paste
+		case dump
+	}
+
+	@MainActor
+	func resolveHotkeyAction(for keyEvent: KeyEvent) -> AlwaysOnHotkeyAction {
+		if settings.isSettingHotKey || !settings.settings.alwaysOnEnabled {
+			resetHotkeyLatchState()
+			return .none
+		}
+
+		let currentSettings = settings.settings
+		let pastePressedNow = isPressed(hotkey: currentSettings.alwaysOnPasteHotkey, with: keyEvent)
+		let dumpPressedNow = isPressed(hotkey: currentSettings.alwaysOnDumpHotkey, with: keyEvent)
+
+		let shouldPaste = pastePressedNow && !pasteHotkeyWasPressed
+		let shouldDump = dumpPressedNow && !dumpHotkeyWasPressed
+
+		pasteHotkeyWasPressed = pastePressedNow
+		dumpHotkeyWasPressed = dumpPressedNow
+
+		if shouldPaste { return .paste }
+		if shouldDump { return .dump }
+		return .none
+	}
+
+	@MainActor
+	func resetHotkeyLatchState() {
+		pasteHotkeyWasPressed = false
+		dumpHotkeyWasPressed = false
+	}
+
+	@MainActor
+	func isPressed(hotkey: HotKey?, with keyEvent: KeyEvent) -> Bool {
+		guard let hotkey else { return false }
+		let keyMatches: Bool
+		if let hotkeyKey = hotkey.key {
+			keyMatches = keyEvent.key == hotkeyKey
+		} else {
+			keyMatches = keyEvent.key == nil
+		}
+		return keyMatches && keyEvent.modifiers.matchesExactly(hotkey.modifiers)
 	}
 }

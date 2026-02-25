@@ -212,6 +212,10 @@ func resumeMediaApplications(_ players: [String]) {
 }
 
 func sendMediaKey() {
+	guard ensureMediaEventPostingAccess() else {
+		return
+	}
+
 	let nxKeyTypePlay: UInt32 = 16
 
 	func postKeyEvent(down: Bool) {
@@ -232,4 +236,32 @@ func sendMediaKey() {
 
 	postKeyEvent(down: true)
 	postKeyEvent(down: false)
+}
+
+private func ensureMediaEventPostingAccess() -> Bool {
+	if Thread.isMainThread {
+		return requestMediaEventPostingAccess()
+	}
+	return DispatchQueue.main.sync {
+		requestMediaEventPostingAccess()
+	}
+}
+
+private func requestMediaEventPostingAccess() -> Bool {
+	if CGPreflightPostEventAccess() {
+		return true
+	}
+
+	let granted = CGRequestPostEventAccess()
+	guard granted else {
+		mediaLogger.error("Event posting permission denied while sending media key; opening Accessibility settings.")
+		guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
+			mediaLogger.error("Failed to construct Accessibility settings URL")
+			return false
+		}
+		NSWorkspace.shared.open(url)
+		return false
+	}
+
+	return true
 }
