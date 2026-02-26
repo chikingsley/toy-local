@@ -18,6 +18,7 @@ struct TranscriptionIndicatorView: View {
     case transcribing
     case prewarming
     case alwaysOnListening
+    case alwaysOnFinalizing
   }
 
   var status: Status
@@ -30,6 +31,7 @@ struct TranscriptionIndicatorView: View {
   private var activeColor: Color {
     switch status {
     case .alwaysOnListening: return alwaysOnBaseColor
+    case .alwaysOnFinalizing: return transcribeBaseColor
     case .recording: return .red
     default: return .red
     }
@@ -47,6 +49,7 @@ struct TranscriptionIndicatorView: View {
     case .transcribing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .prewarming: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .alwaysOnListening: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
+    case .alwaysOnFinalizing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     }
   }
 
@@ -58,6 +61,7 @@ struct TranscriptionIndicatorView: View {
     case .transcribing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .prewarming: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .alwaysOnListening: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
+    case .alwaysOnFinalizing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     }
   }
 
@@ -69,6 +73,7 @@ struct TranscriptionIndicatorView: View {
     case .transcribing: return transcribeBaseColor
     case .prewarming: return transcribeBaseColor
     case .alwaysOnListening: return activeColor
+    case .alwaysOnFinalizing: return transcribeBaseColor
     }
   }
 
@@ -140,8 +145,8 @@ struct TranscriptionIndicatorView: View {
         .changeEffect(.glow(color: activeColor.opacity(0.5), radius: 8), value: status)
         .changeEffect(.shine(angle: .degrees(0), duration: 0.6), value: transcribeEffect)
         .compositingGroup()
-        .task(id: status == .transcribing) {
-          while status == .transcribing, !Task.isCancelled {
+        .task(id: status == .transcribing || status == .alwaysOnFinalizing) {
+          while status == .transcribing || status == .alwaysOnFinalizing, !Task.isCancelled {
             transcribeEffect += 1
             try? await Task.sleep(for: .seconds(0.25))
           }
@@ -176,6 +181,7 @@ struct TranscriptionIndicatorView: View {
     TranscriptionIndicatorView(status: .recording, meter: .init(averagePower: 0.5, peakPower: 0.5))
     TranscriptionIndicatorView(status: .transcribing, meter: .init(averagePower: 0, peakPower: 0))
     TranscriptionIndicatorView(status: .prewarming, meter: .init(averagePower: 0, peakPower: 0))
+    TranscriptionIndicatorView(status: .alwaysOnFinalizing, meter: .init(averagePower: 0, peakPower: 0))
   }
   .padding(40)
 }

@@ -310,6 +310,7 @@ final class TranscriptionStore {
 
 		let didPaste = await pasteboard.paste(text: result)
 		if didPaste {
+			transcriptionFeatureLogger.notice("Paste completed for transcribed result (\(result.count) chars).")
 			await soundEffects.play(.pasteTranscript)
 		} else {
 			transcriptionFeatureLogger.notice("Paste did not complete; transcript remains in clipboard.")

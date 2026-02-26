@@ -10,7 +10,10 @@ struct TranscriptionView: View {
 	@ObserveInjection var inject
 
 	var status: TranscriptionIndicatorView.Status {
-		if alwaysOnStore?.isListening == true {
+		if alwaysOnStore?.isListening == true,
+		   alwaysOnStore?.isAwaitingPasteFinalization == true {
+			return .alwaysOnFinalizing
+		} else if alwaysOnStore?.isListening == true {
 			return .alwaysOnListening
 		} else if store.isTranscribing {
 			return .transcribing
@@ -35,6 +38,8 @@ struct TranscriptionView: View {
 		// Force observation of always-on state changes
 		// swiftlint:disable:next redundant_discardable_let
 		let _ = alwaysOnStore?.isListening
+		// swiftlint:disable:next redundant_discardable_let
+		let _ = alwaysOnStore?.isAwaitingPasteFinalization
 		// swiftlint:disable:next redundant_discardable_let
 		let _ = alwaysOnStore?.meter
 

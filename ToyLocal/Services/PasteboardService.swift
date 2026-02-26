@@ -10,6 +10,7 @@ struct PasteboardClientLive {
 	let settingsManager: SettingsManager
 
 	private var hexSettings: ToyLocalSettings { settingsManager.settings }
+	private let clipboardRestoreDelay: Duration = .milliseconds(1_200)
 
 	private struct PasteboardSnapshot {
 		let items: [[String: Any]]
@@ -44,6 +45,11 @@ struct PasteboardClientLive {
 
 	@MainActor
 	func paste(text: String) async -> Bool {
+		let mode = hexSettings.useClipboardPaste ? "clipboard" : "accessibility"
+		pasteboardLogger.info(
+			"Paste requested mode=\(mode) chars=\(text.count) copyToClipboard=\(hexSettings.copyToClipboard)"
+		)
+
 		if hexSettings.useClipboardPaste {
 			return await pasteWithClipboard(text)
 		} else {
@@ -123,7 +129,10 @@ struct PasteboardClientLive {
 		let pasteboard = NSPasteboard.general
 		let snapshot = PasteboardSnapshot(pasteboard: pasteboard)
 		let targetChangeCount = writeAndTrackChangeCount(pasteboard: pasteboard, text: text)
-		_ = await waitForPasteboardCommit(targetChangeCount: targetChangeCount)
+		let committed = await waitForPasteboardCommit(targetChangeCount: targetChangeCount)
+		if !committed {
+			pasteboardLogger.notice("Pasteboard change count did not commit within timeout; continuing with paste attempt.")
+		}
 		let pasteSucceeded = await performPaste(text)
 
 		// Only restore original pasteboard contents if:
@@ -132,11 +141,11 @@ struct PasteboardClientLive {
 		if !hexSettings.copyToClipboard && pasteSucceeded {
 			let savedSnapshot = snapshot
 			Task { @MainActor in
-				// Give slower apps a short window to read the plain-text entry
-				// before we repopulate the clipboard with the user's previous rich data.
-				try? await Task.sleep(for: .milliseconds(500))
+				// Give target apps a wider window to consume Cmd+V contents before restore.
+				try? await Task.sleep(for: clipboardRestoreDelay)
 				pasteboard.clearContents()
 				savedSnapshot.restore(to: pasteboard)
+				pasteboardLogger.info("Restored previous clipboard snapshot after paste.")
 			}
 		}
 
@@ -191,8 +200,12 @@ struct PasteboardClientLive {
 	@MainActor
 	private func performPaste(_ text: String) async -> Bool {
 		for strategy in PasteStrategy.allCases {
+			pasteboardLogger.info("Attempting paste strategy=\(String(describing: strategy))")
 			let succeeded = await attemptPaste(text, using: strategy)
-			if succeeded { return true }
+			pasteboardLogger.info("Paste strategy=\(String(describing: strategy)) success=\(succeeded)")
+			if succeeded {
+				return true
+			}
 		}
 		return false
 	}
@@ -225,6 +238,10 @@ struct PasteboardClientLive {
 		let vUp = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: false)
 		vUp?.flags = .maskCommand
 		let cmdUp = CGEvent(keyboardEventSource: source, virtualKey: cmdKey, keyDown: false)
+		guard cmdDown != nil, vDown != nil, vUp != nil, cmdUp != nil else {
+			pasteboardLogger.error("Failed to synthesize one or more Cmd+V key events.")
+			return false
+		}
 		cmdDown?.post(tap: .cghidEventTap)
 		vDown?.post(tap: .cghidEventTap)
 		vUp?.post(tap: .cghidEventTap)

@@ -17,6 +17,7 @@ final class AlwaysOnStore {
 	var modelDownloadProgress: Double = 0
 	var confirmedText: String = ""
 	var currentPartial: String = ""
+	var isAwaitingPasteFinalization: Bool = false
 	var meter: Meter = .init(averagePower: 0, peakPower: 0)
 	var error: String?
 	var onModelStateChanged: (() -> Void)?
@@ -37,6 +38,7 @@ final class AlwaysOnStore {
 	private let pasteboard: PasteboardClientLive
 	private let keyEventMonitor: KeyEventMonitorClientLive
 	private let soundEffects: SoundEffectsClientLive
+	private let pasteStabilizationDelayMilliseconds = 1_000
 
 	// MARK: - Task Handles
 
@@ -142,6 +144,7 @@ final class AlwaysOnStore {
 
 	func stopListening() {
 		isListening = false
+		isAwaitingPasteFinalization = false
 		confirmedText = ""
 		currentPartial = ""
 		meter = .init(averagePower: 0, peakPower: 0)
@@ -162,47 +165,15 @@ final class AlwaysOnStore {
 	// MARK: - User Actions
 
 	func pasteBuffer() {
-		var text = accumulatedText
-		guard !text.isEmpty else { return }
-
-		let hexSettings = settings.settings
-
-		// Apply word removals/remappings at paste time
-		if hexSettings.wordRemovalsEnabled {
-			text = WordRemovalApplier.apply(text, removals: hexSettings.wordRemovals)
-		}
-		text = WordRemappingApplier.apply(text, remappings: hexSettings.wordRemappings)
-		guard !text.isEmpty else { return }
-
-		// Save to history
-		if hexSettings.saveTranscriptionHistory {
-			let transcript = Transcript(
-				timestamp: Date(),
-				text: text,
-				audioPath: URL(fileURLWithPath: ""),
-				duration: 0
-			)
-			settings.transcriptionHistory.history.insert(transcript, at: 0)
-			if let max = hexSettings.maxHistoryEntries, max > 0 {
-				while settings.transcriptionHistory.history.count > max {
-					settings.transcriptionHistory.history.removeLast()
-				}
-			}
+		guard !isAwaitingPasteFinalization else {
+			logger.notice("Always-on paste hotkey pressed while a stabilization wait is already pending.")
+			return
 		}
 
-		confirmedText = ""
-		currentPartial = ""
-
-		let finalText = text
-		logger.notice("Pasting buffer (\(finalText.count) chars)")
-		Task {
-			await sharedStreamingClient.reset()
-			let didPaste = await pasteboard.paste(text: finalText)
-			if didPaste {
-				await soundEffects.play(.pasteTranscript)
-			} else {
-				logger.notice("Always-on paste did not complete; transcript remains in clipboard.")
-			}
+		isAwaitingPasteFinalization = true
+		logger.notice("Always-on paste hotkey pressed; waiting \(self.pasteStabilizationDelayMilliseconds)ms before paste attempt.")
+		Task { @MainActor [weak self] in
+			await self?.performDeferredPasteAttempt()
 		}
 	}
 
@@ -233,7 +204,11 @@ final class AlwaysOnStore {
 				let partialTask = Task { [weak self] in
 					for await partial in partials {
 						guard let self else { return }
+						let wasBufferEmpty = self.currentPartial.isEmpty && self.confirmedText.isEmpty
 						self.currentPartial = partial
+						if wasBufferEmpty, !partial.isEmpty {
+							logger.notice("Always-on buffer now has partial text (\(partial.count) chars).")
+						}
 					}
 				}
 
@@ -244,6 +219,7 @@ final class AlwaysOnStore {
 						guard !trimmed.isEmpty else { continue }
 						self.confirmedText = trimmed
 						self.currentPartial = ""
+						logger.notice("Always-on utterance confirmed (\(trimmed.count) chars).")
 						logger.info("Confirmed (EOU): '\(trimmed, privacy: .private)'")
 					}
 				}
@@ -354,6 +330,89 @@ final class AlwaysOnStore {
 }
 
 private extension AlwaysOnStore {
+	func performDeferredPasteAttempt() async {
+		defer { isAwaitingPasteFinalization = false }
+
+		try? await Task.sleep(for: .milliseconds(pasteStabilizationDelayMilliseconds))
+		guard isListening else {
+			logger.notice("Always-on deferred paste canceled because listening is no longer active.")
+			return
+		}
+		logger.notice("Always-on paste stabilization wait elapsed; evaluating buffered text.")
+
+		let bufferedText = accumulatedText
+		if !bufferedText.isEmpty {
+			logger.notice("Always-on deferred paste found buffered text (\(bufferedText.count) chars).")
+			pasteResolvedBuffer(bufferedText)
+			return
+		}
+
+		logger.notice("Always-on deferred paste found empty buffer; attempting stream flush.")
+		do {
+			let flushed = try await sharedStreamingClient.finish()
+				.trimmingCharacters(in: .whitespacesAndNewlines)
+			guard !flushed.isEmpty else {
+				logger.notice("Always-on paste hotkey pressed, but buffer is empty.")
+				return
+			}
+
+			logger.notice("Always-on stream flush produced \(flushed.count) chars for paste.")
+			pasteResolvedBuffer(flushed)
+		} catch {
+			logger.error("Always-on stream flush failed: \(error.localizedDescription)")
+			logger.notice("Always-on paste hotkey pressed, but buffer is empty.")
+		}
+	}
+
+	func pasteResolvedBuffer(_ initialText: String) {
+		var text = initialText
+		let hexSettings = settings.settings
+
+		// Apply word removals/remappings at paste time
+		if hexSettings.wordRemovalsEnabled {
+			text = WordRemovalApplier.apply(text, removals: hexSettings.wordRemovals)
+		}
+		text = WordRemappingApplier.apply(text, remappings: hexSettings.wordRemappings)
+		guard !text.isEmpty else {
+			logger.notice("Always-on paste discarded: processed text became empty after remap/removal.")
+			return
+		}
+
+		// Save to history
+		if hexSettings.saveTranscriptionHistory {
+			let transcript = Transcript(
+				timestamp: Date(),
+				text: text,
+				audioPath: URL(fileURLWithPath: ""),
+				duration: 0
+			)
+			settings.transcriptionHistory.history.insert(transcript, at: 0)
+			if let max = hexSettings.maxHistoryEntries, max > 0 {
+				while settings.transcriptionHistory.history.count > max {
+					settings.transcriptionHistory.history.removeLast()
+				}
+			}
+		}
+
+		confirmedText = ""
+		currentPartial = ""
+
+		let finalText = text
+		logger.notice("Pasting buffer (\(finalText.count) chars)")
+		Task {
+			await sharedStreamingClient.reset()
+			let didPaste = await pasteboard.paste(text: finalText)
+			if didPaste {
+				logger.notice("Always-on paste completed (\(finalText.count) chars)")
+				await soundEffects.play(.pasteTranscript)
+			} else {
+				logger.notice("Always-on paste did not complete; transcript remains in clipboard.")
+			}
+		}
+	}
+}
+
+private extension AlwaysOnStore {
 	@MainActor
 	enum AlwaysOnHotkeyAction {
 		case none
@@ -378,8 +437,14 @@ private extension AlwaysOnStore {
 		pasteHotkeyWasPressed = pastePressedNow
 		dumpHotkeyWasPressed = dumpPressedNow
 
-		if shouldPaste { return .paste }
-		if shouldDump { return .dump }
+		if shouldPaste {
+			logger.notice("Always-on paste hotkey triggered.")
+			return .paste
+		}
+		if shouldDump {
+			logger.notice("Always-on dump hotkey triggered.")
+			return .dump
+		}
 		return .none
 	}
 

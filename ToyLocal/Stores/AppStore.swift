@@ -37,8 +37,11 @@ final class AppStore {
 	// MARK: - Task Handles
 
 	@ObservationIgnored private var pasteLastTranscriptTask: Task<Void, Never>?
+	@ObservationIgnored private var typingSessionMonitorTask: Task<Void, Never>?
 	@ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
 	@ObservationIgnored private var modelReadinessTask: Task<Void, Never>?
+	@ObservationIgnored private var typingSessionTracker = TypingSessionTracker()
+	@ObservationIgnored private var lastObservedAppBundleID: String?
 	@ObservationIgnored private var hasStarted = false
 
 	// MARK: - Init
@@ -69,6 +72,7 @@ final class AppStore {
 
 	deinit {
 		pasteLastTranscriptTask?.cancel()
+		typingSessionMonitorTask?.cancel()
 		permissionMonitorTask?.cancel()
 		modelReadinessTask?.cancel()
 	}
@@ -83,6 +87,7 @@ final class AppStore {
 		settings.start()
 		alwaysOn.start()
 		startPasteLastTranscriptMonitoring()
+		startTypingSessionMonitoring()
 		ensureSelectedModelReadiness()
 		startPermissionMonitoring()
 	}
@@ -191,6 +196,73 @@ final class AppStore {
 				}
 			} onCancel: {
 				token.cancel()
+			}
+		}
+	}
+
+	private func startTypingSessionMonitoring() {
+		typingSessionMonitorTask?.cancel()
+		typingSessionMonitorTask = Task { [weak self] in
+			guard let self else { return }
+
+			let token = self.keyEventMonitor.handleKeyEvent { [weak self] keyEvent in
+				guard let self else { return false }
+
+				MainActor.assumeIsolated {
+					self.handleTypingSessionKeyEvent(keyEvent)
+				}
+				return false
+			}
+
+			defer { token.cancel() }
+
+			await withTaskCancellationHandler {
+				while !Task.isCancelled {
+					try? await Task.sleep(for: .seconds(60))
+				}
+			} onCancel: {
+				token.cancel()
+			}
+		}
+	}
+
+	private func handleTypingSessionKeyEvent(_ keyEvent: KeyEvent) {
+		let appBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+
+		if appBundleID != lastObservedAppBundleID {
+			let appChangeEvents = typingSessionTracker.appDidChange(to: appBundleID)
+			logTypingSessionEvents(appChangeEvents, fallbackAppBundleID: appBundleID)
+			lastObservedAppBundleID = appBundleID
+		}
+
+		let events = typingSessionTracker.process(keyEvent: keyEvent, appBundleID: appBundleID)
+		logTypingSessionEvents(events, fallbackAppBundleID: appBundleID)
+	}
+
+	private func logTypingSessionEvents(
+		_ events: [TypingSessionTracker.Event],
+		fallbackAppBundleID: String?
+	) {
+		guard !events.isEmpty else { return }
+
+		for event in events {
+			switch event {
+			case .trackingStarted(let appBundleID):
+				ToyLocalLog.keyEvent.notice(
+					"Typing session started app=\(appBundleID ?? fallbackAppBundleID ?? "unknown")"
+				)
+			case .textUpdated(let text, let appBundleID):
+				ToyLocalLog.keyEvent.info(
+					"Typing session updated chars=\(text.count) app=\(appBundleID ?? fallbackAppBundleID ?? "unknown")"
+				)
+			case .submitted(let text, let appBundleID):
+				ToyLocalLog.keyEvent.notice(
+					"Typing session submitted chars=\(text.count) app=\(appBundleID ?? fallbackAppBundleID ?? "unknown") text=\(text, privacy: .private)"
+				)
+			case .canceled(let text, let appBundleID):
+				ToyLocalLog.keyEvent.notice(
+					"Typing session canceled chars=\(text.count) app=\(appBundleID ?? fallbackAppBundleID ?? "unknown") text=\(text, privacy: .private)"
+				)
 			}
 		}
 	}
