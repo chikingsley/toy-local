@@ -9,19 +9,24 @@ struct SettingsView: View {
 	let microphonePermission: PermissionStatus
 	let accessibilityPermission: PermissionStatus
 	let inputMonitoringPermission: PermissionStatus
+	let requestMicrophonePermission: () -> Void
+	let requestAccessibilityPermission: () -> Void
+	let requestInputMonitoringPermission: () -> Void
 
 	var body: some View {
 		Form {
 			if microphonePermission != .granted
 				|| accessibilityPermission != .granted
 				|| inputMonitoringPermission != .granted {
-				PermissionsSectionView(
-					store: store,
-					microphonePermission: microphonePermission,
-					accessibilityPermission: accessibilityPermission,
-					inputMonitoringPermission: inputMonitoringPermission
-				)
-			}
+					PermissionsSectionView(
+						microphonePermission: microphonePermission,
+						accessibilityPermission: accessibilityPermission,
+						inputMonitoringPermission: inputMonitoringPermission,
+						requestMicrophonePermission: requestMicrophonePermission,
+						requestAccessibilityPermission: requestAccessibilityPermission,
+						requestInputMonitoringPermission: requestInputMonitoringPermission
+					)
+				}
 
 			ModelSectionView(store: store, shouldFlash: store.shouldFlashModelSection)
 			// Only show language picker for WhisperKit models (not Parakeet)

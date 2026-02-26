@@ -40,15 +40,18 @@ struct AppView: View {
 				.buttonStyle(.plain)
 				.tag(ActiveTab.about)
 			}
-		} detail: {
-			switch store.activeTab {
+			} detail: {
+				switch store.activeTab {
 			case .settings:
 				SettingsView(
 					store: store.settings,
 					alwaysOnStore: store.alwaysOn,
 					microphonePermission: store.microphonePermission,
 					accessibilityPermission: store.accessibilityPermission,
-					inputMonitoringPermission: store.inputMonitoringPermission
+					inputMonitoringPermission: store.inputMonitoringPermission,
+					requestMicrophonePermission: store.requestMicrophone,
+					requestAccessibilityPermission: store.requestAccessibility,
+					requestInputMonitoringPermission: store.requestInputMonitoring
 				)
 				.navigationTitle("Settings")
 			case .remappings:
