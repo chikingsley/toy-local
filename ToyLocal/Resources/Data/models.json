@@ -1,8 +1,8 @@
 [
   {
-    "displayName": "Parakeet Streaming (Real-Time)",
+    "displayName": "Parakeet Streaming",
     "internalName": "parakeet-realtime-eou-120m-160ms-coreml",
-    "size": "English · Always-On Mode",
+    "size": "English",
     "accuracyStars": 4,
     "speedStars": 5,
     "storageSize": "200MB"

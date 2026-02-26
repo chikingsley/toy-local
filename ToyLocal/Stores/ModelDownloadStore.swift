@@ -26,7 +26,9 @@ public struct CuratedModelInfo: Equatable, Identifiable, Codable {
 	public var id: String { internalName }
 
 	public var badge: String? {
-		if internalName == "parakeet-tdt-0.6b-v2-coreml" {
+		if internalName == "parakeet-realtime-eou-120m-160ms-coreml" {
+			return "ALWAYS-ON MODE"
+		} else if internalName == "parakeet-tdt-0.6b-v2-coreml" {
 			return "BEST FOR ENGLISH"
 		} else if internalName == "parakeet-tdt-0.6b-v3-coreml" {
 			return "BEST FOR MULTILINGUAL"
