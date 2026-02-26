@@ -36,13 +36,15 @@ public extension KeyEvent {
 			key = nil
 		}
 
-		var modifiers = Modifiers.from(carbonFlags: cgEvent.flags)
-		if !isFnPressed && !cgEvent.flags.contains(.maskSecondaryFn) {
-			modifiers = modifiers.removing(kind: .fn)
+			var modifiers = Modifiers.from(carbonFlags: cgEvent.flags)
+			if !isFnPressed {
+				// Treat Fn as active only when we have seen a real flagsChanged press.
+				// Some non-Fn key events (notably arrows) can still carry the Fn mask bit.
+				modifiers = modifiers.removing(kind: .fn)
+			}
+			self.init(key: key, modifiers: modifiers)
 		}
-		self.init(key: key, modifiers: modifiers)
 	}
-}
 
 class KeyEventMonitorClientLive: @unchecked Sendable {
 	private var eventTapPort: CFMachPort?
