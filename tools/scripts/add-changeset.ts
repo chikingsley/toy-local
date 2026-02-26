@@ -10,7 +10,7 @@
  *   bun run tools/scripts/add-changeset.ts minor "Add new feature"
  */
 
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { randomBytes } from "crypto";
 
 const args = process.argv.slice(2);
@@ -38,9 +38,10 @@ if (!summary.trim()) {
 // Generate random filename (like changeset does)
 const id = randomBytes(4).toString("hex");
 const filename = `.changeset/${id}.md`;
+const packageName = JSON.parse(readFileSync("package.json", "utf8")).name ?? "toy-local-app";
 
 const content = `---
-"hex-app": ${type}
+"${packageName}": ${type}
 ---
 
 ${summary.trim()}

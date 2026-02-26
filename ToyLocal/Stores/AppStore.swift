@@ -38,6 +38,8 @@ final class AppStore {
 
 	@ObservationIgnored private var pasteLastTranscriptTask: Task<Void, Never>?
 	@ObservationIgnored private var typingSessionMonitorTask: Task<Void, Never>?
+	@ObservationIgnored private var typingSessionEventPumpTask: Task<Void, Never>?
+	@ObservationIgnored private var typingSessionEventContinuation: AsyncStream<KeyEvent>.Continuation?
 	@ObservationIgnored private var permissionMonitorTask: Task<Void, Never>?
 	@ObservationIgnored private var modelReadinessTask: Task<Void, Never>?
 	@ObservationIgnored private var typingSessionTracker = TypingSessionTracker()
@@ -73,6 +75,8 @@ final class AppStore {
 	deinit {
 		pasteLastTranscriptTask?.cancel()
 		typingSessionMonitorTask?.cancel()
+		typingSessionEventPumpTask?.cancel()
+		typingSessionEventContinuation?.finish()
 		permissionMonitorTask?.cancel()
 		modelReadinessTask?.cancel()
 	}
@@ -202,19 +206,36 @@ final class AppStore {
 
 	private func startTypingSessionMonitoring() {
 		typingSessionMonitorTask?.cancel()
+		typingSessionEventPumpTask?.cancel()
+		typingSessionEventContinuation?.finish()
+		typingSessionEventContinuation = nil
+
+		var continuation: AsyncStream<KeyEvent>.Continuation?
+		let stream = AsyncStream<KeyEvent>(bufferingPolicy: .bufferingNewest(512)) { createdContinuation in
+			continuation = createdContinuation
+		}
+		guard let continuation else { return }
+		typingSessionEventContinuation = continuation
+
+		typingSessionEventPumpTask = Task { @MainActor [weak self] in
+			guard let self else { return }
+			for await keyEvent in stream {
+				self.handleTypingSessionKeyEvent(keyEvent)
+			}
+		}
+
 		typingSessionMonitorTask = Task { [weak self] in
 			guard let self else { return }
 
-			let token = self.keyEventMonitor.handleKeyEvent { [weak self] keyEvent in
-				guard let self else { return false }
-
-				MainActor.assumeIsolated {
-					self.handleTypingSessionKeyEvent(keyEvent)
-				}
+			let token = self.keyEventMonitor.handleKeyEvent { keyEvent in
+				continuation.yield(keyEvent)
 				return false
 			}
 
-			defer { token.cancel() }
+			defer {
+				token.cancel()
+				continuation.finish()
+			}
 
 			await withTaskCancellationHandler {
 				while !Task.isCancelled {
@@ -222,6 +243,7 @@ final class AppStore {
 				}
 			} onCancel: {
 				token.cancel()
+				continuation.finish()
 			}
 		}
 	}
