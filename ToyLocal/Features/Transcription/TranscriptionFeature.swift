@@ -13,6 +13,9 @@ struct TranscriptionView: View {
 		if alwaysOnStore?.isListening == true,
 		   alwaysOnStore?.isAwaitingPasteFinalization == true {
 			return .alwaysOnFinalizing
+		} else if alwaysOnStore?.isListening == true,
+				  alwaysOnStore?.hasText == false {
+			return .alwaysOnListeningNotReady
 		} else if alwaysOnStore?.isListening == true {
 			return .alwaysOnListening
 		} else if store.isTranscribing {
@@ -40,6 +43,8 @@ struct TranscriptionView: View {
 		let _ = alwaysOnStore?.isListening
 		// swiftlint:disable:next redundant_discardable_let
 		let _ = alwaysOnStore?.isAwaitingPasteFinalization
+		// swiftlint:disable:next redundant_discardable_let
+		let _ = alwaysOnStore?.hasText
 		// swiftlint:disable:next redundant_discardable_let
 		let _ = alwaysOnStore?.meter
 

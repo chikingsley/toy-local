@@ -17,6 +17,7 @@ struct TranscriptionIndicatorView: View {
     case recording
     case transcribing
     case prewarming
+    case alwaysOnListeningNotReady
     case alwaysOnListening
     case alwaysOnFinalizing
   }
@@ -26,10 +27,12 @@ struct TranscriptionIndicatorView: View {
 
   let transcribeBaseColor: Color = .blue
   let alwaysOnBaseColor: Color = .green
+  let alwaysOnNotReadyColor: Color = .yellow
 
   /// The accent color used for the active/recording glow effects.
   private var activeColor: Color {
     switch status {
+    case .alwaysOnListeningNotReady: return alwaysOnNotReadyColor
     case .alwaysOnListening: return alwaysOnBaseColor
     case .alwaysOnFinalizing: return transcribeBaseColor
     case .recording: return .red
@@ -38,7 +41,7 @@ struct TranscriptionIndicatorView: View {
   }
 
   private var isActive: Bool {
-    status == .recording || status == .alwaysOnListening
+    status == .recording || status == .alwaysOnListening || status == .alwaysOnListeningNotReady
   }
 
   private var backgroundColor: Color {
@@ -48,6 +51,7 @@ struct TranscriptionIndicatorView: View {
     case .recording: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .transcribing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .prewarming: return transcribeBaseColor.mix(with: .black, by: 0.5)
+    case .alwaysOnListeningNotReady: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .alwaysOnListening: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .alwaysOnFinalizing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     }
@@ -60,6 +64,7 @@ struct TranscriptionIndicatorView: View {
     case .recording: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .transcribing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .prewarming: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
+    case .alwaysOnListeningNotReady: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .alwaysOnListening: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .alwaysOnFinalizing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     }
@@ -72,6 +77,7 @@ struct TranscriptionIndicatorView: View {
     case .recording: return activeColor
     case .transcribing: return transcribeBaseColor
     case .prewarming: return transcribeBaseColor
+    case .alwaysOnListeningNotReady: return activeColor
     case .alwaysOnListening: return activeColor
     case .alwaysOnFinalizing: return transcribeBaseColor
     }
@@ -181,6 +187,7 @@ struct TranscriptionIndicatorView: View {
     TranscriptionIndicatorView(status: .recording, meter: .init(averagePower: 0.5, peakPower: 0.5))
     TranscriptionIndicatorView(status: .transcribing, meter: .init(averagePower: 0, peakPower: 0))
     TranscriptionIndicatorView(status: .prewarming, meter: .init(averagePower: 0, peakPower: 0))
+    TranscriptionIndicatorView(status: .alwaysOnListeningNotReady, meter: .init(averagePower: 0.35, peakPower: 0.4))
     TranscriptionIndicatorView(status: .alwaysOnFinalizing, meter: .init(averagePower: 0, peakPower: 0))
   }
   .padding(40)
