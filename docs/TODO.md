@@ -49,9 +49,9 @@ Wired and confirmed working, for the record: playback-pause-on-record, system-au
 - [x] 2026-07-04: History playback scrubber is real — `HistoryStore` tracks live position (100ms ticker) and duration, `seek(to:)` moves the player, and the detail bar's slider scrubs while playing with a live elapsed label. Chi verifies feel. [C]
 - [x] 2026-07-04: Dictionary is back in the sidebar (`ActiveTab.libraryTop = [.modes, .dictionary]`, matching Chi's stated grouping). The pane itself is still `PrototypeDictionaryPaneV2` pending Chi's design pass.
 - [ ] `WordRemappingsView` (Features/Transforms) is orphaned — the only word-remapping editor, referenced solely by its own #Preview. Re-home it (Dictionary work). Note: the remap/removal APPLIERS are live in the pipeline and tested (WordRemappingTests, WordRemovalTests); only the editor is unreachable. [B]
-- [ ] Language dropdown uses one global list (`["Automatic"] + store.languages` from bundled languages.json, ModesPane.swift:297, SettingsStore.swift:127-136) instead of per-model `supportedLanguages` (exists on specs, unused). Derive per model; reset to Automatic when unsupported. [A]
+- [x] 2026-07-04: Language dropdown derives from the selected voice model's `supportedLanguages` (empty set = unrestricted, which covers the cloud specs that don't declare languages), and switching to a model that lacks the current language resets it to Automatic in the mode-binding setter. Logic lives in `ModeLanguagePolicy` with six unit tests (ModeLanguagePolicyTests, all passing).
 - [ ] Extra modes are mock — only the settings-backed Default mode is real. `Mode` model in Core with per-mode overrides resolving against global defaults; global paste-off forces per-mode Auto-paste off. [A]
-- [ ] Verify whether `DictationContextCaptureBuilder` (Core, fully tested) is actually invoked in the production dictation path — unverified. [A]
+- [x] 2026-07-04 VERIFIED WIRED: context capture sessions start at recording start (`TranscriptionStore.swift:144`), finish or cancel at stop (:390-392), and the snapshot flows into transcript persistence.
 
 ---
 
@@ -75,7 +75,7 @@ Wired and confirmed working, for the record: playback-pause-on-record, system-au
 ## Testing gaps (verified: only 2 live suites exist — permission-onboarding, permission-regression)
 
 - [ ] Write the missing live-driver suites (none of these exist today): hotkey-capture, model-download, recording-start-stop, textedit-paste, always-on-lifecycle, post-processing-state, settings-gate. [A]
-- [ ] Replace `SmokeTests.testSanity` (literally `XCTAssertTrue(true)`) with a real launch smoke test. [A]
+- [x] 2026-07-04: `SmokeTests` now asserts bundle integrity — languages.json ships and decodes (with the Auto entry), and all six sound-effect assets resolve; this catches the flattened-assets regression class.
 - [ ] Unit tests for each dead control as it gets wired (see the dead-controls section). [A]
 - [ ] Vocabulary v1 persistence + apply-step tests once the editor is re-homed. [A]
 
@@ -84,7 +84,7 @@ Wired and confirmed working, for the record: playback-pause-on-record, system-au
 ## Cleanups
 
 - [ ] Rename `TranscriptionStore+HotKeyInput.swift` (85 lines — the hotkey/push-to-talk input loop) to a self-describing controller. [A]
-- [ ] Rename `TranscriptionStore+Workflow.swift` (114 lines — it is the post-transcription TEXT-TRANSFORM pipeline, not "workflow") accordingly. [A]
+- [x] 2026-07-04: `TranscriptionStore+Workflow.swift` renamed to `TranscriptionStore+TextTransform.swift` to match its content (the post-transcription text-transform pipeline).
 - [ ] Delete preview-only Prototype leftovers when their redesigns land: PrototypeShell.swift (defines preview-only `PrototypeWindow`), PrototypeModeSwitcher, the five recorder variants, PrototypeDictionaryPane v1. [A]
 - [ ] Codex audit of the ported UI layer. [A]
 - [ ] Periphery dead-code run before release. [A]

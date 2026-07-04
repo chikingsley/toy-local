@@ -10,6 +10,9 @@
 - Removed settings controls that had no backing feature, to be restored as each feature lands: silence removal, dynamic normalization, error logging, menubar-click recording, always-close, hold-shift auto-send, voice model active duration, app folder location, agent plugins, experimental models, and the Modes realtime/identify-speakers/autocapitalize toggles.
 - The History detail playback bar gained a working scrubber with live elapsed time and seeking.
 - Dictionary is reachable from the sidebar again, grouped with Modes.
+- The Modes language dropdown now offers only the selected voice model's supported languages and resets to Automatic when a model switch drops the current language, with unit tests on the policy.
+- Replaced the placeholder smoke test with bundle-integrity checks for the language catalog and all sound-effect assets.
+- Renamed `TranscriptionStore+Workflow.swift` to `TranscriptionStore+TextTransform.swift` to match its content.
 - Verified every TODO item against the codebase (build, both test suites, settings consumers, cloud worker routes, entitlements, live-driver suites) and rewrote `docs/TODO.md` as a flat evidence-backed list with no phases and no tables.
 - ToyLocal is FluidAudio-only.
 - The visible model catalog is limited to supported Parakeet models.

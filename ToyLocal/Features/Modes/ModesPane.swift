@@ -28,9 +28,13 @@ struct ModesPane: View {
       modes.first { $0.id == selectedModeID } ?? modes[0]
     } set: { updatedMode in
       guard let index = modes.firstIndex(where: { $0.id == updatedMode.id }) else { return }
-      modes[index] = updatedMode
-      if updatedMode.id == ModeDraft.defaultModeID {
-        applyDefaultMode(updatedMode)
+      var normalizedMode = updatedMode
+      if !languageIsSupported(normalizedMode.language, byModelID: normalizedMode.voiceModel.id) {
+        normalizedMode.language = ModeLanguagePolicy.automaticName
+      }
+      modes[index] = normalizedMode
+      if normalizedMode.id == ModeDraft.defaultModeID {
+        applyDefaultMode(normalizedMode)
       }
     }
   }
@@ -275,7 +279,22 @@ extension ModesPane {
   }
 
   private var languageOptions: [String] {
-    ["Automatic"] + store.languages.compactMap { $0.code == nil ? nil : $0.name }
+    ModeLanguagePolicy.allowedLanguageNames(
+      languages: store.languages,
+      supportedCodes: supportedLanguageCodes(forModelID: selectedModeBinding.wrappedValue.voiceModel.id)
+    )
+  }
+
+  private func supportedLanguageCodes(forModelID modelID: String) -> Set<String> {
+    TranscriptionModelCatalog.model(id: modelID)?.supportedLanguages ?? []
+  }
+
+  private func languageIsSupported(_ name: String, byModelID modelID: String) -> Bool {
+    guard name != ModeLanguagePolicy.automaticName else { return true }
+    return ModeLanguagePolicy.isSupported(
+      code: languageCode(forName: name),
+      supportedCodes: supportedLanguageCodes(forModelID: modelID)
+    )
   }
 
   private func languageName(forCode code: String?) -> String {
