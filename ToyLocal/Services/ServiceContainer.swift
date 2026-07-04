@@ -8,6 +8,8 @@ final class ServiceContainer {
   let permissions: PermissionClientLive
   let sleepManagement: SleepManagementClientLive
   let transcriptPersistence: TranscriptPersistenceClient
+  let transcriptStore: TranscriptStore
+  let transcriptHistoryPersistence: TranscriptHistoryPersistence
   let recording: RecordingClientLive
   let keyEventMonitor: KeyEventMonitorClientLive
   let transcription: TranscriptionClientLive
@@ -18,12 +20,22 @@ final class ServiceContainer {
   let soundEffects: SoundEffectsClientLive
   let streamingAudio: StreamingAudioClientLive
 
-  init() {
-    let settings = SettingsManager()
+  init(
+    settings: SettingsManager = SettingsManager(),
+    transcriptStore storeOverride: TranscriptStore? = nil,
+    transcriptPersistence: TranscriptPersistenceClient = .live
+  ) {
     self.settings = settings
     self.permissions = PermissionClientLive()
     self.sleepManagement = SleepManagementClientLive()
-    self.transcriptPersistence = .live
+    self.transcriptPersistence = transcriptPersistence
+    let transcriptStore = storeOverride ?? Self.makeTranscriptStore()
+    self.transcriptStore = transcriptStore
+    self.transcriptHistoryPersistence = TranscriptHistoryPersistence(
+      settings: settings,
+      transcriptStore: transcriptStore,
+      transcriptPersistence: transcriptPersistence
+    )
     self.recording = RecordingClientLive(settingsManager: settings)
     self.keyEventMonitor = KeyEventMonitorClientLive(settingsManager: settings)
     let transcription = TranscriptionClientLive()
@@ -35,6 +47,24 @@ final class ServiceContainer {
     self.pasteboard = PasteboardClientLive(settingsManager: settings)
     self.soundEffects = SoundEffectsClientLive(settingsManager: settings)
     self.streamingAudio = StreamingAudioClientLive()
+    self.transcriptHistoryPersistence.runStartupImportAndSweep()
+  }
+
+  private static func makeTranscriptStore() -> TranscriptStore {
+    do {
+      if AppStorageContext.usesInMemoryTranscriptStore {
+        return try TranscriptStore.inMemory()
+      }
+      let databaseURL = try URL.toyLocalApplicationSupport.appendingPathComponent("transcripts.sqlite")
+      return try TranscriptStore(databaseURL: databaseURL)
+    } catch {
+      ToyLocalLog.history.error("Failed to open TranscriptStore: \(error.localizedDescription)")
+      do {
+        return try TranscriptStore.inMemory()
+      } catch {
+        fatalError("Failed to create in-memory TranscriptStore: \(error.localizedDescription)")
+      }
+    }
   }
 
   private static func cloudBaseURL() -> URL {

@@ -102,12 +102,13 @@ final class ModelDownloadStore {
   var downloadingModelName: String?
 
   private var activeDownloadTask: Task<Void, Never>?
+  private var activeDownloadUpdatesBootstrap = false
   @ObservationIgnored private var fetchModelsTask: Task<Void, Never>?
   @ObservationIgnored private var needsFetchAfterCurrent = false
 
   // MARK: - Dependencies
 
-  private let settings: SettingsManager
+  let settings: SettingsManager
   private let transcription: TranscriptionClientLive
 
   // MARK: - Init
@@ -118,53 +119,6 @@ final class ModelDownloadStore {
   }
 
   // MARK: - Computed
-
-  var toyLocalSettings: ToyLocalSettings {
-    get { settings.settings }
-    set { settings.settings = newValue }
-  }
-
-  var modelBootstrapState: ModelBootstrapState {
-    get { settings.modelBootstrapState }
-    set { settings.modelBootstrapState = newValue }
-  }
-
-  var selectedModel: String { toyLocalSettings.selectedModel }
-
-  func selectedIdentifier(for model: CuratedModelInfo) -> String {
-    if FluidAudioModels.model(id: model.internalName)?.isStreamingASR == true {
-      return toyLocalSettings.alwaysOnStreamingModel
-    }
-    return toyLocalSettings.selectedModel
-  }
-
-  var selectedModelIsDownloaded: Bool {
-    availableModels.first { $0.id == selectedModel }?.isDownloaded ?? false
-  }
-
-  var anyModelDownloaded: Bool {
-    availableModels.contains { $0.isDownloaded }
-  }
-
-  var modelLibrarySections: [ModelLibrarySectionViewModel] {
-    ModelLibraryAdapter.sections(
-      availableModels: availableModels,
-      settings: toyLocalSettings,
-      downloadingModelID: downloadingModelName,
-      downloadProgress: downloadProgress
-    )
-  }
-
-  var preferredParakeetIdentifier: String {
-    prefersEnglishParakeet ? FluidAudioModels.parakeetTdtCtc110m.id : FluidAudioModels.parakeetTdtV3.id
-  }
-
-  private var prefersEnglishParakeet: Bool {
-    guard let language = toyLocalSettings.outputLanguage?.lowercased(), !language.isEmpty else {
-      return false
-    }
-    return language.hasPrefix("en")
-  }
 
   // MARK: - Methods
 
@@ -185,7 +139,7 @@ final class ModelDownloadStore {
 
       do {
         let recommended = await transcription.getRecommendedModel()
-        let names = try await transcription.getAvailableModels()
+        let names = try await supportedModelNames()
         let infos = try await withThrowingTaskGroup(of: ModelInfo.self) { group -> [ModelInfo] in
           for name in names {
             group.addTask {
@@ -232,30 +186,34 @@ final class ModelDownloadStore {
     downloadError = nil
     isDownloading = true
     let selected = model
+    let updatesBootstrap = modelAffectsPrimaryBootstrap(selected)
     downloadingModelName = selected
     let displayName = curatedDisplayName(for: selected, curated: curatedModels)
 
-    settings.modelBootstrapState.modelIdentifier = selected
-    settings.modelBootstrapState.modelDisplayName = displayName
-    settings.modelBootstrapState.isModelReady = false
-    settings.modelBootstrapState.progress = 0
-    settings.modelBootstrapState.lastError = nil
+    if updatesBootstrap {
+      settings.modelBootstrapState.modelIdentifier = selected
+      settings.modelBootstrapState.modelDisplayName = displayName
+      settings.modelBootstrapState.isModelReady = false
+      settings.modelBootstrapState.progress = 0
+      settings.modelBootstrapState.lastError = nil
+    }
 
     activeDownloadTask?.cancel()
+    activeDownloadUpdatesBootstrap = updatesBootstrap
     activeDownloadTask = Task {
       do {
         try await transcription.downloadAndLoadModel(variant: selected) { [weak self] progress in
           Task { @MainActor [weak self] in
             self?.downloadProgress = progress.fractionCompleted
-            if self?.downloadingModelName == selected {
+            if self?.downloadingModelName == selected, self?.activeDownloadUpdatesBootstrap == true {
               self?.settings.modelBootstrapState.progress = progress.fractionCompleted
             }
           }
         }
-        handleDownloadCompleted(model: selected, error: nil)
+        handleDownloadCompleted(model: selected, error: nil, updatesBootstrap: updatesBootstrap)
       } catch {
         if !Task.isCancelled {
-          handleDownloadCompleted(model: selected, error: error)
+          handleDownloadCompleted(model: selected, error: error, updatesBootstrap: updatesBootstrap)
         }
       }
     }
@@ -266,9 +224,12 @@ final class ModelDownloadStore {
     activeDownloadTask = nil
     isDownloading = false
     downloadingModelName = nil
-    settings.modelBootstrapState.progress = 0
-    settings.modelBootstrapState.isModelReady = false
-    settings.modelBootstrapState.lastError = "Download cancelled"
+    if activeDownloadUpdatesBootstrap {
+      settings.modelBootstrapState.progress = 0
+      settings.modelBootstrapState.isModelReady = false
+      settings.modelBootstrapState.lastError = "Download cancelled"
+    }
+    activeDownloadUpdatesBootstrap = false
   }
 
   func deleteSelectedModel() {
@@ -277,13 +238,16 @@ final class ModelDownloadStore {
 
   func deleteModel(_ model: String) {
     guard !model.isEmpty else { return }
-    settings.modelBootstrapState.isModelReady = false
+    let updatesBootstrap = modelAffectsPrimaryBootstrap(model)
+    if updatesBootstrap {
+      settings.modelBootstrapState.isModelReady = false
+    }
     Task {
       do {
         try await transcription.deleteModel(variant: model)
         fetchModels()
       } catch {
-        handleDownloadCompleted(model: model, error: error)
+        handleDownloadCompleted(model: model, error: error, updatesBootstrap: updatesBootstrap)
       }
     }
   }
@@ -309,6 +273,15 @@ final class ModelDownloadStore {
   }
 
   // MARK: - Private
+
+  private func supportedModelNames() async throws -> [String] {
+    let serviceNames = try await transcription.getAvailableModels()
+    let catalogNames =
+      ModelLibraryCatalog.entries
+      .filter { $0.runtime == .local && $0.isDownloadable }
+      .map(\.id)
+    return Array(Set(serviceNames + catalogNames)).sorted()
+  }
 
   private func handleModelsLoaded(recommended: String, available: [ModelInfo]) {
     var availablePlus = available
@@ -358,30 +331,43 @@ final class ModelDownloadStore {
     }
   }
 
-  private func handleDownloadCompleted(model: String, error: Error?) {
+  private func handleDownloadCompleted(model: String, error: Error?, updatesBootstrap: Bool? = nil) {
+    let updatesBootstrap = updatesBootstrap ?? modelAffectsPrimaryBootstrap(model)
     isDownloading = false
     downloadingModelName = nil
+    activeDownloadUpdatesBootstrap = false
 
     if let error {
       let message = Self.downloadErrorMessage(from: error)
       downloadError = message
-      settings.modelBootstrapState.isModelReady = false
-      settings.modelBootstrapState.lastError = message
-      settings.modelBootstrapState.progress = 0
+      if updatesBootstrap {
+        settings.modelBootstrapState.isModelReady = false
+        settings.modelBootstrapState.lastError = message
+        settings.modelBootstrapState.progress = 0
+      }
     } else {
       if let idx = availableModels.firstIndex(where: { $0.id == model }) {
         availableModels[idx].isDownloaded = true
+      } else {
+        availableModels.append(ModelInfo(name: model, isDownloaded: true))
       }
       if let idx = curatedModels.firstIndex(where: { $0.internalName == model }) {
         curatedModels[idx].isDownloaded = true
       }
-      toyLocalSettings.hasCompletedModelBootstrap = true
       downloadError = nil
-      settings.modelBootstrapState.isModelReady = true
-      settings.modelBootstrapState.lastError = nil
-      settings.modelBootstrapState.progress = 1
+      if updatesBootstrap {
+        toyLocalSettings.hasCompletedModelBootstrap = true
+        settings.modelBootstrapState.isModelReady = true
+        settings.modelBootstrapState.lastError = nil
+        settings.modelBootstrapState.progress = 1
+      }
     }
     updateBootstrapState()
+  }
+
+  private func modelAffectsPrimaryBootstrap(_ model: String) -> Bool {
+    guard model == toyLocalSettings.selectedModel else { return false }
+    return ModelLibraryCatalog.entry(id: model)?.sectionID == .localDictation
   }
 
   static func downloadErrorMessage(from error: Error) -> String {

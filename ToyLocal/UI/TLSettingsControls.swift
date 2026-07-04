@@ -6,18 +6,24 @@ enum TLMicrophoneSource {
 
 struct TLHeaderMicrophoneMenu: View {
   @Binding var selection: String
+  var options = TLMicrophoneSource.devices.map {
+    TLMenuOption(value: $0, label: $0, systemImage: "headphones")
+  }
 
   var body: some View {
     TLOptionMenu(
       selection: $selection,
-      options: TLMicrophoneSource.devices.map {
-        TLMenuOption(value: $0, label: $0, systemImage: "headphones")
-      },
-      width: 230,
-      panelWidth: 262
+      options: options,
+      width: TLHeaderMicrophoneMenuMetrics.width,
+      panelWidth: TLHeaderMicrophoneMenuMetrics.panelWidth
     )
     .fixedSize()
   }
+}
+
+private enum TLHeaderMicrophoneMenuMetrics {
+  static let width: CGFloat = 230
+  static let panelWidth: CGFloat = 262
 }
 
 struct TLSettingsRow<Trailing: View>: View {

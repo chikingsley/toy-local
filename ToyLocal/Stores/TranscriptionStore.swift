@@ -36,6 +36,7 @@ final class TranscriptionStore {
   private let soundEffects: SoundEffectsClientLive
   private let sleepManagement: SleepManagementClientLive
   private let transcriptPersistence: TranscriptPersistenceClient
+  private let transcriptHistoryPersistence: TranscriptHistoryPersistence
 
   // MARK: - Task Handles
 
@@ -61,6 +62,7 @@ final class TranscriptionStore {
     self.soundEffects = services.soundEffects
     self.sleepManagement = services.sleepManagement
     self.transcriptPersistence = services.transcriptPersistence
+    self.transcriptHistoryPersistence = services.transcriptHistoryPersistence
     self.hotKeyProcessor = HotKeyProcessor(hotkey: HotKey(key: nil, modifiers: [.option]))
   }
 
@@ -268,12 +270,16 @@ final class TranscriptionStore {
         )
         textTransformState = transformResult.state
         await finalizeRecordingAndStoreTranscript(
-          result: transformResult.text,
-          duration: duration,
-          sourceAppBundleID: sourceAppBundleID,
-          sourceAppName: sourceAppName,
-          audioURL: audioURL,
-          contextSnapshot: contextSnapshot
+          TranscriptFinalizationPayload(
+            finalText: transformResult.text,
+            rawText: modifiedResult,
+            modeName: toyLocalSettings.textTransformMode.displayName,
+            duration: duration,
+            sourceAppBundleID: sourceAppBundleID,
+            sourceAppName: sourceAppName,
+            audioURL: audioURL,
+            contextSnapshot: contextSnapshot
+          )
         )
       } catch {
         transcriptionFeatureLogger.error("Text transform failed: \(error.localizedDescription)")
@@ -319,14 +325,8 @@ final class TranscriptionStore {
     }
     return remappedResult
   }
-  private func finalizeRecordingAndStoreTranscript(
-    result: String,
-    duration: TimeInterval,
-    sourceAppBundleID: String?,
-    sourceAppName: String?,
-    audioURL: URL,
-    contextSnapshot: DictationContextSnapshot?
-  ) async {
+
+  private func finalizeRecordingAndStoreTranscript(_ payload: TranscriptFinalizationPayload) async {
     isTranscribing = false
     isPrewarming = false
     let toyLocalSettings = settings.settings
@@ -334,33 +334,31 @@ final class TranscriptionStore {
     if toyLocalSettings.saveTranscriptionHistory {
       do {
         let transcript = try await transcriptPersistence.save(
-          result,
-          audioURL,
-          duration,
-          sourceAppBundleID,
-          sourceAppName,
-          contextSnapshot
+          payload.finalText,
+          payload.audioURL,
+          payload.duration,
+          payload.sourceAppBundleID,
+          payload.sourceAppName,
+          payload.contextSnapshot
         )
 
-        settings.transcriptionHistory.history.insert(transcript, at: 0)
-
-        if let maxEntries = toyLocalSettings.maxHistoryEntries, maxEntries > 0 {
-          while settings.transcriptionHistory.history.count > maxEntries {
-            if let removedTranscript = settings.transcriptionHistory.history.popLast() {
-              try? await transcriptPersistence.deleteAudio(removedTranscript)
-            }
-          }
-        }
+        transcriptHistoryPersistence.appendSavedTranscript(
+          transcript,
+          rawText: payload.rawText,
+          finalText: payload.finalText,
+          modeName: payload.modeName,
+          settingsSnapshot: toyLocalSettings
+        )
       } catch {
         transcriptionFeatureLogger.error("Failed to save transcript: \(error.localizedDescription)")
       }
     } else {
-      try? FileManager.default.removeItem(at: audioURL)
+      try? FileManager.default.removeItem(at: payload.audioURL)
     }
 
-    let didPaste = await pasteboard.paste(text: result)
+    let didPaste = await pasteboard.paste(text: payload.finalText)
     if didPaste {
-      transcriptionFeatureLogger.notice("Paste completed for transcribed result (\(result.count) chars).")
+      transcriptionFeatureLogger.notice("Paste completed for transcribed result (\(payload.finalText.count) chars).")
       await soundEffects.play(.pasteTranscript)
     } else {
       transcriptionFeatureLogger.notice("Paste did not complete; transcript remains in clipboard.")

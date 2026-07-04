@@ -22,9 +22,9 @@ public enum CloudTranscriptionModels {
     )
   )
 
-  public static let deepgramNova2Meeting = TranscriptionModelSpec(
-    id: "deepgram-nova-2-meeting",
-    displayName: "Deepgram Nova 2 Meeting",
+  public static let deepgramNova2 = TranscriptionModelSpec(
+    id: "deepgram-nova-2",
+    displayName: "Deepgram Nova 2",
     provider: .deepgram,
     runtime: .cloud,
     capabilities: TranscriptionCapabilities(
@@ -34,7 +34,10 @@ public enum CloudTranscriptionModels {
       fileInput: true,
       languageDetection: true,
       languageHint: true,
+      partialResults: true,
+      realtime: true,
       segmentTimestamps: true,
+      streamingInput: true,
       voiceActivityDetection: true,
       wordTimestamps: true
     )
@@ -56,7 +59,7 @@ public enum CloudTranscriptionModels {
 
   public static let batchASR: [TranscriptionModelSpec] = [
     deepgramNova3,
-    deepgramNova2Meeting,
+    deepgramNova2,
     mistralVoxtralMiniLatest,
   ]
 

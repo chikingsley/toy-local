@@ -3,18 +3,15 @@ import SwiftUI
 extension Color {
   init(lightHex: UInt32, darkHex: UInt32) {
     self.init(
-      nsColor: NSColor(
-        name: nil,
-        dynamicProvider: { appearance in
-          let hex = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? darkHex : lightHex
-          return NSColor(
-            red: CGFloat((hex >> 16) & 0xFF) / 255,
-            green: CGFloat((hex >> 8) & 0xFF) / 255,
-            blue: CGFloat(hex & 0xFF) / 255,
-            alpha: 1
-          )
-        }
-      )
+      nsColor: NSColor(name: nil) { appearance in
+        let hex = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? darkHex : lightHex
+        return NSColor(
+          red: CGFloat((hex >> 16) & 0xFF) / 255,
+          green: CGFloat((hex >> 8) & 0xFF) / 255,
+          blue: CGFloat(hex & 0xFF) / 255,
+          alpha: 1
+        )
+      }
     )
   }
 

@@ -5,8 +5,6 @@ import ToyLocalCore
 
 private let historyLogger = ToyLocalLog.history
 
-// MARK: - Audio Player Controller
-
 class AudioPlayerController: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
   private var player: AVAudioPlayer?
   var onPlaybackFinished: (() -> Void)?
@@ -32,29 +30,29 @@ class AudioPlayerController: NSObject, AVAudioPlayerDelegate, @unchecked Sendabl
   }
 }
 
-// MARK: - History Store
-
 @MainActor @Observable
 final class HistoryStore {
-  // MARK: - State
-
-  var playingTranscriptID: UUID?
+  var records: [TranscriptRecord] = []
+  var playingTranscriptID: String?
   var audioPlayer: AVAudioPlayer?
   var audioPlayerController: AudioPlayerController?
 
-  // MARK: - Dependencies
-
   private let settings: SettingsManager
   private let pasteboard: PasteboardClientLive
-
-  // MARK: - Init
+  private let transcriptStore: TranscriptStore
+  private let transcriptHistoryPersistence: TranscriptHistoryPersistence
+  private var currentSearchText = ""
 
   init(services: ServiceContainer) {
     self.settings = services.settings
     self.pasteboard = services.pasteboard
+    self.transcriptStore = services.transcriptStore
+    self.transcriptHistoryPersistence = services.transcriptHistoryPersistence
+    self.transcriptHistoryPersistence.onDidChange = { [weak self] in
+      self?.refreshRecords()
+    }
+    refreshRecords()
   }
-
-  // MARK: - Computed
 
   var transcriptionHistory: TranscriptionHistory {
     get { settings.transcriptionHistory }
@@ -65,9 +63,44 @@ final class HistoryStore {
     settings.settings.saveTranscriptionHistory
   }
 
-  // MARK: - Methods
+  func refreshRecords() {
+    search(currentSearchText)
+  }
 
-  func playTranscript(_ id: UUID) {
+  func search(_ text: String) {
+    currentSearchText = text
+    do {
+      records = try transcriptStore.search(text)
+    } catch {
+      records = []
+      historyLogger.error("Failed to search transcript records: \(error.localizedDescription)")
+    }
+  }
+
+  func record(id: String) -> TranscriptRecord? {
+    if let record = records.first(where: { $0.id == id }) {
+      return record
+    }
+    do {
+      return try transcriptStore.record(id: id)
+    } catch {
+      historyLogger.error("Failed to read transcript record \(id): \(error.localizedDescription)")
+      return nil
+    }
+  }
+
+  func updateTitle(id: String, title: String) {
+    guard var record = record(id: id) else { return }
+    record.title = title
+    do {
+      try transcriptStore.update(record)
+      refreshRecords()
+    } catch {
+      historyLogger.error("Failed to update transcript title \(id): \(error.localizedDescription)")
+    }
+  }
+
+  func playTranscript(_ id: String) {
     if playingTranscriptID == id {
       stopPlayback()
       return
@@ -75,13 +108,16 @@ final class HistoryStore {
 
     stopPlayback()
 
-    guard let transcript = settings.transcriptionHistory.history.first(where: { $0.id == id }) else {
+    guard let record = record(id: id),
+      let audioPath = record.audioPath,
+      !audioPath.isEmpty
+    else {
       return
     }
 
     do {
       let controller = AudioPlayerController()
-      let player = try controller.play(url: transcript.audioPath)
+      let player = try controller.play(url: URL(fileURLWithPath: audioPath))
 
       audioPlayer = player
       audioPlayerController = controller
@@ -110,33 +146,20 @@ final class HistoryStore {
     }
   }
 
-  func deleteTranscript(_ id: UUID) {
-    guard let index = settings.transcriptionHistory.history.firstIndex(where: { $0.id == id }) else {
-      return
-    }
-
-    let transcript = settings.transcriptionHistory.history[index]
-
+  func deleteTranscript(_ id: String) {
     if playingTranscriptID == id {
       stopPlayback()
     }
-
-    settings.transcriptionHistory.history.remove(at: index)
-
-    Task.detached {
-      try? FileManager.default.removeItem(at: transcript.audioPath)
-    }
+    transcriptHistoryPersistence.deleteRecord(id: id)
+    refreshRecords()
   }
 
   func confirmDeleteAll() {
-    let transcripts = settings.transcriptionHistory.history
+    let ids = records.map(\.id)
     stopPlayback()
-    settings.transcriptionHistory.history.removeAll()
-
-    Task.detached {
-      for transcript in transcripts {
-        try? FileManager.default.removeItem(at: transcript.audioPath)
-      }
+    for id in ids {
+      transcriptHistoryPersistence.deleteRecord(id: id)
     }
+    refreshRecords()
   }
 }

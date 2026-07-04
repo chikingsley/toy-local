@@ -1,4 +1,15 @@
 import SwiftUI
+import ToyLocalCore
+
+extension AppearancePreference {
+  var colorScheme: ColorScheme? {
+    switch self {
+    case .automatic: nil
+    case .light: .light
+    case .dark: .dark
+    }
+  }
+}
 
 enum SidebarMode {
   case full, rail
@@ -17,7 +28,6 @@ struct AppShellView: View {
   @State private var sidebarMode: SidebarMode = .full
   @State private var pendingHistoryItemID: String?
   @State private var pendingCreateMode = false
-  @State private var appearance: ColorScheme?
 
   var body: some View {
     TLFloatingHost {
@@ -33,7 +43,8 @@ struct AppShellView: View {
           .background(TLTheme.windowBackground)
       }
     }
-    .preferredColorScheme(appearance)
+    .ignoresSafeArea(.container, edges: .top)
+    .preferredColorScheme(store.settings.toyLocalSettings.appearancePreference.colorScheme)
     .animation(.easeInOut(duration: 0.18), value: sidebarMode)
     .background(AppWindowConfigurator(sidebarMode: sidebarMode))
     .environment(\.tlToggleSidebar) {
@@ -57,15 +68,21 @@ struct AppShellView: View {
 
   @ViewBuilder private var detail: some View {
     switch store.activeTab {
-    case .home: PrototypeHomePane()
-    case .modes: PrototypeModesPane(createModeRequest: $pendingCreateMode)
+    case .home: HomePane(historyStore: store.history, settingsStore: store.settings)
+    case .modes: ModesPane(store: store.settings, createModeRequest: $pendingCreateMode)
     case .dictionary: PrototypeDictionaryPaneV2()
-    case .history: PrototypeHistoryPane(deepLinkItemID: $pendingHistoryItemID)
-    case .configuration: PrototypeConfigurationPane(appearance: $appearance)
-    case .hotMic: PrototypeHotMicPane()
-    case .sound: PrototypeSoundPane()
-    case .models: PrototypeModelsPane()
-    case .license: PrototypeLicensePane()
+    case .history: HistoryPane(store: store.history, deepLinkItemID: $pendingHistoryItemID)
+    case .configuration:
+      ConfigurationPane(
+        store: store.settings,
+        microphonePermission: store.microphonePermission,
+        accessibilityPermission: store.accessibilityPermission,
+        screenCapturePermission: store.screenCapturePermission
+      )
+    case .hotMic: HotMicPane(store: store.settings)
+    case .sound: SoundPane(store: store.settings)
+    case .models: ModelLibraryPane(store: store.settings)
+    case .license: LicensePane()
     }
   }
 }

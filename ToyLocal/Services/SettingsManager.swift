@@ -35,12 +35,6 @@ extension FileManager {
 
 private let logger = ToyLocalLog.settings
 
-private var isRunningForPreviews: Bool {
-  let environment = ProcessInfo.processInfo.environment
-  return environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-    || environment["XCODE_RUNNING_FOR_PLAYGROUNDS"] == "1"
-}
-
 /// Owns app settings, history, and transient UI state.
 ///
 /// File-persisted properties (`settings`, `transcriptionHistory`) are saved to JSON
@@ -64,9 +58,18 @@ final class SettingsManager {
 
   var isSettingHotKey: Bool = false
   var isSettingPasteLastTranscriptHotkey: Bool = false
+  var isSettingAlwaysOnPasteHotkey: Bool = false
+  var isSettingAlwaysOnDumpHotkey: Bool = false
   var isRemappingScratchpadFocused: Bool = false
   var modelBootstrapState: ModelBootstrapState = .init()
   var hotkeyPermissionState: HotkeyPermissionState = .init()
+
+  var isSettingAnyHotKey: Bool {
+    isSettingHotKey
+      || isSettingPasteLastTranscriptHotkey
+      || isSettingAlwaysOnPasteHotkey
+      || isSettingAlwaysOnDumpHotkey
+  }
 
   // MARK: - Private
 
@@ -79,16 +82,20 @@ final class SettingsManager {
   // MARK: - Init
 
   init() {
-    if isRunningForPreviews {
-      let previewDirectory = URL.temporaryDirectory.appendingPathComponent("com.chiejimofor.toylocal.preview", isDirectory: true)
-      try? FileManager.default.createDirectory(at: previewDirectory, withIntermediateDirectories: true)
+    if AppStorageContext.usesTemporarySettingsFiles {
+      let directorySuffix = AppStorageContext.isRunningForTests ? "test.\(UUID().uuidString)" : "preview"
+      let transientDirectory = URL.temporaryDirectory.appendingPathComponent(
+        "com.chiejimofor.toylocal.\(directorySuffix)",
+        isDirectory: true
+      )
+      try? FileManager.default.createDirectory(at: transientDirectory, withIntermediateDirectories: true)
 
-      self.settingsURL = previewDirectory.appendingPathComponent("settings.json")
-      self.historyURL = previewDirectory.appendingPathComponent("transcription_history.json")
+      self.settingsURL = transientDirectory.appendingPathComponent("settings.json")
+      self.historyURL = transientDirectory.appendingPathComponent("transcription_history.json")
       self.settings = .init()
       self.transcriptionHistory = .init()
 
-      logger.info("SettingsManager initialized in preview mode. Settings URL: \(self.settingsURL.path)")
+      logger.info("SettingsManager initialized in transient mode. Settings URL: \(self.settingsURL.path)")
       return
     }
 

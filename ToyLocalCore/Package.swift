@@ -10,6 +10,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/Clipy/Sauce", branch: "master"),
     .package(url: "https://github.com/apple/swift-log", from: "1.6.4"),
+    .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
   ],
   targets: [
     .target(
@@ -17,6 +18,7 @@ let package = Package(
       dependencies: [
         "Sauce",
         .product(name: "Logging", package: "swift-log"),
+        .product(name: "GRDB", package: "GRDB.swift"),
       ],
       path: "Sources/ToyLocalCore",
       linkerSettings: [

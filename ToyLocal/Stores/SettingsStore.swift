@@ -15,6 +15,8 @@ final class SettingsStore {
   var languages: [Language] = []
   var currentModifiers: Modifiers = .init(modifiers: [])
   var currentPasteLastModifiers: Modifiers = .init(modifiers: [])
+  var currentAlwaysOnPasteModifiers: Modifiers = .init(modifiers: [])
+  var currentAlwaysOnDumpModifiers: Modifiers = .init(modifiers: [])
   var remappingScratchpadText: String = ""
   var availableInputDevices: [AudioInputDevice] = []
   var defaultInputDeviceName: String?
@@ -27,18 +29,20 @@ final class SettingsStore {
   // MARK: - Dependencies
 
   private let settings: SettingsManager
-  private let keyEventMonitor: KeyEventMonitorClientLive
+  let keyEventMonitor: KeyEventMonitorClientLive
   private let transcription: TranscriptionClientLive
   private let recording: RecordingClientLive
   private let permissions: PermissionClientLive
+  private let transcriptHistoryPersistence: TranscriptHistoryPersistence
+  private let soundEffects: SoundEffectsClientLive
 
   // MARK: - Task Handles
 
-  @ObservationIgnored private var keyEventTask: Task<Void, Never>?
   @ObservationIgnored private var deviceRefreshTask: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var deviceConnectionObserver: Any?
   @ObservationIgnored nonisolated(unsafe) private var deviceDisconnectionObserver: Any?
   @ObservationIgnored private var deviceUpdateTask: Task<Void, Never>?
+  @ObservationIgnored var shortcutCaptureToken: KeyEventMonitorToken?
   @ObservationIgnored private var hasStarted = false
 
   // MARK: - Init
@@ -49,13 +53,15 @@ final class SettingsStore {
     self.transcription = services.transcription
     self.recording = services.recording
     self.permissions = services.permissions
+    self.transcriptHistoryPersistence = services.transcriptHistoryPersistence
+    self.soundEffects = services.soundEffects
     self.modelDownload = ModelDownloadStore(services: services)
   }
 
   deinit {
-    keyEventTask?.cancel()
     deviceRefreshTask?.cancel()
     deviceUpdateTask?.cancel()
+    shortcutCaptureToken?.cancel()
     if let obs = deviceConnectionObserver {
       NotificationCenter.default.removeObserver(obs)
     }
@@ -79,6 +85,16 @@ final class SettingsStore {
   var isSettingPasteLastTranscriptHotkey: Bool {
     get { settings.isSettingPasteLastTranscriptHotkey }
     set { settings.isSettingPasteLastTranscriptHotkey = newValue }
+  }
+
+  var isSettingAlwaysOnPasteHotkey: Bool {
+    get { settings.isSettingAlwaysOnPasteHotkey }
+    set { settings.isSettingAlwaysOnPasteHotkey = newValue }
+  }
+
+  var isSettingAlwaysOnDumpHotkey: Bool {
+    get { settings.isSettingAlwaysOnDumpHotkey }
+    set { settings.isSettingAlwaysOnDumpHotkey = newValue }
   }
 
   var isRemappingScratchpadFocused: Bool {
@@ -106,10 +122,7 @@ final class SettingsStore {
     loadAvailableInputDevices()
     startDeviceRefresh()
     startDeviceConnectionObservers()
-    startKeyEventListening()
   }
-
-  // MARK: - Language Loading
 
   private func loadLanguages() {
     if let url = Bundle.main.url(forResource: "languages", withExtension: "json"),
@@ -119,81 +132,6 @@ final class SettingsStore {
       languages = langs
     } else {
       settingsLogger.error("Failed to load languages JSON from bundle")
-    }
-  }
-
-  // MARK: - Key Event Listening
-
-  private func startKeyEventListening() {
-    keyEventTask?.cancel()
-    keyEventTask = Task { [weak self] in
-      guard let self else { return }
-      do {
-        for try await keyEvent in self.keyEventMonitor.listenForKeyPress() {
-          self.handleKeyEvent(keyEvent)
-        }
-      } catch {
-        // Stream ended or was cancelled
-      }
-    }
-  }
-
-  // MARK: - Hotkey Setting
-
-  func startSettingHotKey() {
-    settings.isSettingHotKey = true
-  }
-
-  func startSettingPasteLastTranscriptHotkey() {
-    settings.isSettingPasteLastTranscriptHotkey = true
-    currentPasteLastModifiers = .init(modifiers: [])
-  }
-
-  func clearPasteLastTranscriptHotkey() {
-    toyLocalSettings.pasteLastTranscriptHotkey = nil
-  }
-
-  func handleKeyEvent(_ keyEvent: KeyEvent) {
-    // Handle paste last transcript hotkey setting
-    if settings.isSettingPasteLastTranscriptHotkey {
-      if keyEvent.key == .escape {
-        settings.isSettingPasteLastTranscriptHotkey = false
-        currentPasteLastModifiers = []
-        return
-      }
-
-      currentPasteLastModifiers = keyEvent.modifiers.union(currentPasteLastModifiers)
-      let mods = currentPasteLastModifiers
-      if let key = keyEvent.key {
-        guard !mods.isEmpty else { return }
-        toyLocalSettings.pasteLastTranscriptHotkey = HotKey(key: key, modifiers: mods.erasingSides())
-        settings.isSettingPasteLastTranscriptHotkey = false
-        currentPasteLastModifiers = []
-      }
-      return
-    }
-
-    // Handle main recording hotkey setting
-    guard settings.isSettingHotKey else { return }
-
-    if keyEvent.key == .escape {
-      settings.isSettingHotKey = false
-      currentModifiers = []
-      return
-    }
-
-    currentModifiers = keyEvent.modifiers.union(currentModifiers)
-    let mods = currentModifiers
-    if let key = keyEvent.key {
-      toyLocalSettings.hotkey.key = key
-      toyLocalSettings.hotkey.modifiers = mods.erasingSides()
-      settings.isSettingHotKey = false
-      currentModifiers = []
-    } else if keyEvent.modifiers.isEmpty {
-      toyLocalSettings.hotkey.key = nil
-      toyLocalSettings.hotkey.modifiers = mods.erasingSides()
-      settings.isSettingHotKey = false
-      currentModifiers = []
     }
   }
 
@@ -220,6 +158,17 @@ final class SettingsStore {
 
   func setRecordingInputMode(_ mode: RecordingInputMode) {
     toyLocalSettings.recordingInputMode = mode
+  }
+
+  func setSoundEffectsStyle(_ style: SoundEffectsStyle) {
+    toyLocalSettings.soundEffectsStyle = style
+    playSoundEffectsSample()
+  }
+
+  func playSoundEffectsSample() {
+    Task {
+      await soundEffects.play(.startRecording)
+    }
   }
 
   // MARK: - Permissions
@@ -320,11 +269,9 @@ final class SettingsStore {
     if !enabled {
       let transcripts = settings.transcriptionHistory.history
       settings.transcriptionHistory.history.removeAll()
-
-      Task.detached {
-        for transcript in transcripts {
-          try? FileManager.default.removeItem(at: transcript.audioPath)
-        }
+      for transcript in transcripts {
+        transcriptHistoryPersistence.deleteRecord(id: transcript.id)
+        transcriptHistoryPersistence.deleteAudio(for: transcript)
       }
     }
   }

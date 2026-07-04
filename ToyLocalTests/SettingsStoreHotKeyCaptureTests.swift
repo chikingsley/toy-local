@@ -64,6 +64,44 @@ final class SettingsStoreHotKeyCaptureTests: XCTestCase {
     XCTAssertTrue(store.currentPasteLastModifiers.isEmpty)
   }
 
+  func testAlwaysOnPasteCaptureSupportsModifierOnlyHotKey() {
+    let store = makeStore()
+    store.toyLocalSettings.alwaysOnPasteHotkey = nil
+
+    store.startSettingAlwaysOnPasteHotkey()
+    store.handleKeyEvent(KeyEvent(key: nil, modifiers: [.fn]))
+    store.handleKeyEvent(KeyEvent(key: nil, modifiers: []))
+
+    XCTAssertFalse(store.isSettingAlwaysOnPasteHotkey)
+    XCTAssertTrue(store.currentAlwaysOnPasteModifiers.isEmpty)
+    XCTAssertNil(store.toyLocalSettings.alwaysOnPasteHotkey?.key)
+    XCTAssertTrue(store.toyLocalSettings.alwaysOnPasteHotkey?.modifiers.matchesExactly([.fn]) == true)
+  }
+
+  func testAlwaysOnDumpCaptureStoresKeyAndModifiers() {
+    let store = makeStore()
+    store.toyLocalSettings.alwaysOnDumpHotkey = nil
+
+    store.startSettingAlwaysOnDumpHotkey()
+    store.handleKeyEvent(KeyEvent(key: nil, modifiers: [.control, .option]))
+    store.handleKeyEvent(KeyEvent(key: .d, modifiers: [.control, .option]))
+
+    XCTAssertFalse(store.isSettingAlwaysOnDumpHotkey)
+    XCTAssertTrue(store.currentAlwaysOnDumpModifiers.isEmpty)
+    XCTAssertEqual(store.toyLocalSettings.alwaysOnDumpHotkey?.key, .d)
+    XCTAssertTrue(store.toyLocalSettings.alwaysOnDumpHotkey?.modifiers.matchesExactly([.control, .option]) == true)
+  }
+
+  func testAnyHotKeyCaptureTracksAllCaptureModes() {
+    let store = makeStore()
+
+    XCTAssertFalse(store.isSettingAnyHotKey)
+    store.startSettingPasteLastTranscriptHotkey()
+    XCTAssertTrue(store.isSettingAnyHotKey)
+    store.handleKeyEvent(KeyEvent(key: .escape, modifiers: []))
+    XCTAssertFalse(store.isSettingAnyHotKey)
+  }
+
   private func makeStore() -> SettingsStore {
     SettingsStore(services: ServiceContainer())
   }

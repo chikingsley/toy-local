@@ -4,6 +4,8 @@
 
 ### Patch Changes
 
+- Moved agent rules, gates, and resource references into a root `AGENTS.md`; `docs/TODO.md` now lists only work items, and completed phase notes moved to `docs/archive/phase-log-2026-07-04.md`.
+- Verified every TODO item against the codebase (build, both test suites, settings consumers, cloud worker routes, entitlements, live-driver suites) and rewrote `docs/TODO.md` as a flat evidence-backed list with no phases and no tables.
 - ToyLocal is FluidAudio-only.
 - The visible model catalog is limited to supported Parakeet models.
 - Settings and history are stored under ToyLocal application support paths.
@@ -32,6 +34,15 @@
 - Prototype panes reorganized into `Panes/`/`Recorders/`; the outdated General pane was deleted after Configuration V2 absorbed its Permissions and Updates sections; Dictionary/History were brought onto the current design language, including a History detail picker default fix.
 - Shortcut recording in the prototype now shows a pulsing recording chip and cancels on click-away/Escape (Shortcuts V2 and Hot Mic share one `ProtoShortcutRecorder`).
 - Provider logos and appearance thumbnails moved into the asset catalog (template SVGs where available), replacing runtime `#filePath` PNG loading.
+- Ported the Home pane with a real stats strip (words, average WPM, apps used, time saved) and a Today section reading the newest transcripts, completing the prototype-to-app port.
+- Ported the History pane onto the transcript store: live records with search, dynamic day groups, data-driven app filters, persisted titles, raw/processed views, and real audio playback.
+- Added a GRDB-backed transcript store in Core (recording table, FTS5 transcript search, retention sweep, legacy-history import) pinned at GRDB 7.11.1.
+- Ported the Hot Mic pane (always-on enable and hotkey display bound to real settings) and the License pane (visual mock pending the license transport).
+- Ported the Model library pane onto the production adapter: real sections, downloads, progress, deletion, sizes, and source-backed metrics, with selection persisted per model kind.
+- Ported the Modes pane with a settings-backed Default mode: preset, language, voice model (from the real transcription catalog), language model, playback behavior, system-audio input, and auto-paste read from and write back to persisted settings.
+- Ported and wired the Sound pane: real input-device list with System Default mapping, persisted recording toggles, playback-when-recording behavior, and Default/Classic sound-effect sets played by the sound service with volume and off states.
+- Ported and wired the Configuration pane: appearance, login item, dock icon, retention, updates (Sparkle), permissions pills, text-input behavior, voice-model duration, and experimental-models toggles now bind to persisted settings; added the corresponding ToyLocalCore settings fields and split the settings schema into its own file.
+- Ported the prototype shell into the app: `AppShellView` with the custom sidebar (Home / Modes / Settings / History / Pro card) replaced the TabView container, the prototype UI kit was promoted to `ToyLocal/UI/` under `TL*` names, and the main window is now hidden-title/transparent-titlebar with a fixed 820pt width, vertical resize, and a minimize button that hides while the sidebar rail is collapsed.
 
 ## 0.6.9
 

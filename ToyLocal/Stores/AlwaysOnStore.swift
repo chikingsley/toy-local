@@ -37,6 +37,7 @@ final class AlwaysOnStore {
   private let pasteboard: PasteboardClientLive
   private let keyEventMonitor: KeyEventMonitorClientLive
   private let soundEffects: SoundEffectsClientLive
+  private let transcriptHistoryPersistence: TranscriptHistoryPersistence
   private let pasteStabilizationDelayMilliseconds = 1_000
 
   // MARK: - Task Handles
@@ -57,6 +58,7 @@ final class AlwaysOnStore {
     self.pasteboard = services.pasteboard
     self.keyEventMonitor = services.keyEventMonitor
     self.soundEffects = services.soundEffects
+    self.transcriptHistoryPersistence = services.transcriptHistoryPersistence
   }
 
   deinit {
@@ -405,18 +407,7 @@ private extension AlwaysOnStore {
 
     // Save to history
     if toyLocalSettings.saveTranscriptionHistory {
-      let transcript = Transcript(
-        timestamp: Date(),
-        text: text,
-        audioPath: URL(fileURLWithPath: ""),
-        duration: 0
-      )
-      settings.transcriptionHistory.history.insert(transcript, at: 0)
-      if let max = toyLocalSettings.maxHistoryEntries, max > 0 {
-        while settings.transcriptionHistory.history.count > max {
-          settings.transcriptionHistory.history.removeLast()
-        }
-      }
+      transcriptHistoryPersistence.appendStreamingTranscript(text, settingsSnapshot: toyLocalSettings)
     }
 
     confirmedText = ""
@@ -447,7 +438,7 @@ private extension AlwaysOnStore {
 
   @MainActor
   func resolveHotkeyAction(for keyEvent: KeyEvent) -> AlwaysOnHotkeyAction {
-    if settings.isSettingHotKey || !settings.settings.alwaysOnEnabled {
+    if settings.isSettingAnyHotKey || !settings.settings.alwaysOnEnabled {
       resetHotkeyLatchState()
       return .none
     }

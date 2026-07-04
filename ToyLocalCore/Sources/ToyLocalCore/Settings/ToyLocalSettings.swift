@@ -3,7 +3,17 @@ import Foundation
 public enum RecordingAudioBehavior: String, Codable, CaseIterable, Equatable, Sendable {
   case pauseMedia
   case mute
+  case lowerVolume
   case doNothing
+
+  public var displayName: String {
+    switch self {
+    case .pauseMedia: "Pause"
+    case .mute: "Mute"
+    case .lowerVolume: "Lower volume"
+    case .doNothing: "Do nothing"
+    }
+  }
 }
 
 public enum RecordingInputMode: String, Codable, CaseIterable, Equatable, Sendable {
@@ -126,6 +136,20 @@ public struct ToyLocalSettings: Codable, Equatable, Sendable {
   public var textTransformModel: String
   public var customTextTransformInstructions: String
   public var textTransformContextOptions: DictationContextOptions
+  public var appearancePreference: AppearancePreference
+  public var recordingRetention: RecordingRetention
+  public var clipboardRestoreBehavior: ClipboardRestoreBehavior
+  public var startRecordingOnMenubarClick: Bool
+  public var alwaysCloseRecordingWindow: Bool
+  public var autoPasteResult: Bool
+  public var holdShiftToAutoSend: Bool
+  public var voiceModelActiveDurationMinutes: Int
+  public var showExperimentalModels: Bool
+  public var errorLoggingEnabled: Bool
+  public var autoIncreaseMicrophoneVolume: Bool
+  public var silenceRemovalEnabled: Bool
+  public var dynamicNormalizationEnabled: Bool
+  public var soundEffectsStyle: SoundEffectsStyle
 
   public init(
     soundEffectsEnabled: Bool = true,
@@ -158,7 +182,21 @@ public struct ToyLocalSettings: Codable, Equatable, Sendable {
     textTransformMode: TextTransformMode = .voiceToText,
     textTransformModel: String = ToyLocalSettings.defaultTextTransformModel,
     customTextTransformInstructions: String = TextTransformPreset.defaultCustomInstructions,
-    textTransformContextOptions: DictationContextOptions = ToyLocalSettings.defaultTextTransformContextOptions
+    textTransformContextOptions: DictationContextOptions = ToyLocalSettings.defaultTextTransformContextOptions,
+    appearancePreference: AppearancePreference = .automatic,
+    recordingRetention: RecordingRetention = .forever,
+    clipboardRestoreBehavior: ClipboardRestoreBehavior = .defaultBehavior,
+    startRecordingOnMenubarClick: Bool = false,
+    alwaysCloseRecordingWindow: Bool = false,
+    autoPasteResult: Bool = true,
+    holdShiftToAutoSend: Bool = false,
+    voiceModelActiveDurationMinutes: Int = 1,
+    showExperimentalModels: Bool = false,
+    errorLoggingEnabled: Bool = false,
+    autoIncreaseMicrophoneVolume: Bool = true,
+    silenceRemovalEnabled: Bool = false,
+    dynamicNormalizationEnabled: Bool = false,
+    soundEffectsStyle: SoundEffectsStyle = .standard
   ) {
     self.soundEffectsEnabled = soundEffectsEnabled
     self.soundEffectsVolume = soundEffectsVolume
@@ -191,6 +229,20 @@ public struct ToyLocalSettings: Codable, Equatable, Sendable {
     self.textTransformModel = textTransformModel
     self.customTextTransformInstructions = customTextTransformInstructions
     self.textTransformContextOptions = textTransformContextOptions
+    self.appearancePreference = appearancePreference
+    self.recordingRetention = recordingRetention
+    self.clipboardRestoreBehavior = clipboardRestoreBehavior
+    self.startRecordingOnMenubarClick = startRecordingOnMenubarClick
+    self.alwaysCloseRecordingWindow = alwaysCloseRecordingWindow
+    self.autoPasteResult = autoPasteResult
+    self.holdShiftToAutoSend = holdShiftToAutoSend
+    self.voiceModelActiveDurationMinutes = voiceModelActiveDurationMinutes
+    self.showExperimentalModels = showExperimentalModels
+    self.errorLoggingEnabled = errorLoggingEnabled
+    self.autoIncreaseMicrophoneVolume = autoIncreaseMicrophoneVolume
+    self.silenceRemovalEnabled = silenceRemovalEnabled
+    self.dynamicNormalizationEnabled = dynamicNormalizationEnabled
+    self.soundEffectsStyle = soundEffectsStyle
   }
 
   public init(from decoder: Decoder) throws {
@@ -207,198 +259,4 @@ public struct ToyLocalSettings: Codable, Equatable, Sendable {
       try field.encode(self, into: &container)
     }
   }
-}
-
-// MARK: - Schema
-
-private enum ToyLocalSettingKey: String, CodingKey, CaseIterable {
-  case soundEffectsEnabled
-  case soundEffectsVolume
-  case hotkey
-  case openOnLogin
-  case showDockIcon
-  case selectedModel
-  case localModelPrewarmEnabled
-  case useClipboardPaste
-  case preventSystemSleep
-  case recordingAudioBehavior
-  case recordingInputMode
-  case minimumKeyTime
-  case copyToClipboard
-  case useDoubleTapOnly
-  case outputLanguage
-  case selectedMicrophoneID
-  case saveTranscriptionHistory
-  case maxHistoryEntries
-  case pasteLastTranscriptHotkey
-  case hasCompletedModelBootstrap
-  case wordRemovalsEnabled
-  case wordRemovals
-  case wordRemappings
-  case alwaysOnEnabled
-  case alwaysOnPasteHotkey
-  case alwaysOnDumpHotkey
-  case alwaysOnStreamingModel
-  case textTransformMode
-  case textTransformModel
-  case customTextTransformInstructions
-  case textTransformContextOptions
-}
-
-private struct SettingsField<Value: Codable & Sendable> {
-  let key: ToyLocalSettingKey
-  let keyPath: WritableKeyPath<ToyLocalSettings, Value>
-  let defaultValue: Value
-  let decodeStrategy: (KeyedDecodingContainer<ToyLocalSettingKey>, ToyLocalSettingKey, Value) throws -> Value
-  let encodeStrategy: (inout KeyedEncodingContainer<ToyLocalSettingKey>, ToyLocalSettingKey, Value) throws -> Void
-
-  init(
-    _ key: ToyLocalSettingKey,
-    keyPath: WritableKeyPath<ToyLocalSettings, Value>,
-    default defaultValue: Value,
-    decode: ((KeyedDecodingContainer<ToyLocalSettingKey>, ToyLocalSettingKey, Value) throws -> Value)? = nil,
-    encode: ((inout KeyedEncodingContainer<ToyLocalSettingKey>, ToyLocalSettingKey, Value) throws -> Void)? = nil
-  ) {
-    self.key = key
-    self.keyPath = keyPath
-    self.defaultValue = defaultValue
-    self.decodeStrategy =
-      decode ?? { container, key, defaultValue in
-        try container.decodeIfPresent(Value.self, forKey: key) ?? defaultValue
-      }
-    self.encodeStrategy =
-      encode ?? { container, key, value in
-        try container.encode(value, forKey: key)
-      }
-  }
-
-  func eraseToAny() -> AnySettingsField {
-    AnySettingsField(
-      key: key,
-      decode: { container, settings in
-        let value = try decodeStrategy(container, key, defaultValue)
-        settings[keyPath: keyPath] = value
-      },
-      encode: { settings, container in
-        let value = settings[keyPath: keyPath]
-        try encodeStrategy(&container, key, value)
-      }
-    )
-  }
-}
-
-private struct AnySettingsField {
-  let key: ToyLocalSettingKey
-  let decode: (KeyedDecodingContainer<ToyLocalSettingKey>, inout ToyLocalSettings) throws -> Void
-  let encode: (ToyLocalSettings, inout KeyedEncodingContainer<ToyLocalSettingKey>) throws -> Void
-
-  func decode(into settings: inout ToyLocalSettings, from container: KeyedDecodingContainer<ToyLocalSettingKey>) throws {
-    try decode(container, &settings)
-  }
-
-  func encode(_ settings: ToyLocalSettings, into container: inout KeyedEncodingContainer<ToyLocalSettingKey>) throws {
-    try encode(settings, &container)
-  }
-}
-
-private enum ToyLocalSettingsSchema {
-  static let defaults = ToyLocalSettings()
-
-  nonisolated(unsafe) static let fields: [AnySettingsField] = [
-    SettingsField(.soundEffectsEnabled, keyPath: \.soundEffectsEnabled, default: defaults.soundEffectsEnabled).eraseToAny(),
-    SettingsField(.soundEffectsVolume, keyPath: \.soundEffectsVolume, default: defaults.soundEffectsVolume).eraseToAny(),
-    SettingsField(.hotkey, keyPath: \.hotkey, default: defaults.hotkey).eraseToAny(),
-    SettingsField(.openOnLogin, keyPath: \.openOnLogin, default: defaults.openOnLogin).eraseToAny(),
-    SettingsField(.showDockIcon, keyPath: \.showDockIcon, default: defaults.showDockIcon).eraseToAny(),
-    SettingsField(.selectedModel, keyPath: \.selectedModel, default: defaults.selectedModel).eraseToAny(),
-    SettingsField(
-      .localModelPrewarmEnabled,
-      keyPath: \.localModelPrewarmEnabled,
-      default: defaults.localModelPrewarmEnabled
-    ).eraseToAny(),
-    SettingsField(.useClipboardPaste, keyPath: \.useClipboardPaste, default: defaults.useClipboardPaste).eraseToAny(),
-    SettingsField(.preventSystemSleep, keyPath: \.preventSystemSleep, default: defaults.preventSystemSleep).eraseToAny(),
-    SettingsField(.recordingAudioBehavior, keyPath: \.recordingAudioBehavior, default: defaults.recordingAudioBehavior).eraseToAny(),
-    SettingsField(.recordingInputMode, keyPath: \.recordingInputMode, default: defaults.recordingInputMode).eraseToAny(),
-    SettingsField(.minimumKeyTime, keyPath: \.minimumKeyTime, default: defaults.minimumKeyTime).eraseToAny(),
-    SettingsField(.copyToClipboard, keyPath: \.copyToClipboard, default: defaults.copyToClipboard).eraseToAny(),
-    SettingsField(.useDoubleTapOnly, keyPath: \.useDoubleTapOnly, default: defaults.useDoubleTapOnly).eraseToAny(),
-    // swiftlint:disable trailing_closure
-    SettingsField(
-      .outputLanguage,
-      keyPath: \.outputLanguage,
-      default: defaults.outputLanguage,
-      encode: { container, key, value in
-        try container.encodeIfPresent(value, forKey: key)
-      }
-    ).eraseToAny(),
-    SettingsField(
-      .selectedMicrophoneID,
-      keyPath: \.selectedMicrophoneID,
-      default: defaults.selectedMicrophoneID,
-      encode: { container, key, value in
-        try container.encodeIfPresent(value, forKey: key)
-      }
-    ).eraseToAny(),
-    SettingsField(.saveTranscriptionHistory, keyPath: \.saveTranscriptionHistory, default: defaults.saveTranscriptionHistory).eraseToAny(),
-    SettingsField(
-      .maxHistoryEntries,
-      keyPath: \.maxHistoryEntries,
-      default: defaults.maxHistoryEntries,
-      encode: { container, key, value in
-        try container.encodeIfPresent(value, forKey: key)
-      }
-    ).eraseToAny(),
-    SettingsField(
-      .pasteLastTranscriptHotkey,
-      keyPath: \.pasteLastTranscriptHotkey,
-      default: defaults.pasteLastTranscriptHotkey,
-      encode: { container, key, value in
-        try container.encodeIfPresent(value, forKey: key)
-      }
-    ).eraseToAny(),
-    SettingsField(.hasCompletedModelBootstrap, keyPath: \.hasCompletedModelBootstrap, default: defaults.hasCompletedModelBootstrap).eraseToAny(),
-    SettingsField(.wordRemovalsEnabled, keyPath: \.wordRemovalsEnabled, default: defaults.wordRemovalsEnabled).eraseToAny(),
-    SettingsField(
-      .wordRemovals,
-      keyPath: \.wordRemovals,
-      default: defaults.wordRemovals
-    ).eraseToAny(),
-    SettingsField(
-      .wordRemappings,
-      keyPath: \.wordRemappings,
-      default: defaults.wordRemappings
-    ).eraseToAny(),
-    SettingsField(.alwaysOnEnabled, keyPath: \.alwaysOnEnabled, default: defaults.alwaysOnEnabled).eraseToAny(),
-    SettingsField(
-      .alwaysOnPasteHotkey,
-      keyPath: \.alwaysOnPasteHotkey,
-      default: defaults.alwaysOnPasteHotkey,
-      encode: { container, key, value in
-        try container.encodeIfPresent(value, forKey: key)
-      }
-    ).eraseToAny(),
-    SettingsField(
-      .alwaysOnDumpHotkey,
-      keyPath: \.alwaysOnDumpHotkey,
-      default: defaults.alwaysOnDumpHotkey,
-      encode: { container, key, value in
-        try container.encodeIfPresent(value, forKey: key)
-      }
-    ).eraseToAny(),
-    // swiftlint:enable trailing_closure
-    SettingsField(.alwaysOnStreamingModel, keyPath: \.alwaysOnStreamingModel, default: defaults.alwaysOnStreamingModel).eraseToAny(),
-    SettingsField(.textTransformMode, keyPath: \.textTransformMode, default: defaults.textTransformMode).eraseToAny(),
-    SettingsField(.textTransformModel, keyPath: \.textTransformModel, default: defaults.textTransformModel).eraseToAny(),
-    SettingsField(
-      .customTextTransformInstructions,
-      keyPath: \.customTextTransformInstructions,
-      default: defaults.customTextTransformInstructions
-    ).eraseToAny(),
-    SettingsField(
-      .textTransformContextOptions,
-      keyPath: \.textTransformContextOptions,
-      default: defaults.textTransformContextOptions
-    ).eraseToAny(),
-  ]
 }

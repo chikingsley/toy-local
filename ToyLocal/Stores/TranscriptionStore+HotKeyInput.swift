@@ -23,7 +23,7 @@ extension TranscriptionStore {
 
   func handleHotKeyInputEvent(_ inputEvent: InputEvent) -> Bool {
     guard !settings.settings.alwaysOnEnabled else { return false }
-    guard !settings.isSettingHotKey else { return false }
+    guard !settings.isSettingAnyHotKey else { return false }
 
     hotKeyProcessor.hotkey = settings.settings.hotkey
     hotKeyProcessor.useDoubleTapOnly = settings.settings.useDoubleTapOnly

@@ -39,11 +39,38 @@ struct TLShortcutRecorder: View {
 
   @Binding var keys: [String]
   var defaultKeys: [String] = []
+  private let externalIsRecording: Binding<Bool>?
+  private let onBeginRecording: (() -> Void)?
+  private let onCancelRecording: (() -> Void)?
+  private let onClear: (() -> Void)?
+  private let onReset: (() -> Void)?
 
-  @State private var isRecording = false
+  @State private var localIsRecording = false
   @State private var priorKeys: [String] = []
   @State private var pulsing = false
   @State private var resetSpins = 0
+
+  init(
+    keys: Binding<[String]>,
+    defaultKeys: [String] = [],
+    isRecording: Binding<Bool>? = nil,
+    onBeginRecording: (() -> Void)? = nil,
+    onCancelRecording: (() -> Void)? = nil,
+    onClear: (() -> Void)? = nil,
+    onReset: (() -> Void)? = nil
+  ) {
+    _keys = keys
+    self.defaultKeys = defaultKeys
+    self.externalIsRecording = isRecording
+    self.onBeginRecording = onBeginRecording
+    self.onCancelRecording = onCancelRecording
+    self.onClear = onClear
+    self.onReset = onReset
+  }
+
+  private var isRecording: Bool {
+    externalIsRecording?.wrappedValue ?? localIsRecording
+  }
 
   private var chipShape: RoundedRectangle {
     RoundedRectangle(cornerRadius: Self.keySize * 0.22)
@@ -69,7 +96,20 @@ struct TLShortcutRecorder: View {
   private func beginRecording() {
     priorKeys = keys
     pulsing = false
-    isRecording = true
+    if let onBeginRecording {
+      onBeginRecording()
+    } else {
+      localIsRecording = true
+    }
+  }
+
+  private func cancelRecording() {
+    if let onCancelRecording {
+      onCancelRecording()
+    } else {
+      localIsRecording = false
+      keys = priorKeys
+    }
   }
 
   private var recordPrompt: some View {
@@ -99,7 +139,11 @@ struct TLShortcutRecorder: View {
   @ViewBuilder private var sideButton: some View {
     if defaultKeys.isEmpty {
       Button {
-        keys = []
+        if let onClear {
+          onClear()
+        } else {
+          keys = []
+        }
       } label: {
         sideButtonLabel("xmark")
       }
@@ -109,7 +153,11 @@ struct TLShortcutRecorder: View {
       Button {
         resetSpins -= 1
         withAnimation(.easeInOut(duration: 0.15)) {
-          keys = defaultKeys
+          if let onReset {
+            onReset()
+          } else {
+            keys = defaultKeys
+          }
         }
       } label: {
         sideButtonLabel("arrow.counterclockwise")
@@ -123,8 +171,7 @@ struct TLShortcutRecorder: View {
 
   private var cancelButton: some View {
     Button {
-      isRecording = false
-      keys = priorKeys
+      cancelRecording()
     } label: {
       sideButtonLabel("xmark")
     }

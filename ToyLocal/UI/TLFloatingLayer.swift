@@ -87,6 +87,10 @@ struct TLFloatingHost<Content: View>: View {
   @StateObject private var layer = TLFloatingLayerModel()
   @State private var measuredSizes: [String: CGSize] = [:]
 
+  private static var usesChildWindows: Bool {
+    ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1"
+  }
+
   private let coordinateSpaceName = "TLFloatingLayer"
   private let content: Content
 
@@ -111,27 +115,33 @@ struct TLFloatingHost<Content: View>: View {
             .zIndex(9_000)
         }
 
-        ForEach(Array(layer.presentations.enumerated()), id: \.element.id) { index, presentation in
-          let sizeKey = String(describing: presentation.id)
-          let measuredSize = measuredSizes[sizeKey] ?? presentation.estimatedSize
-          let origin = floatingOrigin(
-            for: presentation,
-            measuredSize: measuredSize,
-            bounds: CGRect(origin: .zero, size: proxy.size)
-          )
+        if Self.usesChildWindows {
+          TLFloatingWindowBridge(layer: layer)
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .allowsHitTesting(false)
+        } else {
+          ForEach(Array(layer.presentations.enumerated()), id: \.element.id) { index, presentation in
+            let sizeKey = String(describing: presentation.id)
+            let measuredSize = measuredSizes[sizeKey] ?? presentation.estimatedSize
+            let origin = floatingOrigin(
+              for: presentation,
+              measuredSize: measuredSize,
+              bounds: CGRect(origin: .zero, size: proxy.size)
+            )
 
-          presentation.content
-            .fixedSize(horizontal: false, vertical: true)
-            .onGeometryChange(for: CGSize.self) { contentProxy in
-              contentProxy.size
-            } action: { size in
-              measuredSizes[sizeKey] = size
-            }
-            .allowsHitTesting(presentation.allowsHitTesting)
-            .offset(x: origin.x, y: origin.y)
-            .shadow(color: .black.opacity(0.34), radius: 18, y: 10)
-            .transition(.opacity)
-            .zIndex(10_000 + Double(index))
+            presentation.content
+              .fixedSize(horizontal: false, vertical: true)
+              .onGeometryChange(for: CGSize.self) { contentProxy in
+                contentProxy.size
+              } action: { size in
+                measuredSizes[sizeKey] = size
+              }
+              .allowsHitTesting(presentation.allowsHitTesting)
+              .offset(x: origin.x, y: origin.y)
+              .shadow(color: .black.opacity(0.34), radius: 18, y: 10)
+              .transition(.opacity)
+              .zIndex(10_000 + Double(index))
+          }
         }
       }
       .coordinateSpace(name: coordinateSpaceName)

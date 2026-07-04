@@ -3,7 +3,7 @@ import SwiftUI
 struct TLMenuOption<Value: Hashable & Sendable>: Identifiable, Sendable {
   let value: Value
   let label: String
-  var systemImage: String? = nil
+  var systemImage: String?
   var accessoryText: String = ""
   var detailTitle: String = ""
   var detailText: String = ""
@@ -15,7 +15,7 @@ struct TLOptionMenu<Value: Hashable & Sendable>: View {
   @Binding var selection: Value
   let options: [TLMenuOption<Value>]
   var width: CGFloat = 152
-  var panelWidth: CGFloat? = nil
+  var panelWidth: CGFloat?
   var selectedTint = TLTheme.accentGreen
   var onSelect: (Value) -> Void = { _ in }
 

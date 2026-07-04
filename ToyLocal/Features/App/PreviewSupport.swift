@@ -10,7 +10,16 @@ enum AppPreviewState {
   /// and persists to a temp directory, so seeded data never touches real files.
   static func makeStore() -> AppStore {
     let services = ServiceContainer()
-    services.settings.transcriptionHistory = TranscriptionHistory(history: [
+    let transcripts = previewTranscripts()
+    services.settings.transcriptionHistory = TranscriptionHistory(history: transcripts)
+    seedTranscriptStore(services.transcriptStore, transcripts: transcripts)
+    let store = AppStore(services: services)
+    configure(store)
+    return store
+  }
+
+  private static func previewTranscripts() -> [Transcript] {
+    [
       Transcript(
         timestamp: Date(),
         text: "Okay so the main thing I want to work on today is the sidebar organization and making sure the panes all land in the right place.",
@@ -35,10 +44,44 @@ enum AppPreviewState {
         sourceAppBundleID: "com.apple.Notes",
         sourceAppName: "Notes"
       ),
-    ])
-    let store = AppStore(services: services)
-    configure(store)
-    return store
+      Transcript(
+        timestamp: Date().addingTimeInterval(-172_800),
+        text: "Capture the meeting decisions, the open questions, and the follow-up items without turning the transcript into a dashboard.",
+        audioPath: URL(fileURLWithPath: "/tmp/preview-audio-4.m4a"),
+        duration: 11.8,
+        sourceAppBundleID: "us.zoom.xos",
+        sourceAppName: "Zoom"
+      ),
+    ]
+  }
+
+  private static func seedTranscriptStore(_ transcriptStore: TranscriptStore, transcripts: [Transcript]) {
+    let records = transcripts.enumerated().map { index, transcript in
+      TranscriptRecord(
+        id: transcript.id.uuidString,
+        createdAt: transcript.timestamp,
+        duration: transcript.duration,
+        title: index == 0 ? "Sidebar organization pass" : nil,
+        rawText: transcript.text,
+        finalText: transcript.text,
+        modeName: previewModeName(for: index),
+        sourceAppBundleID: transcript.sourceAppBundleID,
+        sourceAppName: transcript.sourceAppName,
+        audioPath: transcript.audioPath.path
+      )
+    }
+    for record in records {
+      try? transcriptStore.insert(record)
+    }
+  }
+
+  private static func previewModeName(for index: Int) -> String {
+    switch index {
+    case 1: "Email"
+    case 2: "Notes"
+    case 3: "Meeting Notes"
+    default: "Default"
+    }
   }
 
   static func configure(_ store: AppStore) {

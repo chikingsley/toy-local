@@ -182,7 +182,7 @@ final class AppStore {
         guard let self else { return false }
 
         return MainActor.assumeIsolated {
-          if self.settingsManager.isSettingPasteLastTranscriptHotkey { return false }
+          if self.settingsManager.isSettingAnyHotKey { return false }
 
           guard let pasteHotkey = self.settingsManager.settings.pasteLastTranscriptHotkey,
             let key = keyEvent.key,

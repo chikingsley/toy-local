@@ -146,7 +146,7 @@ extension RecordingClientLive {
     switch behavior {
     case .pauseMedia:
       schedulePauseMediaControlTask(sessionID: sessionID)
-    case .mute:
+    case .mute, .lowerVolume:
       scheduleMuteMediaControlTask(sessionID: sessionID)
     case .doNothing:
       break
