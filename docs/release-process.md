@@ -7,36 +7,19 @@ This document tracks the current release shape. The app is intended to be a publ
 Install local tooling first:
 
 ```bash
-bun install
 brew install swiftlint
 ```
 
 Run these before merging releasable changes:
 
 ```bash
-bun run format:check
-bun run lint
-bun run test:core
-bun run test:app
-bun run test:release
+just check
+swift format lint --recursive --configuration .swift-format ToyLocal ToyLocalCore
+swiftlint lint --quiet
+cd ToyLocalCore && swift test --parallel
+xcodebuild test -project toy-local.xcodeproj -scheme "toy-local" -destination "platform=macOS,arch=arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+xcodebuild build -project toy-local.xcodeproj -scheme "toy-local" -configuration Release -destination "platform=macOS,arch=arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 ```
-
-Or run all of them:
-
-```bash
-bun run check
-```
-
-## Release Notes
-
-Changesets are used for pending release notes and semver intent:
-
-```bash
-bun run changeset:add-ai patch "Fix clipboard timing"
-bun run changeset:status
-```
-
-For user-facing changes, add a `.changeset/*.md` fragment. The release pipeline should consume these fragments when the signing/notarization tooling is rebuilt.
 
 ## Release Artifacts
 
@@ -51,7 +34,6 @@ The intended public artifacts are:
 
 - `bin/generate_appcast`: Sparkle appcast generator binary.
 - `toy-local.rb`: Homebrew cask formula template.
-- `.changeset/`: pending release-note fragments.
 - `CHANGELOG.md`: human-readable release history.
 - `ToyLocal/Resources/changelog.md`: in-app changelog content.
 
@@ -59,7 +41,7 @@ The intended public artifacts are:
 
 Before a real public release, rebuild or restore the release tool that:
 
-1. Applies pending Changesets and updates versions.
+1. Updates app versions and release notes.
 2. Builds and archives the app with Developer ID signing.
 3. Notarizes the app and DMG.
 4. Creates DMG and ZIP artifacts.

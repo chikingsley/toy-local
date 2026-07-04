@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "sensevoice-small-coreml",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192300-asr-sensevoice-small-coreml",
+  "status" : "failed"
+}

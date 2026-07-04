@@ -1,0 +1,15 @@
+{
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v2",
+  "downloadedBytesApprox": "14M",
+  "fileCountApprox": "3",
+  "modelID": "parakeet-tdt-0.6b-v2-coreml",
+  "nextStep": "Bypass or replace the FluidAudio URLSession download path for this repo. Direct Hugging Face API listing, HEAD, and ranged reads for Encoder.mlmodelc/weights/weight.bin all succeeded, but FluidAudio's delegated URLSession download produced no byte progress.",
+  "progressLogPath": "progress.jsonl",
+  "reason": "Retry with persisted progress logging listed 22 files, wrote only the initial listing event to progress.jsonl, then produced no byte-progress callbacks and left the cache at 14M / 3 files. Direct API checks showed Encoder.mlmodelc/weights/weight.bin is reachable and 445187200 bytes.",
+  "remoteProbe": {
+    "encoderModelMilBytes": 959769,
+    "encoderWeightBytes": 445187200,
+    "rangeReadWorked": true
+  },
+  "status": "interrupted"
+}

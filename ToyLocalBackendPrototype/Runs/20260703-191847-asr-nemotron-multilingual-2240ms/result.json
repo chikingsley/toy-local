@@ -1,0 +1,291 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "durationSeconds" : 4.9109375,
+  "modelID" : "nemotron-multilingual-2240ms",
+  "outputShape" : {
+    "notes" : [
+      "Multilingual Nemotron returns final text plus token timings. Detected language is internal to the decoded result and not normalized here yet."
+    ],
+    "producesLanguage" : true,
+    "producesSpeakerLabels" : false,
+    "producesText" : true,
+    "producesTokenTimings" : true,
+    "producesWordTimings" : false
+  },
+  "processingSeconds" : 141.9763389825821,
+  "rtfx" : 0.03458983049705545,
+  "text" : "Local live ASR smoke test the quick brown fox jumps over the lazy dog",
+  "timings" : {
+    "inferenceSeconds" : 0.39653992652893066,
+    "loadSeconds" : 141.57902097702026,
+    "totalWallSeconds" : 141.9763389825821
+  },
+  "tokenTimings" : [
+    {
+      "confidence" : 1,
+      "endTime" : 0.72,
+      "startTime" : 0.64,
+      "token" : "▁",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 0.72,
+      "startTime" : 0.64,
+      "token" : "L",
+      "tokenId" : 214
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 0.72,
+      "startTime" : 0.64,
+      "token" : "o",
+      "tokenId" : 46
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 0.88,
+      "startTime" : 0.8,
+      "token" : "ca",
+      "tokenId" : 1257
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 0.88,
+      "startTime" : 0.8,
+      "token" : "l",
+      "tokenId" : 66
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.2000000000000002,
+      "startTime" : 1.12,
+      "token" : "▁",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.2000000000000002,
+      "startTime" : 1.12,
+      "token" : "li",
+      "tokenId" : 262
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.28,
+      "startTime" : 1.2,
+      "token" : "ve",
+      "tokenId" : 306
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.36,
+      "startTime" : 1.28,
+      "token" : "▁A",
+      "tokenId" : 309
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.52,
+      "startTime" : 1.44,
+      "token" : "S",
+      "tokenId" : 193
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.6800000000000002,
+      "startTime" : 1.6,
+      "token" : "R",
+      "tokenId" : 217
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 1.84,
+      "startTime" : 1.76,
+      "token" : "▁smo",
+      "tokenId" : 2221
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2,
+      "startTime" : 1.92,
+      "token" : "ke",
+      "tokenId" : 851
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2.24,
+      "startTime" : 2.16,
+      "token" : "▁t",
+      "tokenId" : 12945
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2.24,
+      "startTime" : 2.16,
+      "token" : "est",
+      "tokenId" : 838
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2.64,
+      "startTime" : 2.56,
+      "token" : "▁the",
+      "tokenId" : 150
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2.8000000000000003,
+      "startTime" : 2.72,
+      "token" : "▁qui",
+      "tokenId" : 1008
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2.96,
+      "startTime" : 2.88,
+      "token" : "ck",
+      "tokenId" : 550
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.2,
+      "startTime" : 3.12,
+      "token" : "▁",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.2,
+      "startTime" : 3.12,
+      "token" : "b",
+      "tokenId" : 140
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.2,
+      "startTime" : 3.12,
+      "token" : "r",
+      "tokenId" : 59
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.2,
+      "startTime" : 3.12,
+      "token" : "ow",
+      "tokenId" : 2952
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.2800000000000002,
+      "startTime" : 3.2,
+      "token" : "n",
+      "tokenId" : 113
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.44,
+      "startTime" : 3.36,
+      "token" : "▁fo",
+      "tokenId" : 1866
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.68,
+      "startTime" : 3.6,
+      "token" : "x",
+      "tokenId" : 195
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.8400000000000003,
+      "startTime" : 3.7600000000000002,
+      "token" : "▁",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.8400000000000003,
+      "startTime" : 3.7600000000000002,
+      "token" : "ju",
+      "tokenId" : 837
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.92,
+      "startTime" : 3.84,
+      "token" : "mp",
+      "tokenId" : 1041
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.92,
+      "startTime" : 3.84,
+      "token" : "s",
+      "tokenId" : 40
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.08,
+      "startTime" : 4,
+      "token" : "▁over",
+      "tokenId" : 477
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.24,
+      "startTime" : 4.16,
+      "token" : "▁the",
+      "tokenId" : 150
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.5600000000000005,
+      "startTime" : 4.48,
+      "token" : "▁",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.5600000000000005,
+      "startTime" : 4.48,
+      "token" : "la",
+      "tokenId" : 284
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.640000000000001,
+      "startTime" : 4.5600000000000005,
+      "token" : "zy",
+      "tokenId" : 1770
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.88,
+      "startTime" : 4.8,
+      "token" : "▁",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.88,
+      "startTime" : 4.8,
+      "token" : "do",
+      "tokenId" : 1288
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.96,
+      "startTime" : 4.88,
+      "token" : "g",
+      "tokenId" : 119
+    }
+  ]
+}

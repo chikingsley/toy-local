@@ -1,0 +1,40 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "generatedAt" : "2026-07-04T04:13:34Z",
+  "machine" : {
+    "activeProcessorCount" : 8,
+    "architecture" : "arm64",
+    "hostName" : "chibuzors-macbook-air.local",
+    "operatingSystem" : "Version 26.5.2 (Build 25F84)",
+    "physicalMemoryGB" : 16,
+    "processorCount" : 8
+  },
+  "results" : [
+    {
+      "command" : "vad",
+      "displayName" : "Silero VAD",
+      "family" : "local-vad",
+      "metrics" : {
+        "processingSeconds" : 0.4806939363479614,
+        "realTimeFactor" : 10.216350007055434,
+        "segmentCount" : 1,
+        "speechSeconds" : 4.9109375,
+        "totalWallSeconds" : 0.4806939363479614
+      },
+      "modelID" : "silero-vad",
+      "outputShape" : [
+        "per-chunk probability",
+        "per-chunk active flag",
+        "per-chunk processing time",
+        "derived speech segments"
+      ],
+      "runtime" : "local",
+      "status" : "ok"
+    }
+  ],
+  "scope" : "quick",
+  "selectedModelCount" : 1,
+  "statusCounts" : {
+    "ok" : 1
+  }
+}

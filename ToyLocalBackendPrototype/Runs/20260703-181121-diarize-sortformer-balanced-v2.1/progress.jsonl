@@ -1,0 +1,12 @@
+{"completedFiles":0,"fractionCompleted":0.5,"kind":"download","phase":"downloading","timestamp":"2026-07-04T01:11:21Z","totalFiles":0}
+{"fractionCompleted":0.5,"kind":"download","modelName":"SortformerNvidiaLow_v2.1.mlmodelc","phase":"compiling","timestamp":"2026-07-04T01:11:21Z"}
+{"fractionCompleted":1,"kind":"download","phase":"compiling","timestamp":"2026-07-04T01:11:25Z"}
+{"chunksProcessed":1,"fractionCompleted":0.09774101177219217,"kind":"diarization","phase":"processing","processedSamples":7680,"timestamp":"2026-07-04T01:11:28Z","totalSamples":78575}
+{"chunksProcessed":2,"fractionCompleted":0.19548202354438435,"kind":"diarization","phase":"processing","processedSamples":15360,"timestamp":"2026-07-04T01:11:30Z","totalSamples":78575}
+{"chunksProcessed":3,"fractionCompleted":0.2932230353165765,"kind":"diarization","phase":"processing","processedSamples":23040,"timestamp":"2026-07-04T01:11:31Z","totalSamples":78575}
+{"chunksProcessed":4,"fractionCompleted":0.3909640470887687,"kind":"diarization","phase":"processing","processedSamples":30720,"timestamp":"2026-07-04T01:11:32Z","totalSamples":78575}
+{"chunksProcessed":5,"fractionCompleted":0.4887050588609609,"kind":"diarization","phase":"processing","processedSamples":38400,"timestamp":"2026-07-04T01:11:34Z","totalSamples":78575}
+{"chunksProcessed":6,"fractionCompleted":0.586446070633153,"kind":"diarization","phase":"processing","processedSamples":46080,"timestamp":"2026-07-04T01:11:35Z","totalSamples":78575}
+{"chunksProcessed":7,"fractionCompleted":0.6841870824053452,"kind":"diarization","phase":"processing","processedSamples":53760,"timestamp":"2026-07-04T01:11:36Z","totalSamples":78575}
+{"chunksProcessed":8,"fractionCompleted":0.7819280941775374,"kind":"diarization","phase":"processing","processedSamples":61440,"timestamp":"2026-07-04T01:11:37Z","totalSamples":78575}
+{"chunksProcessed":9,"fractionCompleted":0.8796691059497296,"kind":"diarization","phase":"processing","processedSamples":69120,"timestamp":"2026-07-04T01:11:39Z","totalSamples":78575}

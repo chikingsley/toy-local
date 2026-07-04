@@ -1,0 +1,9 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "command" : "diarize",
+  "modelID" : "ls-eend-callhome",
+  "options" : {
+    "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "model" : "ls-eend-callhome"
+  }
+}

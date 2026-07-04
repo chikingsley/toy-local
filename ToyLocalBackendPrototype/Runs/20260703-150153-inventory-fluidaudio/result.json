@@ -1,0 +1,312 @@
+{
+  "fluidAudioVersion" : "0.15.4",
+  "generatedAt" : "2026-07-03T22:01:53Z",
+  "models" : [
+    {
+      "displayName" : "Parakeet TDT 0.6B v3",
+      "family" : "local-asr",
+      "id" : "parakeet-tdt-0.6b-v3-coreml",
+      "notes" : "FluidAudio AsrModels .v3",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet TDT 0.6B v2",
+      "family" : "local-asr",
+      "id" : "parakeet-tdt-0.6b-v2-coreml",
+      "notes" : "FluidAudio AsrModels .v2",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet TDT-CTC 110M",
+      "family" : "local-asr",
+      "id" : "parakeet-tdt-ctc-110m-coreml",
+      "notes" : "FluidAudio AsrModels .tdtCtc110m",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet Japanese 0.6B",
+      "family" : "local-asr",
+      "id" : "parakeet-0.6b-ja-coreml",
+      "notes" : "FluidAudio AsrModels .tdtJa",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "SenseVoice Small",
+      "family" : "local-asr",
+      "id" : "sensevoice-small-coreml",
+      "notes" : "FluidAudio SenseVoiceManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Paraformer Large zh",
+      "family" : "local-asr",
+      "id" : "paraformer-large-zh-coreml",
+      "notes" : "FluidAudio ParaformerManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Cohere Transcribe 03-2026",
+      "family" : "local-asr",
+      "id" : "cohere-transcribe-03-2026-coreml",
+      "notes" : "FluidAudio CoherePipeline q8",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet Unified Offline 15s",
+      "family" : "local-asr",
+      "id" : "parakeet-unified-offline-15s",
+      "notes" : "FluidAudio UnifiedAsrManager offline",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet EOU 160ms",
+      "family" : "local-streaming-asr",
+      "id" : "parakeet-eou-160ms",
+      "notes" : "FluidAudio StreamingEouAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet EOU 320ms",
+      "family" : "local-streaming-asr",
+      "id" : "parakeet-eou-320ms",
+      "notes" : "FluidAudio StreamingEouAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Parakeet EOU 1280ms",
+      "family" : "local-streaming-asr",
+      "id" : "parakeet-eou-1280ms",
+      "notes" : "FluidAudio StreamingEouAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Streaming 560ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-560ms",
+      "notes" : "FluidAudio StreamingNemotronAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Streaming 1120ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-1120ms",
+      "notes" : "FluidAudio StreamingNemotronAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Streaming 2240ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-2240ms",
+      "notes" : "FluidAudio StreamingNemotronAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Multilingual 560ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-multilingual-560ms",
+      "notes" : "FluidAudio StreamingNemotronMultilingualAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Multilingual 1120ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-multilingual-1120ms",
+      "notes" : "FluidAudio StreamingNemotronMultilingualAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Multilingual 2240ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-multilingual-2240ms",
+      "notes" : "FluidAudio StreamingNemotronMultilingualAsrManager",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Nemotron Multilingual 4480ms",
+      "family" : "local-streaming-asr",
+      "id" : "nemotron-multilingual-4480ms",
+      "notes" : "FluidAudio multilingual download supports 4480ms tier",
+      "probeCommand" : "asr",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Silero VAD",
+      "family" : "local-vad",
+      "id" : "silero-vad",
+      "notes" : "FluidAudio VadManager",
+      "probeCommand" : "vad",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Sortformer Fast v2",
+      "family" : "local-diarization",
+      "id" : "sortformer-fast-v2",
+      "notes" : "FluidAudio SortformerDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Sortformer Fast v2.1",
+      "family" : "local-diarization",
+      "id" : "sortformer-fast-v2.1",
+      "notes" : "FluidAudio SortformerDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Sortformer Balanced v2",
+      "family" : "local-diarization",
+      "id" : "sortformer-balanced-v2",
+      "notes" : "FluidAudio SortformerDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Sortformer Balanced v2.1",
+      "family" : "local-diarization",
+      "id" : "sortformer-balanced-v2.1",
+      "notes" : "FluidAudio SortformerDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Sortformer High Context v2",
+      "family" : "local-diarization",
+      "id" : "sortformer-high-context-v2",
+      "notes" : "FluidAudio SortformerDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Sortformer High Context v2.1",
+      "family" : "local-diarization",
+      "id" : "sortformer-high-context-v2.1",
+      "notes" : "FluidAudio SortformerDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "LS-EEND AMI",
+      "family" : "local-diarization",
+      "id" : "ls-eend-ami",
+      "notes" : "FluidAudio LSEENDDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "LS-EEND CallHome",
+      "family" : "local-diarization",
+      "id" : "ls-eend-callhome",
+      "notes" : "FluidAudio LSEENDDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "LS-EEND DIHARD II",
+      "family" : "local-diarization",
+      "id" : "ls-eend-dihard2",
+      "notes" : "FluidAudio LSEENDDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "LS-EEND DIHARD III",
+      "family" : "local-diarization",
+      "id" : "ls-eend-dihard3",
+      "notes" : "FluidAudio LSEENDDiarizer",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Offline Pyannote/VBx Diarizer",
+      "family" : "local-diarization",
+      "id" : "offline-diarizer",
+      "notes" : "FluidAudio OfflineDiarizerManager",
+      "probeCommand" : "diarize",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "CTC Keyword Spotting 110M",
+      "family" : "local-keyword",
+      "id" : "ctc110m",
+      "notes" : "FluidAudio CtcKeywordSpotter",
+      "probeCommand" : "keyword",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "CTC Keyword Spotting 0.6B",
+      "family" : "local-keyword",
+      "id" : "ctc06b",
+      "notes" : "FluidAudio CtcKeywordSpotter",
+      "probeCommand" : "keyword",
+      "runnable" : true,
+      "runtime" : "local"
+    },
+    {
+      "displayName" : "Deepgram Nova 3",
+      "family" : "cloud-asr",
+      "id" : "deepgram-nova-3",
+      "notes" : "Direct Deepgram probe",
+      "probeCommand" : "deepgram",
+      "runnable" : true,
+      "runtime" : "cloud"
+    },
+    {
+      "displayName" : "Deepgram Nova 3 diarized",
+      "family" : "cloud-asr",
+      "id" : "deepgram-nova-3-diarized",
+      "notes" : "Direct Deepgram probe with diarize=true",
+      "probeCommand" : "deepgram",
+      "runnable" : true,
+      "runtime" : "cloud"
+    }
+  ]
+}

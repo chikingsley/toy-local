@@ -1,56 +1,47 @@
 import Foundation
 import ToyLocalCore
 
-// Re-export types so the app target can use them without ToyLocalCore prefixes.
-typealias RecordingAudioBehavior = ToyLocalCore.RecordingAudioBehavior
-typealias ToyLocalSettings = ToyLocalCore.ToyLocalSettings
-
 // MARK: - URL Extensions
 
 extension URL {
-	/// Returns the Application Support directory for ToyLocal, creating it if needed.
-	static var hexApplicationSupport: URL {
-		get throws {
-			let fm = FileManager.default
-			let appSupport = try fm.url(
-				for: .applicationSupportDirectory,
-				in: .userDomainMask,
-				appropriateFor: nil,
-				create: true
-			)
-			let hexDir = appSupport.appending(component: "com.chiejimofor.toylocal")
-			try fm.createDirectory(at: hexDir, withIntermediateDirectories: true)
-			return hexDir
-		}
-	}
-
-	/// Legacy location in Documents (for migration).
-	static var legacyDocumentsDirectory: URL {
-		FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-	}
+  /// Returns the Application Support directory for ToyLocal, creating it if needed.
+  static var toyLocalApplicationSupport: URL {
+    get throws {
+      let fm = FileManager.default
+      let appSupport = try fm.url(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+      )
+      let toyLocalDir = appSupport.appending(component: "com.chiejimofor.toylocal")
+      try fm.createDirectory(at: toyLocalDir, withIntermediateDirectories: true)
+      return toyLocalDir
+    }
+  }
 }
 
 // MARK: - FileManager Extensions
 
 extension FileManager {
-	/// Copies a file from legacy location to new location if legacy exists and new doesn't.
-	func migrateIfNeeded(from legacy: URL, to new: URL) {
-		guard fileExists(atPath: legacy.path), !fileExists(atPath: new.path) else { return }
-		try? copyItem(at: legacy, to: new)
-	}
-
-	/// Removes an item only if it exists, swallowing any errors.
-	func removeItemIfExists(at url: URL) {
-		guard fileExists(atPath: url.path) else { return }
-		try? removeItem(at: url)
-	}
+  /// Removes an item only if it exists, swallowing any errors.
+  func removeItemIfExists(at url: URL) {
+    guard fileExists(atPath: url.path) else { return }
+    try? removeItem(at: url)
+  }
 }
 
 // MARK: - SettingsManager
 
 private let logger = ToyLocalLog.settings
 
-/// Replaces all TCA `@Shared` state with a single `@Observable` owner.
+private var isRunningForPreviews: Bool {
+  let environment = ProcessInfo.processInfo.environment
+  return environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    || environment["XCODE_RUNNING_FOR_PLAYGROUNDS"] == "1"
+}
+
+/// Owns app settings, history, and transient UI state.
 ///
 /// File-persisted properties (`settings`, `transcriptionHistory`) are saved to JSON
 /// with a 0.5 s debounce. In-memory properties (hotkey-edit flags, bootstrap state,
@@ -59,109 +50,115 @@ private let logger = ToyLocalLog.settings
 @Observable
 final class SettingsManager {
 
-	// MARK: - File-Persisted State
+  // MARK: - File-Persisted State
 
-	var settings: ToyLocalCore.ToyLocalSettings {
-		didSet { scheduleSaveSettings() }
-	}
+  var settings: ToyLocalCore.ToyLocalSettings {
+    didSet { scheduleSaveSettings() }
+  }
 
-	var transcriptionHistory: TranscriptionHistory {
-		didSet { scheduleSaveHistory() }
-	}
+  var transcriptionHistory: TranscriptionHistory {
+    didSet { scheduleSaveHistory() }
+  }
 
-	// MARK: - In-Memory State
+  // MARK: - In-Memory State
 
-	var isSettingHotKey: Bool = false
-	var isSettingPasteLastTranscriptHotkey: Bool = false
-	var isRemappingScratchpadFocused: Bool = false
-	var modelBootstrapState: ModelBootstrapState = .init()
-	var hotkeyPermissionState: HotkeyPermissionState = .init()
+  var isSettingHotKey: Bool = false
+  var isSettingPasteLastTranscriptHotkey: Bool = false
+  var isRemappingScratchpadFocused: Bool = false
+  var modelBootstrapState: ModelBootstrapState = .init()
+  var hotkeyPermissionState: HotkeyPermissionState = .init()
 
-	// MARK: - Private
+  // MARK: - Private
 
-	private var saveSettingsTask: Task<Void, Never>?
-	private var saveHistoryTask: Task<Void, Never>?
+  private var saveSettingsTask: Task<Void, Never>?
+  private var saveHistoryTask: Task<Void, Never>?
 
-	private let settingsURL: URL
-	private let historyURL: URL
+  private let settingsURL: URL
+  private let historyURL: URL
 
-	// MARK: - Init
+  // MARK: - Init
 
-	init() {
-		// Resolve file URLs (with legacy migration).
-		let resolvedSettingsURL: URL
-		let resolvedHistoryURL: URL
+  init() {
+    if isRunningForPreviews {
+      let previewDirectory = URL.temporaryDirectory.appendingPathComponent("com.chiejimofor.toylocal.preview", isDirectory: true)
+      try? FileManager.default.createDirectory(at: previewDirectory, withIntermediateDirectories: true)
 
-		do {
-			let appSupport = try URL.hexApplicationSupport
+      self.settingsURL = previewDirectory.appendingPathComponent("settings.json")
+      self.historyURL = previewDirectory.appendingPathComponent("transcription_history.json")
+      self.settings = .init()
+      self.transcriptionHistory = .init()
 
-			resolvedSettingsURL = appSupport.appending(component: "hex_settings.json")
-			resolvedHistoryURL = appSupport.appending(component: "transcription_history.json")
+      logger.info("SettingsManager initialized in preview mode. Settings URL: \(self.settingsURL.path)")
+      return
+    }
 
-			// Migrate from legacy Documents location if needed.
-			let legacySettings = URL.legacyDocumentsDirectory.appending(component: "hex_settings.json")
-			let legacyHistory = URL.legacyDocumentsDirectory.appending(component: "transcription_history.json")
-			FileManager.default.migrateIfNeeded(from: legacySettings, to: resolvedSettingsURL)
-			FileManager.default.migrateIfNeeded(from: legacyHistory, to: resolvedHistoryURL)
-		} catch {
-			logger.error("Failed to resolve Application Support directory: \(error.localizedDescription)")
-			// Fall back to Documents.
-			resolvedSettingsURL = URL.documentsDirectory.appending(component: "hex_settings.json")
-			resolvedHistoryURL = URL.documentsDirectory.appending(component: "transcription_history.json")
-		}
+    // Resolve file URLs.
+    let resolvedSettingsURL: URL
+    let resolvedHistoryURL: URL
 
-		self.settingsURL = resolvedSettingsURL
-		self.historyURL = resolvedHistoryURL
+    do {
+      let appSupport = try URL.toyLocalApplicationSupport
 
-		// Load settings from disk (or use defaults).
-		self.settings = Self.load(ToyLocalCore.ToyLocalSettings.self, from: resolvedSettingsURL) ?? .init()
-		self.transcriptionHistory = Self.load(TranscriptionHistory.self, from: resolvedHistoryURL) ?? .init()
+      resolvedSettingsURL = appSupport.appending(component: "settings.json")
+      resolvedHistoryURL = appSupport.appending(component: "transcription_history.json")
+    } catch {
+      logger.error("Failed to resolve Application Support directory: \(error.localizedDescription)")
+      resolvedSettingsURL = URL.temporaryDirectory.appending(component: "toylocal-settings.json")
+      resolvedHistoryURL = URL.temporaryDirectory.appending(component: "toylocal-transcription-history.json")
+    }
 
-		logger.info("SettingsManager initialized. Settings URL: \(resolvedSettingsURL.path)")
-		logger.info("Loaded \(self.settings.wordRemappings.count) word remappings from disk")
-	}
+    self.settingsURL = resolvedSettingsURL
+    self.historyURL = resolvedHistoryURL
 
-	// MARK: - Persistence Helpers
+    // Load settings from disk (or use defaults).
+    self.settings = Self.load(ToyLocalCore.ToyLocalSettings.self, from: resolvedSettingsURL) ?? .init()
+    self.transcriptionHistory = Self.load(TranscriptionHistory.self, from: resolvedHistoryURL) ?? .init()
 
-	private static func load<T: Decodable>(_ type: T.Type, from url: URL) -> T? {
-		guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-		do {
-			let data = try Data(contentsOf: url)
-			return try JSONDecoder().decode(T.self, from: data)
-		} catch {
-			logger.error("Failed to load \(String(describing: T.self)) from \(url.path): \(error.localizedDescription)")
-			return nil
-		}
-	}
+    logger.info("SettingsManager initialized. Settings URL: \(resolvedSettingsURL.path)")
+    logger.info("Loaded \(self.settings.wordRemappings.count) word remappings from disk")
+  }
 
-	private static func save<T: Encodable>(_ value: T, to url: URL) {
-		do {
-			let encoder = JSONEncoder()
-			encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-			let data = try encoder.encode(value)
-			try data.write(to: url, options: .atomic)
-		} catch {
-			logger.error("Failed to save \(String(describing: T.self)) to \(url.path): \(error.localizedDescription)")
-		}
-	}
+  // MARK: - Persistence Helpers
 
-	// MARK: - Debounced Save
+  private static func load<T: Decodable>(_ type: T.Type, from url: URL) -> T? {
+    guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+    do {
+      let data = try Data(contentsOf: url)
+      return try JSONDecoder().decode(T.self, from: data)
+    } catch {
+      logger.error("Failed to load \(String(describing: T.self)) from \(url.path): \(error.localizedDescription)")
+      return nil
+    }
+  }
 
-	private func scheduleSaveSettings() {
-		saveSettingsTask?.cancel()
-		saveSettingsTask = Task { [weak self] in
-			try? await Task.sleep(for: .milliseconds(500))
-			guard !Task.isCancelled, let self else { return }
-			Self.save(self.settings, to: self.settingsURL)
-		}
-	}
+  private static func save<T: Encodable>(_ value: T, to url: URL) {
+    do {
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      let data = try encoder.encode(value)
+      try data.write(to: url, options: .atomic)
+    } catch {
+      logger.error("Failed to save \(String(describing: T.self)) to \(url.path): \(error.localizedDescription)")
+    }
+  }
 
-	private func scheduleSaveHistory() {
-		saveHistoryTask?.cancel()
-		saveHistoryTask = Task { [weak self] in
-			try? await Task.sleep(for: .milliseconds(500))
-			guard !Task.isCancelled, let self else { return }
-			Self.save(self.transcriptionHistory, to: self.historyURL)
-		}
-	}
+  // MARK: - Debounced Save
+
+  private func scheduleSaveSettings() {
+    saveSettingsTask?.cancel()
+    saveSettingsTask = Task { [weak self] in
+      try? await Task.sleep(for: .milliseconds(500))
+      guard !Task.isCancelled, let self else { return }
+      Self.save(self.settings, to: self.settingsURL)
+    }
+  }
+
+  private func scheduleSaveHistory() {
+    saveHistoryTask?.cancel()
+    saveHistoryTask = Task { [weak self] in
+      try? await Task.sleep(for: .milliseconds(500))
+      guard !Task.isCancelled, let self else { return }
+      Self.save(self.transcriptionHistory, to: self.historyURL)
+    }
+  }
 }

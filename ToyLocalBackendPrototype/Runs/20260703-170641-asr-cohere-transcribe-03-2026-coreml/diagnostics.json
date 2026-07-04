@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-07-04T00:11:45Z",
+  "cachePath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/cohere-transcribe/q8",
+  "cacheSizeBeforeInterruptKiB": 1247016,
+  "fileCountBeforeInterrupt": 14,
+  "lastProgress": {
+    "completedFiles": 14,
+    "fractionCompleted": 0.1221774117990794,
+    "kind": "download",
+    "phase": "downloading",
+    "timestamp": "2026-07-04T00:08:41Z",
+    "totalFiles": 21
+  },
+  "progressLogPath": "progress.jsonl"
+}

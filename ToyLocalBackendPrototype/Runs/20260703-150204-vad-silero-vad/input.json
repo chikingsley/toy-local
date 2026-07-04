@@ -1,0 +1,8 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "command" : "vad",
+  "modelID" : "silero-vad",
+  "options" : {
+    "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav"
+  }
+}

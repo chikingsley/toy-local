@@ -1,0 +1,1162 @@
+{
+  "generatedAt" : "2026-07-04T03:06:19Z",
+  "outputRoot" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs",
+  "runCount" : 64,
+  "runs" : [
+    {
+      "command" : "inventory",
+      "hasDiagnostics" : false,
+      "hasInput" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "fluidaudio",
+      "modifiedAt" : "2026-07-03T22:01:53Z",
+      "name" : "20260703-150153-inventory-fluidaudio",
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150153-inventory-fluidaudio",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "vad",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "silero-vad",
+      "modifiedAt" : "2026-07-03T22:02:07Z",
+      "name" : "20260703-150204-vad-silero-vad",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150204-vad-silero-vad",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-ctc-110m-coreml",
+      "modifiedAt" : "2026-07-03T22:02:23Z",
+      "name" : "20260703-150205-asr-parakeet-tdt-ctc-110m-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-ctc-110m-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150205-asr-parakeet-tdt-ctc-110m-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "offline-diarizer",
+      "modifiedAt" : "2026-07-03T22:03:23Z",
+      "name" : "20260703-150251-diarize-offline-diarizer",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "offline-diarizer"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150251-diarize-offline-diarizer",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ctc110m",
+      "modifiedAt" : "2026-07-03T22:03:19Z",
+      "name" : "20260703-150251-keyword-ctc110m",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ctc110m",
+        "terms" : "Toy Local,FluidAudio,Parakeet"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150251-keyword-ctc110m",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ctc110m",
+      "modifiedAt" : "2026-07-03T22:04:34Z",
+      "name" : "20260703-150406-keyword-ctc110m",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ctc110m",
+        "terms" : "Toy Local,FluidAudio,Parakeet"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150406-keyword-ctc110m",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "hasResult" : true,
+      "modelID" : "nova-3",
+      "modifiedAt" : "2026-07-03T22:05:01Z",
+      "name" : "20260703-150501-deepgram-nova-3-diarize-false",
+      "options" : {
+        "api-key" : "[redacted]",
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "diarize" : "false",
+        "model" : "nova-3"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150501-deepgram-nova-3-diarize-false",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "hasResult" : true,
+      "modelID" : "nova-3",
+      "modifiedAt" : "2026-07-03T22:05:01Z",
+      "name" : "20260703-150501-deepgram-nova-3-diarize-true",
+      "options" : {
+        "api-key" : "[redacted]",
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "diarize" : "true",
+        "model" : "nova-3"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150501-deepgram-nova-3-diarize-true",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "hasResult" : true,
+      "modelID" : "nova-3",
+      "modifiedAt" : "2026-07-03T22:06:12Z",
+      "name" : "20260703-150612-deepgram-nova-3-diarize-false",
+      "options" : {
+        "api-key" : "[redacted]",
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "diarize" : "false",
+        "model" : "nova-3"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150612-deepgram-nova-3-diarize-false",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "hasResult" : true,
+      "modelID" : "nova-3",
+      "modifiedAt" : "2026-07-03T22:06:12Z",
+      "name" : "20260703-150612-deepgram-nova-3-diarize-true",
+      "options" : {
+        "api-key" : "[redacted]",
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "diarize" : "true",
+        "model" : "nova-3"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150612-deepgram-nova-3-diarize-true",
+      "status" : "ok"
+    },
+    {
+      "command" : "inventory",
+      "hasDiagnostics" : false,
+      "hasInput" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "fluidaudio",
+      "modifiedAt" : "2026-07-03T22:06:38Z",
+      "name" : "20260703-150638-inventory-fluidaudio",
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150638-inventory-fluidaudio",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-fast-v2.1",
+      "modifiedAt" : "2026-07-03T22:10:04Z",
+      "name" : "20260703-150655-diarize-sortformer-fast-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-fast-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150655-diarize-sortformer-fast-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ls-eend-ami",
+      "modifiedAt" : "2026-07-03T22:10:34Z",
+      "name" : "20260703-151009-diarize-ls-eend-ami",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ls-eend-ami"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151009-diarize-ls-eend-ami",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-eou-160ms",
+      "modifiedAt" : "2026-07-03T22:12:20Z",
+      "name" : "20260703-151050-asr-parakeet-eou-160ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-eou-160ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151050-asr-parakeet-eou-160ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-0.6b-v3-coreml",
+      "modifiedAt" : "2026-07-03T22:11:28Z",
+      "name" : "20260703-151050-asr-parakeet-tdt-0.6b-v3-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-0.6b-v3-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151050-asr-parakeet-tdt-0.6b-v3-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-560ms",
+      "modifiedAt" : "2026-07-03T22:14:59Z",
+      "name" : "20260703-151240-asr-nemotron-560ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-560ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151240-asr-nemotron-560ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-ctc-110m-coreml",
+      "modifiedAt" : "2026-07-03T22:22:23Z",
+      "name" : "20260703-152053-asr-parakeet-tdt-ctc-110m-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-ctc-110m-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152053-asr-parakeet-tdt-ctc-110m-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sensevoice-small-coreml",
+      "modifiedAt" : "2026-07-03T22:26:05Z",
+      "name" : "20260703-152053-asr-sensevoice-small-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sensevoice-small-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152053-asr-sensevoice-small-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ls-eend-callhome",
+      "modifiedAt" : "2026-07-03T22:29:16Z",
+      "name" : "20260703-152753-diarize-ls-eend-callhome",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ls-eend-callhome"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152753-diarize-ls-eend-callhome",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ls-eend-dihard2",
+      "modifiedAt" : "2026-07-03T22:29:16Z",
+      "name" : "20260703-152753-diarize-ls-eend-dihard2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ls-eend-dihard2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152753-diarize-ls-eend-dihard2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ls-eend-dihard3",
+      "modifiedAt" : "2026-07-03T22:29:20Z",
+      "name" : "20260703-152753-diarize-ls-eend-dihard3",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ls-eend-dihard3"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152753-diarize-ls-eend-dihard3",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "modifiedAt" : "2026-07-03T22:37:58Z",
+      "name" : "20260703-153016-asr-parakeet-tdt-0.6b-v2-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-0.6b-v2-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153016-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-unified-offline-15s",
+      "modifiedAt" : "2026-07-03T22:37:58Z",
+      "name" : "20260703-153016-asr-parakeet-unified-offline-15s",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-unified-offline-15s"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153016-asr-parakeet-unified-offline-15s",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ctc06b",
+      "modifiedAt" : "2026-07-03T22:37:58Z",
+      "name" : "20260703-153016-keyword-ctc06b",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ctc06b",
+        "terms" : "Toy Local,FluidAudio,Parakeet"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153016-keyword-ctc06b",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ctc06b",
+      "modifiedAt" : "2026-07-03T22:40:10Z",
+      "name" : "20260703-153811-keyword-ctc06b",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ctc06b",
+        "terms" : "Toy Local,FluidAudio,Parakeet"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153811-keyword-ctc06b",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-eou-320ms",
+      "modifiedAt" : "2026-07-03T22:44:18Z",
+      "name" : "20260703-154018-asr-parakeet-eou-320ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-eou-320ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-154018-asr-parakeet-eou-320ms",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "paraformer-large-zh-coreml",
+      "modifiedAt" : "2026-07-03T22:54:15Z",
+      "name" : "20260703-154857-asr-paraformer-large-zh-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "paraformer-large-zh-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-154857-asr-paraformer-large-zh-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-1120ms",
+      "modifiedAt" : "2026-07-03T23:02:59Z",
+      "name" : "20260703-155438-asr-nemotron-1120ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-1120ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-155438-asr-nemotron-1120ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-2240ms",
+      "modifiedAt" : "2026-07-03T23:12:17Z",
+      "name" : "20260703-160317-asr-nemotron-2240ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-2240ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-160317-asr-nemotron-2240ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-multilingual-560ms",
+      "modifiedAt" : "2026-07-03T23:24:41Z",
+      "name" : "20260703-161235-asr-nemotron-multilingual-560ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-multilingual-560ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-161235-asr-nemotron-multilingual-560ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "modifiedAt" : "2026-07-03T23:35:51Z",
+      "name" : "20260703-163330-asr-parakeet-tdt-0.6b-v2-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-0.6b-v2-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-163330-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "modifiedAt" : "2026-07-03T23:45:57Z",
+      "name" : "20260703-164251-asr-parakeet-tdt-0.6b-v2-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-0.6b-v2-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-164251-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-fast-v2.1",
+      "modifiedAt" : "2026-07-03T23:48:18Z",
+      "name" : "20260703-164609-diarize-sortformer-fast-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-fast-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-164609-diarize-sortformer-fast-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-multilingual-1120ms",
+      "modifiedAt" : "2026-07-04T00:01:11Z",
+      "name" : "20260703-164851-asr-nemotron-multilingual-1120ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-multilingual-1120ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-164851-asr-nemotron-multilingual-1120ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-multilingual-2240ms",
+      "modifiedAt" : "2026-07-04T00:06:06Z",
+      "name" : "20260703-170225-asr-nemotron-multilingual-2240ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-multilingual-2240ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-170225-asr-nemotron-multilingual-2240ms",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "cohere-transcribe-03-2026-coreml",
+      "modifiedAt" : "2026-07-04T00:12:02Z",
+      "name" : "20260703-170641-asr-cohere-transcribe-03-2026-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "cohere-transcribe-03-2026-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-170641-asr-cohere-transcribe-03-2026-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-0.6b-ja-coreml",
+      "modifiedAt" : "2026-07-04T00:15:26Z",
+      "name" : "20260703-171239-asr-parakeet-0.6b-ja-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-0.6b-ja-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171239-asr-parakeet-0.6b-ja-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-eou-1280ms",
+      "modifiedAt" : "2026-07-04T00:17:38Z",
+      "name" : "20260703-171625-asr-parakeet-eou-1280ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-eou-1280ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171625-asr-parakeet-eou-1280ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-multilingual-4480ms",
+      "modifiedAt" : "2026-07-04T00:20:31Z",
+      "name" : "20260703-171823-asr-nemotron-multilingual-4480ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-multilingual-4480ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171823-asr-nemotron-multilingual-4480ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-fast-v2",
+      "modifiedAt" : "2026-07-04T00:23:39Z",
+      "name" : "20260703-172108-diarize-sortformer-fast-v2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-fast-v2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172108-diarize-sortformer-fast-v2",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-balanced-v2",
+      "modifiedAt" : "2026-07-04T00:26:41Z",
+      "name" : "20260703-172415-diarize-sortformer-balanced-v2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-balanced-v2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172415-diarize-sortformer-balanced-v2",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-balanced-v2.1",
+      "modifiedAt" : "2026-07-04T00:28:40Z",
+      "name" : "20260703-172647-diarize-sortformer-balanced-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-balanced-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172647-diarize-sortformer-balanced-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-high-context-v2",
+      "modifiedAt" : "2026-07-04T00:31:18Z",
+      "name" : "20260703-172846-diarize-sortformer-high-context-v2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-high-context-v2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172846-diarize-sortformer-high-context-v2",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-high-context-v2.1",
+      "modifiedAt" : "2026-07-04T01:06:49Z",
+      "name" : "20260703-173123-diarize-sortformer-high-context-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-high-context-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-173123-diarize-sortformer-high-context-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-fast-v2.1",
+      "modifiedAt" : "2026-07-04T01:06:17Z",
+      "name" : "20260703-180554-diarize-sortformer-fast-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-fast-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-180554-diarize-sortformer-fast-v2.1",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-fast-v2",
+      "modifiedAt" : "2026-07-04T01:12:36Z",
+      "name" : "20260703-181037-diarize-sortformer-fast-v2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-fast-v2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181037-diarize-sortformer-fast-v2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-balanced-v2",
+      "modifiedAt" : "2026-07-04T01:12:36Z",
+      "name" : "20260703-181055-diarize-sortformer-balanced-v2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-balanced-v2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181055-diarize-sortformer-balanced-v2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-balanced-v2.1",
+      "modifiedAt" : "2026-07-04T01:12:36Z",
+      "name" : "20260703-181121-diarize-sortformer-balanced-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-balanced-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181121-diarize-sortformer-balanced-v2.1",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-high-context-v2",
+      "modifiedAt" : "2026-07-04T01:12:36Z",
+      "name" : "20260703-181146-diarize-sortformer-high-context-v2",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-high-context-v2"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181146-diarize-sortformer-high-context-v2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sortformer-high-context-v2.1",
+      "modifiedAt" : "2026-07-04T01:12:36Z",
+      "name" : "20260703-181201-diarize-sortformer-high-context-v2.1",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sortformer-high-context-v2.1"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181201-diarize-sortformer-high-context-v2.1",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-eou-320ms",
+      "modifiedAt" : "2026-07-04T02:11:47Z",
+      "name" : "20260703-191000-asr-parakeet-eou-320ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-eou-320ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191000-asr-parakeet-eou-320ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-unified-offline-15s",
+      "modifiedAt" : "2026-07-04T02:11:52Z",
+      "name" : "20260703-191152-asr-parakeet-unified-offline-15s",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-unified-offline-15s"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191152-asr-parakeet-unified-offline-15s",
+      "status" : "failed"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-unified-offline-15s",
+      "modifiedAt" : "2026-07-04T02:14:33Z",
+      "name" : "20260703-191239-asr-parakeet-unified-offline-15s",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-unified-offline-15s"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191239-asr-parakeet-unified-offline-15s",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : false,
+      "modelID" : "ctc06b",
+      "modifiedAt" : "2026-07-04T02:14:43Z",
+      "name" : "20260703-191443-keyword-ctc06b",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ctc06b",
+        "terms" : "Toy Local,FluidAudio,Parakeet"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191443-keyword-ctc06b",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "nemotron-multilingual-2240ms",
+      "modifiedAt" : "2026-07-04T02:21:10Z",
+      "name" : "20260703-191847-asr-nemotron-multilingual-2240ms",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "nemotron-multilingual-2240ms"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191847-asr-nemotron-multilingual-2240ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : false,
+      "modelID" : "sensevoice-small-coreml",
+      "modifiedAt" : "2026-07-04T02:21:17Z",
+      "name" : "20260703-192117-asr-sensevoice-small-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sensevoice-small-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192117-asr-sensevoice-small-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "sensevoice-small-coreml",
+      "modifiedAt" : "2026-07-04T02:25:11Z",
+      "name" : "20260703-192300-asr-sensevoice-small-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sensevoice-small-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192300-asr-sensevoice-small-coreml",
+      "status" : "failed"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : false,
+      "modelID" : "sensevoice-small-coreml",
+      "modifiedAt" : "2026-07-04T02:25:38Z",
+      "name" : "20260703-192538-asr-sensevoice-small-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "sensevoice-small-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192538-asr-sensevoice-small-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : false,
+      "modelID" : "paraformer-large-zh-coreml",
+      "modifiedAt" : "2026-07-04T02:27:37Z",
+      "name" : "20260703-192737-asr-paraformer-large-zh-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "paraformer-large-zh-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192737-asr-paraformer-large-zh-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : false,
+      "modelID" : "paraformer-large-zh-coreml",
+      "modifiedAt" : "2026-07-04T02:31:45Z",
+      "name" : "20260703-193145-asr-paraformer-large-zh-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "paraformer-large-zh-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193145-asr-paraformer-large-zh-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : false,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "modifiedAt" : "2026-07-04T02:33:44Z",
+      "name" : "20260703-193344-asr-parakeet-tdt-0.6b-v2-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-0.6b-v2-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193344-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "modifiedAt" : "2026-07-04T02:37:55Z",
+      "name" : "20260703-193745-asr-parakeet-tdt-0.6b-v2-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "parakeet-tdt-0.6b-v2-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193745-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "cohere-transcribe-03-2026-coreml",
+      "modifiedAt" : "2026-07-04T02:55:10Z",
+      "name" : "20260703-193802-asr-cohere-transcribe-03-2026-coreml",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "cohere-transcribe-03-2026-coreml"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193802-asr-cohere-transcribe-03-2026-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasInput" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "hasResult" : true,
+      "modelID" : "ctc06b",
+      "modifiedAt" : "2026-07-04T03:04:45Z",
+      "name" : "20260703-195540-keyword-ctc06b",
+      "options" : {
+        "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+        "model" : "ctc06b",
+        "terms" : "Toy Local,FluidAudio,Parakeet"
+      },
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-195540-keyword-ctc06b",
+      "status" : "ok"
+    }
+  ]
+}

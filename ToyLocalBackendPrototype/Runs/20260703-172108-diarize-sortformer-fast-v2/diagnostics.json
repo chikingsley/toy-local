@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-07-04T00:23:24Z",
+  "cachePath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer",
+  "cacheSizeBeforeInterrupt": "464M",
+  "lastProgress": {
+    "fractionCompleted": 0.5,
+    "kind": "download",
+    "modelName": "Sortformer_v2.mlmodelc",
+    "phase": "compiling",
+    "timestamp": "2026-07-04T00:21:50Z"
+  },
+  "progressLogPath": "progress.jsonl"
+}

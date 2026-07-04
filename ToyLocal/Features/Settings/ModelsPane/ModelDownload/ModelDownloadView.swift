@@ -1,8 +1,6 @@
-import Inject
 import SwiftUI
 
 struct ModelDownloadView: View {
-  @ObserveInjection var inject
 
   var store: ModelDownloadStore
   var shouldFlash: Bool = false
@@ -11,7 +9,8 @@ struct ModelDownloadView: View {
     VStack(alignment: .leading, spacing: 12) {
       if !store.modelBootstrapState.isModelReady,
         let message = store.modelBootstrapState.lastError,
-        !message.isEmpty {
+        !message.isEmpty
+      {
         AutoDownloadBannerView(
           title: "Download failed",
           subtitle: message,
@@ -46,6 +45,11 @@ struct ModelDownloadView: View {
         store.fetchModels()
       }
     }
-    .enableInjection()
   }
+}
+
+#Preview {
+  ModelDownloadView(store: AppPreviewState.makeStore().settings.modelDownload)
+    .padding()
+    .frame(width: 600, height: 420)
 }

@@ -6,21 +6,52 @@
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.chiejimofor.toylocal</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>toylocal</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.chiejimofor.toylocal.debug</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>toylocal-debug</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>0.6.9</string>
 	<key>CFBundleVersion</key>
 	<string>78</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>ToyLocal needs accessibility access to control typing and paste actions in other apps.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>ToyLocal needs automation access to control supported apps while inserting dictation results.</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>ToyLocal needs system audio recording access for meeting and screen-aware dictation workflows.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ToyLocal needs microphone access to record and transcribe your voice.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>ToyLocal needs screen recording access to capture visible context for prompt modes.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>NSInputMonitoringUsageDescription</key>
-	<string>ToyLocal needs Input Monitoring permission so your global hotkey works in every app.</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
 	<key>SUFeedURL</key>
 	<string>https://toy-local-updates.s3.amazonaws.com/appcast.xml</string>
 	<key>SUPublicEDKey</key>

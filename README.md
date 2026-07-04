@@ -2,8 +2,6 @@
 
 Press-and-hold a hotkey to transcribe your voice and paste the result wherever you're typing.
 
-**Local fork name: `toy-local` (inspired by [Hex](https://github.com/kitlangton/Hex) by Kit Langton).**
-
 > **Note:** `toy-local` currently targets **Apple Silicon** Macs.
 
 Or download via Homebrew:
@@ -11,11 +9,11 @@ Or download via Homebrew:
 brew install --cask toy-local
 ```
 
-I've opened-sourced the project in the hopes that others will find it useful. `toy-local` supports both [Parakeet TDT v3](https://github.com/FluidInference/FluidAudio) via [FluidAudio](https://github.com/FluidInference/FluidAudio) and [WhisperKit](https://github.com/argmaxinc/WhisperKit) for on-device transcription. The app is structured with SwiftUI, Observation (`@Observable`) stores, async services, and a small pure-Swift core package for testable hotkey/transcript logic.
+I've opened-sourced the project in the hopes that others will find it useful. `toy-local` uses [FluidAudio](https://github.com/FluidInference/FluidAudio) for on-device transcription, with Parakeet models currently wired into the app. The app is structured with SwiftUI, Observation (`@Observable`) stores, async services, and a small pure-Swift core package for testable hotkey/transcript logic.
 
 ## Instructions
 
-Once you open `toy-local`, you'll need to grant microphone, Accessibility, and Input Monitoring permissions so it can record your voice, control paste/typing in other apps, and listen for global hotkeys.
+Once you open `toy-local`, you'll need to grant microphone and Accessibility permissions so it can record your voice, listen for global hotkeys, and control paste/typing in other apps.
 
 Once you've configured a global hotkey, there are **two recording modes**:
 
@@ -52,32 +50,27 @@ Notes:
 Install repo tooling first:
 
 ```bash
-bun install
 brew install swiftlint
-```
-
-Run the full local quality gate:
-
-```bash
-bun run check
 ```
 
 Run individual pieces:
 
 ```bash
-bun run format:check             # swift format lint
-bun run lint                     # swiftlint
+just --list
+just check
+swift format lint --recursive --configuration .swift-format ToyLocal ToyLocalCore
+swiftlint lint --quiet
 cd ToyLocalCore && swift test --parallel
 xcodebuild test -project toy-local.xcodeproj -scheme "toy-local" -destination "platform=macOS,arch=arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 xcodebuild build -project toy-local.xcodeproj -scheme "toy-local" -configuration Release -destination "platform=macOS,arch=arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 ```
 
-### Changelog Workflow
+Reset local macOS permission prompts for development:
 
-- **For AI agents:** Run `bun run changeset:add-ai <type> "summary"` (e.g., `bun run changeset:add-ai patch "Fix clipboard timing"`) to create a changeset non-interactively.
-- **For humans:** Run `bunx changeset` when your PR needs release notes. Pick `patch`, `minor`, or `major` and write a short summary—this creates a `.changeset/*.md` fragment.
-- Check what will ship with `bun run changeset:status`.
-- Changesets currently manage pending release notes and version planning. The signing/notarization/upload release pipeline is still being re-established; see [docs/release-process.md](docs/release-process.md).
+```bash
+just tcc-reset-debug
+just tcc-reset-release
+```
 
 ## License
 

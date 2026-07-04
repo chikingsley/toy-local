@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "parakeet-eou-160ms",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151050-asr-parakeet-eou-160ms",
+  "status" : "ok"
+}

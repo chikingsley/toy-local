@@ -1,150 +1,142 @@
 import AVFoundation
 import AppKit
-import ToyLocalCore
 import SwiftUI
+import ToyLocalCore
 
 private let historyLogger = ToyLocalLog.history
 
 // MARK: - Audio Player Controller
 
 class AudioPlayerController: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
-	private var player: AVAudioPlayer?
-	var onPlaybackFinished: (() -> Void)?
+  private var player: AVAudioPlayer?
+  var onPlaybackFinished: (() -> Void)?
 
-	func play(url: URL) throws -> AVAudioPlayer {
-		let player = try AVAudioPlayer(contentsOf: url)
-		player.delegate = self
-		player.play()
-		self.player = player
-		return player
-	}
+  func play(url: URL) throws -> AVAudioPlayer {
+    let player = try AVAudioPlayer(contentsOf: url)
+    player.delegate = self
+    player.play()
+    self.player = player
+    return player
+  }
 
-	func stop() {
-		player?.stop()
-		player = nil
-	}
+  func stop() {
+    player?.stop()
+    player = nil
+  }
 
-	func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-		self.player = nil
-		Task { @MainActor in
-			onPlaybackFinished?()
-		}
-	}
+  func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    self.player = nil
+    Task { @MainActor in
+      onPlaybackFinished?()
+    }
+  }
 }
 
 // MARK: - History Store
 
 @MainActor @Observable
 final class HistoryStore {
-	// MARK: - State
+  // MARK: - State
 
-	var playingTranscriptID: UUID?
-	var audioPlayer: AVAudioPlayer?
-	var audioPlayerController: AudioPlayerController?
+  var playingTranscriptID: UUID?
+  var audioPlayer: AVAudioPlayer?
+  var audioPlayerController: AudioPlayerController?
 
-	// MARK: - Callbacks
+  // MARK: - Dependencies
 
-	var onNavigateToSettings: (() -> Void)?
+  private let settings: SettingsManager
+  private let pasteboard: PasteboardClientLive
 
-	// MARK: - Dependencies
+  // MARK: - Init
 
-	private let settings: SettingsManager
-	private let pasteboard: PasteboardClientLive
+  init(services: ServiceContainer) {
+    self.settings = services.settings
+    self.pasteboard = services.pasteboard
+  }
 
-	// MARK: - Init
+  // MARK: - Computed
 
-	init(services: ServiceContainer) {
-		self.settings = services.settings
-		self.pasteboard = services.pasteboard
-	}
+  var transcriptionHistory: TranscriptionHistory {
+    get { settings.transcriptionHistory }
+    set { settings.transcriptionHistory = newValue }
+  }
 
-	// MARK: - Computed
+  var saveTranscriptionHistory: Bool {
+    settings.settings.saveTranscriptionHistory
+  }
 
-	var transcriptionHistory: TranscriptionHistory {
-		get { settings.transcriptionHistory }
-		set { settings.transcriptionHistory = newValue }
-	}
+  // MARK: - Methods
 
-	var saveTranscriptionHistory: Bool {
-		settings.settings.saveTranscriptionHistory
-	}
+  func playTranscript(_ id: UUID) {
+    if playingTranscriptID == id {
+      stopPlayback()
+      return
+    }
 
-	// MARK: - Methods
+    stopPlayback()
 
-	func playTranscript(_ id: UUID) {
-		if playingTranscriptID == id {
-			stopPlayback()
-			return
-		}
+    guard let transcript = settings.transcriptionHistory.history.first(where: { $0.id == id }) else {
+      return
+    }
 
-		stopPlayback()
+    do {
+      let controller = AudioPlayerController()
+      let player = try controller.play(url: transcript.audioPath)
 
-		guard let transcript = settings.transcriptionHistory.history.first(where: { $0.id == id }) else {
-			return
-		}
+      audioPlayer = player
+      audioPlayerController = controller
+      playingTranscriptID = id
 
-		do {
-			let controller = AudioPlayerController()
-			let player = try controller.play(url: transcript.audioPath)
+      controller.onPlaybackFinished = { [weak self] in
+        Task { @MainActor in
+          self?.stopPlayback()
+        }
+      }
+    } catch {
+      historyLogger.error("Failed to play audio: \(error.localizedDescription)")
+    }
+  }
 
-			audioPlayer = player
-			audioPlayerController = controller
-			playingTranscriptID = id
+  func stopPlayback() {
+    audioPlayerController?.stop()
+    audioPlayer = nil
+    audioPlayerController = nil
+    playingTranscriptID = nil
+  }
 
-			controller.onPlaybackFinished = { [weak self] in
-				Task { @MainActor in
-					self?.stopPlayback()
-				}
-			}
-		} catch {
-			historyLogger.error("Failed to play audio: \(error.localizedDescription)")
-		}
-	}
+  func copyToClipboard(_ text: String) {
+    Task {
+      await pasteboard.copy(text: text)
+    }
+  }
 
-	func stopPlayback() {
-		audioPlayerController?.stop()
-		audioPlayer = nil
-		audioPlayerController = nil
-		playingTranscriptID = nil
-	}
+  func deleteTranscript(_ id: UUID) {
+    guard let index = settings.transcriptionHistory.history.firstIndex(where: { $0.id == id }) else {
+      return
+    }
 
-	func copyToClipboard(_ text: String) {
-		Task {
-			await pasteboard.copy(text: text)
-		}
-	}
+    let transcript = settings.transcriptionHistory.history[index]
 
-	func deleteTranscript(_ id: UUID) {
-		guard let index = settings.transcriptionHistory.history.firstIndex(where: { $0.id == id }) else {
-			return
-		}
+    if playingTranscriptID == id {
+      stopPlayback()
+    }
 
-		let transcript = settings.transcriptionHistory.history[index]
+    settings.transcriptionHistory.history.remove(at: index)
 
-		if playingTranscriptID == id {
-			stopPlayback()
-		}
+    Task.detached {
+      try? FileManager.default.removeItem(at: transcript.audioPath)
+    }
+  }
 
-		settings.transcriptionHistory.history.remove(at: index)
+  func confirmDeleteAll() {
+    let transcripts = settings.transcriptionHistory.history
+    stopPlayback()
+    settings.transcriptionHistory.history.removeAll()
 
-		Task.detached {
-			try? FileManager.default.removeItem(at: transcript.audioPath)
-		}
-	}
-
-	func confirmDeleteAll() {
-		let transcripts = settings.transcriptionHistory.history
-		stopPlayback()
-		settings.transcriptionHistory.history.removeAll()
-
-		Task.detached {
-			for transcript in transcripts {
-				try? FileManager.default.removeItem(at: transcript.audioPath)
-			}
-		}
-	}
-
-	func navigateToSettings() {
-		onNavigateToSettings?()
-	}
+    Task.detached {
+      for transcript in transcripts {
+        try? FileManager.default.removeItem(at: transcript.audioPath)
+      }
+    }
+  }
 }

@@ -1,0 +1,13 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "includeCloud" : false,
+  "keywordTerms" : [
+    "Toy Local",
+    "FluidAudio",
+    "Parakeet"
+  ],
+  "requestedModels" : [
+    "silero-vad"
+  ],
+  "scope" : "quick"
+}

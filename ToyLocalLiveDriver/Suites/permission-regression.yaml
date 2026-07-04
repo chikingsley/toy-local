@@ -1,0 +1,13 @@
+name: permission-regression
+target: debug
+steps:
+  - quit
+  - launch
+  - checkPermissions
+  - assertState:
+      mainExperienceStarted: false
+      visibleWindows:
+        - onboarding
+      permissions:
+        microphone: notGranted
+        accessibility: notGranted

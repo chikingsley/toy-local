@@ -1,0 +1,30 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "durationSeconds" : 4.9109375,
+  "modelID" : "parakeet-unified-offline-15s",
+  "outputShape" : {
+    "notes" : [
+      "Unified offline returns text only through public manager API."
+    ],
+    "producesLanguage" : false,
+    "producesSpeakerLabels" : false,
+    "producesText" : true,
+    "producesTokenTimings" : false,
+    "producesWordTimings" : false
+  },
+  "processingSeconds" : 114.95633900165558,
+  "rtfx" : 0.04272002346846896,
+  "text" : "Toy local live ASR smoke test, the quick brown fox jumps over the lazy dog.",
+  "timings" : {
+    "inferenceSeconds" : 0.22960400581359863,
+    "loadSeconds" : 114.72670590877533,
+    "totalWallSeconds" : 114.95633900165558
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-07-04T00:28:28Z",
+  "cachePath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer",
+  "cacheSizeBeforeInterrupt": "935M",
+  "lastProgress": {
+    "fractionCompleted": 0.5,
+    "kind": "download",
+    "modelName": "SortformerNvidiaLow_v2.1.mlmodelc",
+    "phase": "compiling",
+    "timestamp": "2026-07-04T00:27:31Z"
+  },
+  "progressLogPath": "progress.jsonl"
+}

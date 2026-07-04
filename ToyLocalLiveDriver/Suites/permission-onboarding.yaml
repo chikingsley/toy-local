@@ -1,0 +1,22 @@
+name: permission-onboarding
+target: debug
+steps:
+  - quit
+  - resetTCC
+  - launch
+  - assertState:
+      mainExperienceStarted: false
+      visibleWindows:
+        - onboarding
+      permissions:
+        microphone: notGranted
+        accessibility: notGranted
+        screenCapture: notGranted
+  - assertButtonText: Get Started
+  - pressButtonText: Get Started
+  - assertText: Permissions
+  - assertButtonText: Allow Microphone
+  - assertButtonText: Allow Accessibility
+  - assertButtonText: Allow Screen Recording
+  - assertButtonText: Open System Audio Settings
+  - assertButtonText: Open Automation Settings

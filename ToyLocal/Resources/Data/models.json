@@ -1,50 +1,154 @@
 [
   {
-    "displayName": "Parakeet Streaming",
-    "internalName": "parakeet-realtime-eou-120m-160ms-coreml",
-    "size": "English",
-    "accuracyStars": 4,
-    "speedStars": 5,
-    "storageSize": "200MB"
-  },
-  {
-    "displayName": "Parakeet TDT v2",
-    "internalName": "parakeet-tdt-0.6b-v2-coreml",
-    "size": "English",
-    "accuracyStars": 5,
-    "speedStars": 5,
-    "storageSize": "650MB"
-  },
-  {
     "displayName": "Parakeet TDT v3",
     "internalName": "parakeet-tdt-0.6b-v3-coreml",
-    "size": "Multilingual",
+    "size": "25 languages",
     "accuracyStars": 5,
     "speedStars": 5,
-    "storageSize": "650MB"
+    "storageSize": "650 MB"
   },
   {
-    "displayName": "Whisper Small (Tiny)",
-    "internalName": "openai_whisper-tiny",
-    "size": "Multilingual",
-    "accuracyStars": 2,
-    "speedStars": 4,
-    "storageSize": "73MB"
-  },
-  {
-    "displayName": "Whisper Medium (Base)",
-    "internalName": "openai_whisper-base",
-    "size": "Multilingual",
-    "accuracyStars": 3,
-    "speedStars": 3,
-    "storageSize": "140MB"
-  },
-  {
-    "displayName": "Whisper Large v3",
-    "internalName": "openai_whisper-large-v3-v20240930",
-    "size": "Multilingual",
+    "displayName": "Parakeet TDT-CTC 110M",
+    "internalName": "parakeet-tdt-ctc-110m-coreml",
+    "size": "English",
     "accuracyStars": 4,
-    "speedStars": 2,
-    "storageSize": "1.5GB"
+    "speedStars": 5,
+    "storageSize": "350 MB"
+  },
+  {
+    "displayName": "Cohere Transcribe",
+    "internalName": "cohere-transcribe-03-2026-coreml",
+    "size": "14 languages",
+    "accuracyStars": 5,
+    "speedStars": 3,
+    "storageSize": "2.2 GB"
+  },
+  {
+    "displayName": "Parakeet EOU 160 ms",
+    "internalName": "parakeet-eou-160ms",
+    "size": "English",
+    "accuracyStars": 4,
+    "speedStars": 5,
+    "storageSize": "200 MB"
+  },
+  {
+    "displayName": "Parakeet EOU 320 ms",
+    "internalName": "parakeet-eou-320ms",
+    "size": "English",
+    "accuracyStars": 4,
+    "speedStars": 5,
+    "storageSize": "200 MB"
+  },
+  {
+    "displayName": "Parakeet EOU 1280 ms",
+    "internalName": "parakeet-eou-1280ms",
+    "size": "English",
+    "accuracyStars": 4,
+    "speedStars": 5,
+    "storageSize": "200 MB"
+  },
+  {
+    "displayName": "Nemotron Streaming 560 ms",
+    "internalName": "nemotron-560ms",
+    "size": "English",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "1.4 GB"
+  },
+  {
+    "displayName": "Nemotron Streaming 1120 ms",
+    "internalName": "nemotron-1120ms",
+    "size": "English",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "1.4 GB"
+  },
+  {
+    "displayName": "Nemotron Streaming 2240 ms",
+    "internalName": "nemotron-2240ms",
+    "size": "English",
+    "accuracyStars": 5,
+    "speedStars": 3,
+    "storageSize": "1.4 GB"
+  },
+  {
+    "displayName": "Nemotron Multilingual 560 ms",
+    "internalName": "nemotron-multilingual-560ms",
+    "size": "8 languages",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "1.4 GB"
+  },
+  {
+    "displayName": "Nemotron Multilingual 1120 ms",
+    "internalName": "nemotron-multilingual-1120ms",
+    "size": "8 languages",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "1.4 GB"
+  },
+  {
+    "displayName": "Nemotron Multilingual 2240 ms",
+    "internalName": "nemotron-multilingual-2240ms",
+    "size": "8 languages",
+    "accuracyStars": 5,
+    "speedStars": 3,
+    "storageSize": "1.4 GB"
+  },
+  {
+    "displayName": "Custom Vocabulary / Keyword Spotting",
+    "internalName": "parakeet-ctc-110m-keyword-spotting",
+    "size": "English support asset",
+    "accuracyStars": 4,
+    "speedStars": 5,
+    "storageSize": "120 MB"
+  },
+  {
+    "displayName": "Silero VAD",
+    "internalName": "silero-vad-coreml",
+    "size": "Support asset",
+    "accuracyStars": 5,
+    "speedStars": 5,
+    "storageSize": "5 MB"
+  },
+  {
+    "displayName": "Sortformer Diarization",
+    "internalName": "sortformer",
+    "size": "Diarization",
+    "accuracyStars": 5,
+    "speedStars": 4,
+    "storageSize": "300 MB"
+  },
+  {
+    "displayName": "LS-EEND AMI",
+    "internalName": "ls-eend-ami",
+    "size": "Diarization",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "120 MB"
+  },
+  {
+    "displayName": "LS-EEND CallHome",
+    "internalName": "ls-eend-callhome",
+    "size": "Diarization",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "120 MB"
+  },
+  {
+    "displayName": "LS-EEND DIHARD II",
+    "internalName": "ls-eend-dihard2",
+    "size": "Diarization",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "120 MB"
+  },
+  {
+    "displayName": "LS-EEND DIHARD III",
+    "internalName": "ls-eend-dihard3",
+    "size": "Diarization",
+    "accuracyStars": 4,
+    "speedStars": 4,
+    "storageSize": "120 MB"
   }
 ]

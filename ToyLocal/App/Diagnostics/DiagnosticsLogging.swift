@@ -1,5 +1,5 @@
-import ToyLocalCore
 import OSLog
+import ToyLocalCore
 
 enum DiagnosticsLogging {
   private nonisolated(unsafe) static var isBootstrapped = false

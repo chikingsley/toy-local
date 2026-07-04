@@ -1,0 +1,34 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "modelID" : "sortformer-high-context-v2.1",
+  "outputShape" : [
+    "speaker-indexed timeline segments",
+    "start/end frame",
+    "start/end time",
+    "finalized flag",
+    "activity score"
+  ],
+  "segments" : [
+
+  ],
+  "speakerStats" : [
+
+  ],
+  "stats" : {
+    "averageSegmentSeconds" : 0,
+    "maxConcurrentSpeakers" : 0,
+    "overlapSeconds" : 0,
+    "processingSeconds" : 5.847461938858032,
+    "rtfx" : 0.8398408662338505,
+    "segmentCount" : 0,
+    "speakerCount" : 0,
+    "totalSpeechSeconds" : 0
+  }
+}

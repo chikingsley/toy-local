@@ -1,0 +1,11 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "command" : "deepgram",
+  "modelID" : "nova-3",
+  "options" : {
+    "api-key" : "[redacted]",
+    "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "diarize" : "true",
+    "model" : "nova-3"
+  }
+}

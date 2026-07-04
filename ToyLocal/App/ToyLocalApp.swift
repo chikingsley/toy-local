@@ -1,56 +1,53 @@
-import Inject
-import Sparkle
 import AppKit
+import Sparkle
 import SwiftUI
 
 @main
 struct ToyLocalApp: App {
-	static let services = ServiceContainer()
-	static let appStore = AppStore(services: services)
+  static let services = ServiceContainer()
+  static let appStore = AppStore(services: services)
 
-	@NSApplicationDelegateAdaptor(ToyLocalAppDelegate.self) var appDelegate
+  @NSApplicationDelegateAdaptor(ToyLocalAppDelegate.self) var appDelegate
 
-    var body: some Scene {
-        MenuBarExtra {
-            CheckForUpdatesView()
+  var body: some Scene {
+    MenuBarExtra {
+      CheckForUpdatesView()
 
-            // Copy last transcript to clipboard
-            MenuBarCopyLastTranscriptButton(store: ToyLocalApp.appStore)
+      // Copy last transcript to clipboard
+      MenuBarCopyLastTranscriptButton(store: ToyLocalApp.appStore)
 
-            Button("Settings...") {
-                appDelegate.presentSettingsView()
-            }.keyboardShortcut(",")
+      Button("Settings...") {
+        appDelegate.presentSettingsOrPermissions()
+      }.keyboardShortcut(",")
 
-			Divider()
+      Divider()
 
-			Button("Quit") {
-				NSApplication.shared.terminate(nil)
-			}.keyboardShortcut("q")
-		} label: {
-			if let icon = NSImage(named: "ToyLocalIcon")?.copy() as? NSImage, icon.size.width > 0 {
-				let image: NSImage = {
-					let ratio = $0.size.height / $0.size.width
-					$0.size.height = 18
-					$0.size.width = 18 / ratio
-					return $0
-				}(icon)
-				Image(nsImage: image)
-			} else {
-				Image(systemName: "waveform")
-			}
-		}
+      Button("Quit") {
+        NSApplication.shared.terminate(nil)
+      }.keyboardShortcut("q")
+    } label: {
+      if let icon = NSImage(named: "ToyLocalIcon")?.copy() as? NSImage, icon.size.width > 0 {
+        let image: NSImage = {
+          let ratio = $0.size.height / $0.size.width
+          $0.size.height = 18
+          $0.size.width = 18 / ratio
+          return $0
+        }(icon)
+        Image(nsImage: image)
+      } else {
+        Image(systemName: "waveform")
+      }
+    }
+    .commands {
+      CommandGroup(after: .appInfo) {
+        CheckForUpdatesView()
 
-		WindowGroup {}.defaultLaunchBehavior(.suppressed)
-			.commands {
-				CommandGroup(after: .appInfo) {
-					CheckForUpdatesView()
+        Button("Settings...") {
+          appDelegate.presentSettingsOrPermissions()
+        }.keyboardShortcut(",")
+      }
 
-					Button("Settings...") {
-						appDelegate.presentSettingsView()
-					}.keyboardShortcut(",")
-				}
-
-				CommandGroup(replacing: .help) {}
-			}
-	}
+      CommandGroup(replacing: .help) {}
+    }
+  }
 }

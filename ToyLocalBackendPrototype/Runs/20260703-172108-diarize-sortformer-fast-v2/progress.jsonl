@@ -1,0 +1,13 @@
+{"fractionCompleted":0,"kind":"download","phase":"listing","timestamp":"2026-07-04T00:21:08Z"}
+{"completedFiles":1,"fractionCompleted":4.1984606705600975e-07,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:10Z","totalFiles":12}
+{"completedFiles":2,"fractionCompleted":6.443182217196189e-07,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:10Z","totalFiles":12}
+{"completedFiles":3,"fractionCompleted":0.018599708695833866,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:12Z","totalFiles":12}
+{"completedFiles":4,"fractionCompleted":0.018601038901194834,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:12Z","totalFiles":12}
+{"completedFiles":5,"fractionCompleted":0.018667148029189146,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:13Z","totalFiles":12}
+{"completedFiles":6,"fractionCompleted":0.01866737250134381,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:13Z","totalFiles":12}
+{"completedFiles":7,"fractionCompleted":0.49759996450679544,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:48Z","totalFiles":12}
+{"completedFiles":8,"fractionCompleted":0.49760122196655077,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:49Z","totalFiles":12}
+{"completedFiles":9,"fractionCompleted":0.4999869764581378,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:49Z","totalFiles":12}
+{"completedFiles":10,"fractionCompleted":0.49998924819948076,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:50Z","totalFiles":12}
+{"completedFiles":11,"fractionCompleted":0.4999999958431082,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:21:50Z","totalFiles":12}
+{"fractionCompleted":0.5,"kind":"download","modelName":"Sortformer_v2.mlmodelc","phase":"compiling","timestamp":"2026-07-04T00:21:50Z"}

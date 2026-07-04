@@ -1,0 +1,25 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "durationSeconds" : 4.9109375,
+  "modelID" : "parakeet-eou-160ms",
+  "outputShape" : {
+    "notes" : [
+      "Streaming EOU public API returns partial callbacks and final text. Token timestamps are available through EOU-specific getters, not normalized here yet."
+    ],
+    "producesLanguage" : false,
+    "producesSpeakerLabels" : false,
+    "producesText" : true,
+    "producesTokenTimings" : false,
+    "producesWordTimings" : false
+  },
+  "processingSeconds" : 89.54272198677063,
+  "rtfx" : 0.05484463048516171,
+  "text" : "local live asr smoked test the quick brown fox jumps over the lazy dog"
+}

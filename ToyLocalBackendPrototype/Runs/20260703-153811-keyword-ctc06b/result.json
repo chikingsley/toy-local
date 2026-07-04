@@ -1,0 +1,8 @@
+{
+  "modelID": "ctc06b",
+  "status": "interrupted",
+  "reason": "Isolated retry found the Hugging Face file list, then made no cache-size progress for roughly one minute and produced no additional output. The run was interrupted manually.",
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-ctc-0.6b-coreml",
+  "downloadedBytesApprox": "4K",
+  "nextStep": "Inspect FluidAudio DownloadUtils behavior for this repo or retry with more verbose per-file download logging."
+}

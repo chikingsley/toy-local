@@ -1,0 +1,56 @@
+{
+  "speaker_job_result": {
+    "transcript": "Hello world. Good morning.",
+    "asr": {
+      "provider": "deepgram",
+      "model": "deepgram-nova-3",
+      "segments": [
+        {
+          "text": "Hello world.",
+          "start_seconds": 0.0,
+          "end_seconds": 1.2,
+          "speaker_id": "speaker_0",
+          "words": [
+            {
+              "text": "Hello",
+              "start_seconds": 0.0,
+              "end_seconds": 0.4,
+              "speaker_id": "speaker_0",
+              "confidence": 0.98
+            },
+            {
+              "text": "world.",
+              "start_seconds": 0.4,
+              "end_seconds": 1.2,
+              "speaker_id": "speaker_0",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "text": "Good morning.",
+          "start_seconds": 1.4,
+          "end_seconds": 2.4,
+          "speaker_id": "speaker_1",
+          "words": [
+            {
+              "text": "Good",
+              "start_seconds": 1.4,
+              "end_seconds": 1.8,
+              "speaker_id": "speaker_1"
+            },
+            {
+              "text": "morning.",
+              "start_seconds": 1.8,
+              "end_seconds": 2.4,
+              "speaker_id": "speaker_1"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "text_only_job_result": {
+    "transcript": "A transcript without timestamps."
+  }
+}

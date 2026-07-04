@@ -1,0 +1,6 @@
+{
+  "command": "diarize",
+  "modelID": "sortformer-fast-v2.1",
+  "status": "interrupted",
+  "resultPath": "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150655-diarize-sortformer-fast-v2.1"
+}

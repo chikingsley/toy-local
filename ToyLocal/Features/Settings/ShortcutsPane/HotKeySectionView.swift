@@ -1,14 +1,12 @@
-import Inject
 import SwiftUI
 import ToyLocalCore
 
 struct HotKeySectionView: View {
-  @ObserveInjection var inject
   @Bindable var store: SettingsStore
 
   var body: some View {
-    Section("Hot Key") {
-      let hotKey = store.hexSettings.hotkey
+    Section("Push to Talk") {
+      let hotKey = store.toyLocalSettings.hotkey
       let key = store.isSettingHotKey ? nil : hotKey.key
       let modifiers = store.isSettingHotKey ? store.currentModifiers : hotKey.modifiers
 
@@ -30,7 +28,8 @@ struct HotKeySectionView: View {
 
         if !store.isSettingHotKey,
           hotKey.key == nil,
-          !hotKey.modifiers.isEmpty {
+          !hotKey.modifiers.isEmpty
+        {
           ModifierSideControls(
             modifiers: hotKey.modifiers
           ) { kind, side in store.setModifierSide(kind, side) }
@@ -41,29 +40,27 @@ struct HotKeySectionView: View {
       // Double-tap toggle (for key+modifier combinations)
       if hotKey.key != nil {
         Label {
-          Toggle("Use double-tap only", isOn: $store.hexSettings.useDoubleTapOnly)
+          Toggle("Use double-tap only", isOn: $store.toyLocalSettings.useDoubleTapOnly)
         } icon: {
           Image(systemName: "hand.tap")
         }
       }
 
       // Minimum key time (for modifier-only shortcuts)
-      if store.hexSettings.hotkey.key == nil {
+      if store.toyLocalSettings.hotkey.key == nil {
         Label {
-          Slider(value: $store.hexSettings.minimumKeyTime, in: 0.0...2.0, step: 0.1) {
-            Text("Ignore below \(store.hexSettings.minimumKeyTime, specifier: "%.1f")s")
+          Slider(value: $store.toyLocalSettings.minimumKeyTime, in: 0.0...2.0, step: 0.1) {
+            Text("Ignore below \(store.toyLocalSettings.minimumKeyTime, specifier: "%.1f")s")
           }
         } icon: {
           Image(systemName: "clock")
         }
       }
     }
-    .enableInjection()
   }
 }
 
 private struct ModifierSideControls: View {
-  @ObserveInjection var inject
   var modifiers: Modifiers
   var onSelect: (Modifier.Kind, Modifier.Side) -> Void
 
@@ -92,6 +89,13 @@ private struct ModifierSideControls: View {
         }
       }
     }
-    .enableInjection()
   }
+}
+
+#Preview {
+  Form {
+    HotKeySectionView(store: AppPreviewState.makeStore().settings)
+  }
+  .formStyle(.grouped)
+  .frame(width: 640, height: 320)
 }

@@ -1,0 +1,6 @@
+{
+  "command" : "deepgram",
+  "modelID" : "nova-3",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150501-deepgram-nova-3-diarize-true",
+  "status" : "ok"
+}

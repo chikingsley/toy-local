@@ -1,0 +1,8 @@
+{
+  "modelID": "parakeet-eou-320ms",
+  "status": "interrupted",
+  "reason": "Download reached 10/23 files, then produced no additional output and cache size stopped growing. The run was interrupted manually.",
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-eou-streaming",
+  "downloadedBytesApprox": "880M total EOU cache including completed 160ms and partial 320ms",
+  "nextStep": "Retry as an isolated download with per-file logging or inspect FluidAudio DownloadUtils stall behavior."
+}

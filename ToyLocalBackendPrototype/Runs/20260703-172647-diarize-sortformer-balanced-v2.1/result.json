@@ -1,0 +1,8 @@
+{
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/SortformerNvidiaLow_v2.1.mlmodelc",
+  "modelID": "sortformer-balanced-v2.1",
+  "nextStep": "Inspect MLModel load/compile for cached SortformerNvidiaLow_v2.1.mlmodelc. The run does not reach SortformerDiarizer.initialize(models:) completion or processComplete progress.",
+  "progressLogPath": "progress.jsonl",
+  "reason": "The run downloaded the Sortformer cache, reached progress phase compiling SortformerNvidiaLow_v2.1.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result. It was interrupted manually.",
+  "status": "interrupted"
+}

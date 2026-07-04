@@ -1,0 +1,6 @@
+{
+  "command": "diarize",
+  "modelID": "sortformer-high-context-v2",
+  "resultPath": "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172846-diarize-sortformer-high-context-v2",
+  "status": "interrupted"
+}

@@ -1,0 +1,145 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "confidence" : 0.8245239,
+  "durationSeconds" : 4.9109375,
+  "modelID" : "parakeet-0.6b-ja-coreml",
+  "outputShape" : {
+    "notes" : [
+      "ASRResult includes text, confidence, duration, processingTime, RTFx, tokenTimings, and optional CTC metadata."
+    ],
+    "producesLanguage" : false,
+    "producesSpeakerLabels" : false,
+    "producesText" : true,
+    "producesTokenTimings" : true,
+    "producesWordTimings" : false
+  },
+  "processingSeconds" : 0.23057103157043457,
+  "rtfx" : 21.299020767211914,
+  "text" : "クイックランドファックスネイズダッグ。",
+  "timings" : {
+    "inferenceSeconds" : 0.23586702346801758,
+    "loadSeconds" : 166.79229092597961,
+    "totalWallSeconds" : 167.02816498279572
+  },
+  "tokenTimings" : [
+    {
+      "confidence" : 0.9785156,
+      "endTime" : 0.08,
+      "startTime" : 0,
+      "token" : " ",
+      "tokenId" : 2
+    },
+    {
+      "confidence" : 0.8955078,
+      "endTime" : 2.3200000000000003,
+      "startTime" : 2.16,
+      "token" : "ク",
+      "tokenId" : 71
+    },
+    {
+      "confidence" : 0.93408203,
+      "endTime" : 2.4,
+      "startTime" : 2.32,
+      "token" : "イ",
+      "tokenId" : 63
+    },
+    {
+      "confidence" : 0.9926758,
+      "endTime" : 2.48,
+      "startTime" : 2.4,
+      "token" : "ック",
+      "tokenId" : 197
+    },
+    {
+      "confidence" : 0.7441406,
+      "endTime" : 2.64,
+      "startTime" : 2.56,
+      "token" : "ラン",
+      "tokenId" : 278
+    },
+    {
+      "confidence" : 0.6484375,
+      "endTime" : 2.8000000000000003,
+      "startTime" : 2.72,
+      "token" : "ド",
+      "tokenId" : 80
+    },
+    {
+      "confidence" : 0.9550781,
+      "endTime" : 3.04,
+      "startTime" : 2.88,
+      "token" : "ファ",
+      "tokenId" : 603
+    },
+    {
+      "confidence" : 0.4765625,
+      "endTime" : 3.12,
+      "startTime" : 3.04,
+      "token" : "ック",
+      "tokenId" : 197
+    },
+    {
+      "confidence" : 0.96728516,
+      "endTime" : 3.2,
+      "startTime" : 3.12,
+      "token" : "ス",
+      "tokenId" : 29
+    },
+    {
+      "confidence" : 0.75878906,
+      "endTime" : 4.16,
+      "startTime" : 4.08,
+      "token" : "ネ",
+      "tokenId" : 344
+    },
+    {
+      "confidence" : 0.9946289,
+      "endTime" : 4.24,
+      "startTime" : 4.16,
+      "token" : "イ",
+      "tokenId" : 63
+    },
+    {
+      "confidence" : 0.6118164,
+      "endTime" : 4.4,
+      "startTime" : 4.24,
+      "token" : "ズ",
+      "tokenId" : 253
+    },
+    {
+      "confidence" : 0.7392578,
+      "endTime" : 4.640000000000001,
+      "startTime" : 4.48,
+      "token" : "ダ",
+      "tokenId" : 290
+    },
+    {
+      "confidence" : 0.5004883,
+      "endTime" : 4.72,
+      "startTime" : 4.64,
+      "token" : "ッ",
+      "tokenId" : 137
+    },
+    {
+      "confidence" : 0.9980469,
+      "endTime" : 4.8,
+      "startTime" : 4.72,
+      "token" : "グ",
+      "tokenId" : 249
+    },
+    {
+      "confidence" : 0.9970703,
+      "endTime" : 4.88,
+      "startTime" : 4.8,
+      "token" : "。",
+      "tokenId" : 1
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{"completedFiles":0,"fractionCompleted":0.5,"kind":"download","phase":"downloading","timestamp":"2026-07-04T02:37:45Z","totalFiles":0}
+{"fractionCompleted":0.5,"kind":"download","modelName":"Preprocessor.mlmodelc","phase":"compiling","timestamp":"2026-07-04T02:37:45Z"}
+{"fractionCompleted":1,"kind":"download","phase":"compiling","timestamp":"2026-07-04T02:37:46Z"}
+{"completedFiles":0,"fractionCompleted":0.5,"kind":"download","phase":"downloading","timestamp":"2026-07-04T02:37:46Z","totalFiles":0}
+{"fractionCompleted":0.5,"kind":"download","modelName":"Encoder.mlmodelc","phase":"compiling","timestamp":"2026-07-04T02:37:46Z"}
+{"fractionCompleted":1,"kind":"download","phase":"compiling","timestamp":"2026-07-04T02:37:54Z"}
+{"completedFiles":0,"fractionCompleted":0.5,"kind":"download","phase":"downloading","timestamp":"2026-07-04T02:37:54Z","totalFiles":0}
+{"fractionCompleted":0.5,"kind":"download","modelName":"Decoder.mlmodelc","phase":"compiling","timestamp":"2026-07-04T02:37:54Z"}
+{"fractionCompleted":1,"kind":"download","phase":"compiling","timestamp":"2026-07-04T02:37:54Z"}
+{"completedFiles":0,"fractionCompleted":0.5,"kind":"download","phase":"downloading","timestamp":"2026-07-04T02:37:54Z","totalFiles":0}
+{"fractionCompleted":0.5,"kind":"download","modelName":"JointDecision.mlmodelc","phase":"compiling","timestamp":"2026-07-04T02:37:54Z"}
+{"fractionCompleted":1,"kind":"download","phase":"compiling","timestamp":"2026-07-04T02:37:55Z"}

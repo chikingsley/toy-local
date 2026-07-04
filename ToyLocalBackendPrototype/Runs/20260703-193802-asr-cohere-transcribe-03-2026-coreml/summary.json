@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "cohere-transcribe-03-2026-coreml",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193802-asr-cohere-transcribe-03-2026-coreml",
+  "status" : "ok"
+}

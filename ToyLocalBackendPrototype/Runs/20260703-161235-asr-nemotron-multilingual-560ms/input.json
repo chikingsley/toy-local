@@ -1,0 +1,9 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "command" : "asr",
+  "modelID" : "nemotron-multilingual-560ms",
+  "options" : {
+    "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "model" : "nemotron-multilingual-560ms"
+  }
+}

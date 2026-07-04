@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "parakeet-unified-offline-15s",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191152-asr-parakeet-unified-offline-15s",
+  "status" : "failed"
+}

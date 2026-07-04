@@ -1,0 +1,6 @@
+{
+  "command" : "diarize",
+  "modelID" : "sortformer-balanced-v2",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181055-diarize-sortformer-balanced-v2",
+  "status" : "ok"
+}

@@ -1,0 +1,7 @@
+{
+  "modelID": "sortformer-fast-v2.1",
+  "status": "interrupted",
+  "reason": "Probe downloaded Sortformer_v2.1.mlmodelc, then stayed alive with no output and 0% CPU for roughly two minutes after download. The run was interrupted manually to avoid leaving a stuck process.",
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/Sortformer_v2.1.mlmodelc",
+  "nextStep": "Debug SortformerDiarizer.initialize(models:) or processComplete on the cached model in isolation."
+}

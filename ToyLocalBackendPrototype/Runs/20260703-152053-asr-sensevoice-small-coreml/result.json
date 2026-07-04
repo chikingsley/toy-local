@@ -1,0 +1,8 @@
+{
+  "modelID": "sensevoice-small-coreml",
+  "status": "interrupted",
+  "reason": "Probe downloaded SenseVoice Small and began loading/compiling, then stayed alive with no output and 0% CPU after several minutes. The run was interrupted manually to avoid leaving a stuck process.",
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sensevoice-small",
+  "downloadedBytesApprox": "451M",
+  "nextStep": "Debug SenseVoiceManager.load/transcribe on the cached model in isolation and capture where it stalls."
+}

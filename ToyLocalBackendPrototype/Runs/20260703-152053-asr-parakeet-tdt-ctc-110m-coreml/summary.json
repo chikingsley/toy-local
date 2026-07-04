@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "parakeet-tdt-ctc-110m-coreml",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152053-asr-parakeet-tdt-ctc-110m-coreml",
+  "status" : "ok"
+}

@@ -1,0 +1,10 @@
+{
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/cohere-transcribe/q8",
+  "downloadedBytesApprox": "1247016 KiB",
+  "fileCountApprox": "14",
+  "modelID": "cohere-transcribe-03-2026-coreml",
+  "nextStep": "Isolate FluidAudio DownloadUtils for cohere-transcribe/q8 or add a repo-owned downloader fallback. The download advanced normally through 14/21 files, then stopped producing stdout, progress callbacks, and cache-size growth while the process remained alive.",
+  "progressLogPath": "progress.jsonl",
+  "reason": "The run found 21 files, downloaded 14 files, reached 1247016 KiB in the FluidAudio cache, then stayed flat with no visible partial files and no new progress.jsonl entries. It was interrupted manually after repeated flat checks.",
+  "status": "interrupted"
+}

@@ -1,0 +1,194 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "chunks" : [
+    {
+      "endTime" : 0.256,
+      "index" : 0,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0075190067291259766,
+      "startTime" : 0
+    },
+    {
+      "endTime" : 0.512,
+      "index" : 1,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00047898292541503906,
+      "startTime" : 0.256
+    },
+    {
+      "endTime" : 0.768,
+      "index" : 2,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0003190040588378906,
+      "startTime" : 0.512
+    },
+    {
+      "endTime" : 1.024,
+      "index" : 3,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00025200843811035156,
+      "startTime" : 0.768
+    },
+    {
+      "endTime" : 1.28,
+      "index" : 4,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00024402141571044922,
+      "startTime" : 1.024
+    },
+    {
+      "endTime" : 1.536,
+      "index" : 5,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0002650022506713867,
+      "startTime" : 1.28
+    },
+    {
+      "endTime" : 1.792,
+      "index" : 6,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0002319812774658203,
+      "startTime" : 1.536
+    },
+    {
+      "endTime" : 2.048,
+      "index" : 7,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00023305416107177734,
+      "startTime" : 1.792
+    },
+    {
+      "endTime" : 2.304,
+      "index" : 8,
+      "isVoiceActive" : true,
+      "probability" : 0.9995117,
+      "processingTime" : 0.00021898746490478516,
+      "startTime" : 2.048
+    },
+    {
+      "endTime" : 2.56,
+      "index" : 9,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0002321004867553711,
+      "startTime" : 2.304
+    },
+    {
+      "endTime" : 2.816,
+      "index" : 10,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0002319812774658203,
+      "startTime" : 2.56
+    },
+    {
+      "endTime" : 3.072,
+      "index" : 11,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00022494792938232422,
+      "startTime" : 2.816
+    },
+    {
+      "endTime" : 3.328,
+      "index" : 12,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00021409988403320312,
+      "startTime" : 3.072
+    },
+    {
+      "endTime" : 3.584,
+      "index" : 13,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00021600723266601562,
+      "startTime" : 3.328
+    },
+    {
+      "endTime" : 3.84,
+      "index" : 14,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00022292137145996094,
+      "startTime" : 3.584
+    },
+    {
+      "endTime" : 4.096,
+      "index" : 15,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00023603439331054688,
+      "startTime" : 3.84
+    },
+    {
+      "endTime" : 4.352,
+      "index" : 16,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.0002340078353881836,
+      "startTime" : 4.096
+    },
+    {
+      "endTime" : 4.608,
+      "index" : 17,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00022304058074951172,
+      "startTime" : 4.352
+    },
+    {
+      "endTime" : 4.864,
+      "index" : 18,
+      "isVoiceActive" : true,
+      "probability" : 1,
+      "processingTime" : 0.00023102760314941406,
+      "startTime" : 4.608
+    },
+    {
+      "endTime" : 4.9109375,
+      "index" : 19,
+      "isVoiceActive" : false,
+      "probability" : 0.82910156,
+      "processingTime" : 0.00025093555450439453,
+      "startTime" : 4.864
+    }
+  ],
+  "modelID" : "silero-vad",
+  "outputShape" : [
+    "per-chunk probability",
+    "per-chunk active flag",
+    "per-chunk processing time",
+    "derived speech segments"
+  ],
+  "segments" : [
+    {
+      "duration" : 4.9109375,
+      "endTime" : 4.9109375,
+      "startTime" : 0
+    }
+  ],
+  "stats" : {
+    "activeChunkCount" : 19,
+    "chunkCount" : 20,
+    "processingSeconds" : 3.0778329372406006,
+    "rtfx" : 1.5955828663016554,
+    "speechSeconds" : 4.9109375,
+    "speechSegmentCount" : 1
+  }
+}

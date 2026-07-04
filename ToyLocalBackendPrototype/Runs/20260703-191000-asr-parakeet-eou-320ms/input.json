@@ -1,0 +1,9 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "command" : "asr",
+  "modelID" : "parakeet-eou-320ms",
+  "options" : {
+    "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "model" : "parakeet-eou-320ms"
+  }
+}

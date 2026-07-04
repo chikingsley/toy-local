@@ -1,0 +1,8 @@
+{
+  "modelID": "ctc06b",
+  "status": "interrupted",
+  "reason": "Download started, then cache size stopped growing and the process produced no output for several minutes. The run was interrupted manually.",
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-ctc-0.6b-coreml",
+  "downloadedBytesApprox": "4K",
+  "nextStep": "Retry as an isolated single-model download/probe."
+}

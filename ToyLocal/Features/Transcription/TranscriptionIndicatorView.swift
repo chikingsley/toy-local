@@ -4,22 +4,22 @@
 //
 //  Created by Kit Langton on 1/25/25.
 
-import Inject
 import Pow
 import SwiftUI
 
 struct TranscriptionIndicatorView: View {
-  @ObserveInjection var inject
 
   enum Status {
     case hidden
     case optionKeyPressed
     case recording
     case transcribing
+    case postProcessing
     case prewarming
     case alwaysOnListeningNotReady
     case alwaysOnListening
     case alwaysOnFinalizing
+    case alwaysOnDumped
   }
 
   var status: Status
@@ -28,6 +28,7 @@ struct TranscriptionIndicatorView: View {
   let transcribeBaseColor: Color = .blue
   let alwaysOnBaseColor: Color = .green
   let alwaysOnNotReadyColor: Color = .yellow
+  let alwaysOnDumpedColor: Color = .orange
 
   /// The accent color used for the active/recording glow effects.
   private var activeColor: Color {
@@ -35,13 +36,14 @@ struct TranscriptionIndicatorView: View {
     case .alwaysOnListeningNotReady: return alwaysOnNotReadyColor
     case .alwaysOnListening: return alwaysOnBaseColor
     case .alwaysOnFinalizing: return transcribeBaseColor
+    case .alwaysOnDumped: return alwaysOnDumpedColor
     case .recording: return .red
     default: return .red
     }
   }
 
   private var isActive: Bool {
-    status == .recording || status == .alwaysOnListening || status == .alwaysOnListeningNotReady
+    status == .recording || status == .alwaysOnListening || status == .alwaysOnListeningNotReady || status == .alwaysOnDumped
   }
 
   private var backgroundColor: Color {
@@ -50,10 +52,12 @@ struct TranscriptionIndicatorView: View {
     case .optionKeyPressed: return Color.black
     case .recording: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .transcribing: return transcribeBaseColor.mix(with: .black, by: 0.5)
+    case .postProcessing: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .prewarming: return transcribeBaseColor.mix(with: .black, by: 0.5)
     case .alwaysOnListeningNotReady: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .alwaysOnListening: return activeColor.mix(with: .black, by: 0.5).mix(with: activeColor, by: meter.averagePower * 3)
     case .alwaysOnFinalizing: return transcribeBaseColor.mix(with: .black, by: 0.5)
+    case .alwaysOnDumped: return activeColor.mix(with: .black, by: 0.35)
     }
   }
 
@@ -63,10 +67,12 @@ struct TranscriptionIndicatorView: View {
     case .optionKeyPressed: return Color.black
     case .recording: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .transcribing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
+    case .postProcessing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .prewarming: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .alwaysOnListeningNotReady: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .alwaysOnListening: return activeColor.mix(with: .white, by: 0.1).opacity(0.6)
     case .alwaysOnFinalizing: return transcribeBaseColor.mix(with: .white, by: 0.1).opacity(0.6)
+    case .alwaysOnDumped: return activeColor.mix(with: .white, by: 0.15).opacity(0.85)
     }
   }
 
@@ -76,10 +82,12 @@ struct TranscriptionIndicatorView: View {
     case .optionKeyPressed: return Color.clear
     case .recording: return activeColor
     case .transcribing: return transcribeBaseColor
+    case .postProcessing: return transcribeBaseColor
     case .prewarming: return transcribeBaseColor
     case .alwaysOnListeningNotReady: return activeColor
     case .alwaysOnListening: return activeColor
     case .alwaysOnFinalizing: return transcribeBaseColor
+    case .alwaysOnDumped: return activeColor
     }
   }
 
@@ -151,8 +159,8 @@ struct TranscriptionIndicatorView: View {
         .changeEffect(.glow(color: activeColor.opacity(0.5), radius: 8), value: status)
         .changeEffect(.shine(angle: .degrees(0), duration: 0.6), value: transcribeEffect)
         .compositingGroup()
-        .task(id: status == .transcribing || status == .alwaysOnFinalizing) {
-          while status == .transcribing || status == .alwaysOnFinalizing, !Task.isCancelled {
+        .task(id: status == .transcribing || status == .postProcessing || status == .alwaysOnFinalizing) {
+          while status == .transcribing || status == .postProcessing || status == .alwaysOnFinalizing, !Task.isCancelled {
             transcribeEffect += 1
             try? await Task.sleep(for: .seconds(0.25))
           }
@@ -176,7 +184,6 @@ struct TranscriptionIndicatorView: View {
         .zIndex(2)
       }
     }
-    .enableInjection()
   }
 }
 
@@ -186,9 +193,11 @@ struct TranscriptionIndicatorView: View {
     TranscriptionIndicatorView(status: .optionKeyPressed, meter: .init(averagePower: 0, peakPower: 0))
     TranscriptionIndicatorView(status: .recording, meter: .init(averagePower: 0.5, peakPower: 0.5))
     TranscriptionIndicatorView(status: .transcribing, meter: .init(averagePower: 0, peakPower: 0))
+    TranscriptionIndicatorView(status: .postProcessing, meter: .init(averagePower: 0, peakPower: 0))
     TranscriptionIndicatorView(status: .prewarming, meter: .init(averagePower: 0, peakPower: 0))
     TranscriptionIndicatorView(status: .alwaysOnListeningNotReady, meter: .init(averagePower: 0.35, peakPower: 0.4))
     TranscriptionIndicatorView(status: .alwaysOnFinalizing, meter: .init(averagePower: 0, peakPower: 0))
+    TranscriptionIndicatorView(status: .alwaysOnDumped, meter: .init(averagePower: 0, peakPower: 0))
   }
   .padding(40)
 }

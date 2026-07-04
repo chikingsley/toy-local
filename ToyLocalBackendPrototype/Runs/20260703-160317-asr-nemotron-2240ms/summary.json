@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "nemotron-2240ms",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-160317-asr-nemotron-2240ms",
+  "status" : "ok"
+}

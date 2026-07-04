@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-07-04T00:05:46Z",
+  "cachePath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/nemotron-multilingual/multilingual/2240ms",
+  "cacheSizeBeforeInterrupt": "76M",
+  "fileCountBeforeInterrupt": 9,
+  "lastProgress": {
+    "completedFiles": 9,
+    "fractionCompleted": 0.4090909090909091,
+    "kind": "download",
+    "phase": "downloading",
+    "timestamp": "2026-07-04T00:03:03Z",
+    "totalFiles": 22
+  },
+  "progressLogPath": "progress.jsonl"
+}

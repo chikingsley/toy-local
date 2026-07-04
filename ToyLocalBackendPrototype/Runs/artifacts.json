@@ -1,0 +1,1657 @@
+{
+  "generatedAt" : "2026-07-04T04:13:44Z",
+  "outputRoot" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs",
+  "runCount" : 66,
+  "runs" : [
+    {
+      "command" : "inventory",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "fluidaudio",
+      "name" : "20260703-150153-inventory-fluidaudio",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150153-inventory-fluidaudio",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "vad",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "silero-vad",
+      "name" : "20260703-150204-vad-silero-vad",
+      "outputShape" : [
+        "per-chunk probability",
+        "per-chunk active flag",
+        "per-chunk processing time",
+        "derived speech segments"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150204-vad-silero-vad",
+      "status" : "ok",
+      "vad" : {
+        "activeChunkCount" : 19,
+        "chunkCount" : 20,
+        "processingSeconds" : 3.0778329372406006,
+        "rtfx" : 1.5955828663016554,
+        "speechSeconds" : 4.9109375,
+        "speechSegmentCount" : 1
+      }
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "confidence" : 0.89186007,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 40.0712890625,
+        "textLength" : 75,
+        "tokenTimingCount" : 34,
+        "totalWallSeconds" : 0.12255501747131348
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "parakeet-tdt-ctc-110m-coreml",
+      "name" : "20260703-150205-asr-parakeet-tdt-ctc-110m-coreml",
+      "outputShape" : [
+        "legacy ASR result: text, durationSeconds, processingSeconds, RTFx, optional confidence/token timings"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150205-asr-parakeet-tdt-ctc-110m-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 2.2920203,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 32.47286903858185,
+        "rtfx" : 0.15123201753947854,
+        "segmentCount" : 2,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 2,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.5840406
+          }
+        ],
+        "totalSpeechSeconds" : 4.5840406
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "offline-diarizer",
+      "name" : "20260703-150251-diarize-offline-diarizer",
+      "outputShape" : [
+        "offline timed speaker segments",
+        "speakerId string",
+        "start/end seconds",
+        "quality score",
+        "optional speaker database and chunk embeddings available from FluidAudio result"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150251-diarize-offline-diarizer",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "keyword" : {
+        "bestScore" : -6.022528,
+        "detectedTermCount" : 4,
+        "frameDuration" : 0.07920866935483871,
+        "logProbabilityShape" : [
+          62,
+          1025
+        ],
+        "processingSeconds" : 27.974650979042053,
+        "requestedTermCount" : 3,
+        "rtfx" : 0.17554955390432425,
+        "totalFrames" : 62,
+        "uniqueDetectedTermCount" : 3
+      },
+      "modelID" : "ctc110m",
+      "name" : "20260703-150251-keyword-ctc110m",
+      "outputShape" : [
+        "legacy keyword result: detections, frameDuration, totalFrames, logProbabilityShape"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150251-keyword-ctc110m",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "keyword" : {
+        "bestScore" : -6.022528,
+        "detectedTermCount" : 4,
+        "frameDuration" : 0.07920866935483871,
+        "logProbabilityShape" : [
+          62,
+          1025
+        ],
+        "processingSeconds" : 28.0942040681839,
+        "requestedTermCount" : 3,
+        "rtfx" : 0.1748025140018661,
+        "totalFrames" : 62,
+        "uniqueDetectedTermCount" : 3
+      },
+      "modelID" : "ctc110m",
+      "name" : "20260703-150406-keyword-ctc110m",
+      "outputShape" : [
+        "detections with term, score, start/end frame, start/end seconds",
+        "full CTC log-probability matrix shape only; matrix is not persisted by default",
+        "lower score semantics come from FluidAudio CtcKeywordSpotter result and need calibration before UI display"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150406-keyword-ctc110m",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "deepgram" : {
+        "averageWordConfidence" : 0.9516113306666668,
+        "diarize" : false,
+        "durationSeconds" : 4.88,
+        "processingSeconds" : 0,
+        "segmentCount" : 1,
+        "speakerCount" : 0,
+        "transcriptLength" : 75,
+        "wordCount" : 15
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "modelID" : "nova-3",
+      "name" : "20260703-150501-deepgram-nova-3-diarize-false",
+      "outputShape" : [
+        "legacy Deepgram result: transcript, words, optional speaker segments, normalized stats"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150501-deepgram-nova-3-diarize-false",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "deepgram" : {
+        "averageWordConfidence" : 0.9514648446666668,
+        "diarize" : true,
+        "durationSeconds" : 4.88,
+        "processingSeconds" : 0,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "transcriptLength" : 75,
+        "wordCount" : 15
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "modelID" : "nova-3",
+      "name" : "20260703-150501-deepgram-nova-3-diarize-true",
+      "outputShape" : [
+        "legacy Deepgram result: transcript, words, optional speaker segments, normalized stats"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150501-deepgram-nova-3-diarize-true",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "deepgram" : {
+        "averageWordConfidence" : 0.9514648446666668,
+        "diarize" : false,
+        "durationSeconds" : 4.88,
+        "processingSeconds" : 0.4105139970779419,
+        "providerDurationSeconds" : 4.9109373,
+        "requestID" : "019f2a04-99d9-7333-beaa-71b1be31358a",
+        "segmentCount" : 0,
+        "speakerCount" : 0,
+        "transcriptLength" : 75,
+        "wordCount" : 15
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "modelID" : "nova-3",
+      "name" : "20260703-150612-deepgram-nova-3-diarize-false",
+      "outputShape" : [
+        "channel[0].alternatives[0].transcript and confidence",
+        "word timings with start/end seconds and confidence",
+        "speaker fields only when diarize=true",
+        "speaker segments synthesized from contiguous word speaker labels",
+        "raw Deepgram JSON persisted separately as raw.json"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150612-deepgram-nova-3-diarize-false",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "deepgram",
+      "deepgram" : {
+        "averageWordConfidence" : 0.9514648446666668,
+        "diarize" : true,
+        "durationSeconds" : 4.88,
+        "processingSeconds" : 0.5213539600372314,
+        "providerDurationSeconds" : 4.9109373,
+        "requestID" : "019f2a04-9ab4-7ff1-a384-c741c225c507",
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "transcriptLength" : 75,
+        "wordCount" : 15
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : true,
+      "modelID" : "nova-3",
+      "name" : "20260703-150612-deepgram-nova-3-diarize-true",
+      "outputShape" : [
+        "channel[0].alternatives[0].transcript and confidence",
+        "word timings with start/end seconds and confidence",
+        "speaker fields only when diarize=true",
+        "speaker segments synthesized from contiguous word speaker labels",
+        "raw Deepgram JSON persisted separately as raw.json"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150612-deepgram-nova-3-diarize-true",
+      "status" : "ok"
+    },
+    {
+      "command" : "inventory",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "fluidaudio",
+      "name" : "20260703-150638-inventory-fluidaudio",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150638-inventory-fluidaudio",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/Sortformer_v2.1.mlmodelc",
+        "modelID" : "sortformer-fast-v2.1",
+        "nextStep" : "Debug SortformerDiarizer.initialize(models:) or processComplete on the cached model in isolation.",
+        "reason" : "Probe downloaded Sortformer_v2.1.mlmodelc, then stayed alive with no output and 0% CPU for roughly two minutes after download. The run was interrupted manually to avoid leaving a stuck process.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-fast-v2.1",
+      "name" : "20260703-150655-diarize-sortformer-fast-v2.1",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150655-diarize-sortformer-fast-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 4.9,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 25.551663994789124,
+        "rtfx" : 0.192196386935955,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 1,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.9
+          }
+        ],
+        "totalSpeechSeconds" : 4.9
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "ls-eend-ami",
+      "name" : "20260703-151009-diarize-ls-eend-ami",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151009-diarize-ls-eend-ami",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : false,
+        "producesWordTimings" : false,
+        "rtfx" : 0.05484463048516171,
+        "textLength" : 70,
+        "totalWallSeconds" : 89.54272198677063
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "parakeet-eou-160ms",
+      "name" : "20260703-151050-asr-parakeet-eou-160ms",
+      "outputShape" : [
+        "legacy ASR result: text, durationSeconds, processingSeconds, RTFx, optional confidence/token timings"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151050-asr-parakeet-eou-160ms",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "confidence" : 0.9584488,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 28.841882705688477,
+        "textLength" : 75,
+        "tokenTimingCount" : 31,
+        "totalWallSeconds" : 0.17027103900909424
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "parakeet-tdt-0.6b-v3-coreml",
+      "name" : "20260703-151050-asr-parakeet-tdt-0.6b-v3-coreml",
+      "outputShape" : [
+        "legacy ASR result: text, durationSeconds, processingSeconds, RTFx, optional confidence/token timings"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151050-asr-parakeet-tdt-0.6b-v3-coreml",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.04257981968333379,
+        "textLength" : 73,
+        "tokenTimingCount" : 32,
+        "totalWallSeconds" : 115.33485901355743
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "nemotron-560ms",
+      "name" : "20260703-151240-asr-nemotron-560ms",
+      "outputShape" : [
+        "legacy ASR result: text, durationSeconds, processingSeconds, RTFx, optional confidence/token timings"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-151240-asr-nemotron-560ms",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "confidence" : 0.89186007,
+        "inferenceSeconds" : 1.0285120010375977,
+        "loadSeconds" : 88.03656995296478,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 4.86635160446167,
+        "textLength" : 75,
+        "tokenTimingCount" : 34,
+        "totalWallSeconds" : 89.06516301631927
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "parakeet-tdt-ctc-110m-coreml",
+      "name" : "20260703-152053-asr-parakeet-tdt-ctc-110m-coreml",
+      "outputShape" : [
+        "ASRResult includes text, confidence, duration, processingTime, RTFx, tokenTimings, and optional CTC metadata."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152053-asr-parakeet-tdt-ctc-110m-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sensevoice-small",
+        "downloadedBytesApprox" : "451M",
+        "modelID" : "sensevoice-small-coreml",
+        "nextStep" : "Debug SenseVoiceManager.load/transcribe on the cached model in isolation and capture where it stalls.",
+        "reason" : "Probe downloaded SenseVoice Small and began loading/compiling, then stayed alive with no output and 0% CPU after several minutes. The run was interrupted manually to avoid leaving a stuck process.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sensevoice-small-coreml",
+      "name" : "20260703-152053-asr-sensevoice-small-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152053-asr-sensevoice-small-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 4.9,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 82.65671694278717,
+        "rtfx" : 0.05941365301744592,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 1,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.9
+          }
+        ],
+        "totalSpeechSeconds" : 4.9
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "ls-eend-callhome",
+      "name" : "20260703-152753-diarize-ls-eend-callhome",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152753-diarize-ls-eend-callhome",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 2.25,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 82.78275299072266,
+        "rtfx" : 0.05932319622845065,
+        "segmentCount" : 2,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 2,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.5
+          }
+        ],
+        "totalSpeechSeconds" : 4.5
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "ls-eend-dihard2",
+      "name" : "20260703-152753-diarize-ls-eend-dihard2",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152753-diarize-ls-eend-dihard2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 2.35,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 87.29634201526642,
+        "rtfx" : 0.05625593680822472,
+        "segmentCount" : 2,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 2,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.7
+          }
+        ],
+        "totalSpeechSeconds" : 4.7
+      },
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "ls-eend-dihard3",
+      "name" : "20260703-152753-diarize-ls-eend-dihard3",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-152753-diarize-ls-eend-dihard3",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v2",
+        "downloadedBytesApprox" : "14M",
+        "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+        "nextStep" : "Retry as an isolated single-model download/probe.",
+        "reason" : "Download started, then cache size stopped growing and the process produced no output for several minutes. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "name" : "20260703-153016-asr-parakeet-tdt-0.6b-v2-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153016-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-unified-en-0.6b",
+        "downloadedBytesApprox" : "15M",
+        "modelID" : "parakeet-unified-offline-15s",
+        "nextStep" : "Retry as an isolated single-model download/probe.",
+        "reason" : "Download started, then cache size stopped growing and the process produced no output for several minutes. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "parakeet-unified-offline-15s",
+      "name" : "20260703-153016-asr-parakeet-unified-offline-15s",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153016-asr-parakeet-unified-offline-15s",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-ctc-0.6b-coreml",
+        "downloadedBytesApprox" : "4K",
+        "modelID" : "ctc06b",
+        "nextStep" : "Retry as an isolated single-model download/probe.",
+        "reason" : "Download started, then cache size stopped growing and the process produced no output for several minutes. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "ctc06b",
+      "name" : "20260703-153016-keyword-ctc06b",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153016-keyword-ctc06b",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-ctc-0.6b-coreml",
+        "downloadedBytesApprox" : "4K",
+        "modelID" : "ctc06b",
+        "nextStep" : "Inspect FluidAudio DownloadUtils behavior for this repo or retry with more verbose per-file download logging.",
+        "reason" : "Isolated retry found the Hugging Face file list, then made no cache-size progress for roughly one minute and produced no additional output. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "ctc06b",
+      "name" : "20260703-153811-keyword-ctc06b",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-153811-keyword-ctc06b",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-eou-streaming",
+        "downloadedBytesApprox" : "880M total EOU cache including completed 160ms and partial 320ms",
+        "modelID" : "parakeet-eou-320ms",
+        "nextStep" : "Retry as an isolated download with per-file logging or inspect FluidAudio DownloadUtils stall behavior.",
+        "reason" : "Download reached 10/23 files, then produced no additional output and cache size stopped growing. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "parakeet-eou-320ms",
+      "name" : "20260703-154018-asr-parakeet-eou-320ms",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-154018-asr-parakeet-eou-320ms",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/paraformer-large-zh",
+        "downloadedBytesApprox" : "170M",
+        "modelID" : "paraformer-large-zh-coreml",
+        "nextStep" : "Retry with per-file logging or inspect FluidAudio DownloadUtils behavior for large repo downloads.",
+        "reason" : "Download reached 10/25 files and approximately 170M, then produced no additional output and cache size stopped growing for multiple minutes. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "paraformer-large-zh-coreml",
+      "name" : "20260703-154857-asr-paraformer-large-zh-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-154857-asr-paraformer-large-zh-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 0.9673839807510376,
+        "loadSeconds" : 476.9058369398117,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.010276652641710975,
+        "textLength" : 73,
+        "tokenTimingCount" : 32,
+        "totalWallSeconds" : 477.8732600212097
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "nemotron-1120ms",
+      "name" : "20260703-155438-asr-nemotron-1120ms",
+      "outputShape" : [
+        "Nemotron returns final text plus token timings through finishWithTokenTimings()."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-155438-asr-nemotron-1120ms",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 1.0372520685195923,
+        "loadSeconds" : 522.9407020807266,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.009372411699665585,
+        "textLength" : 73,
+        "tokenTimingCount" : 32,
+        "totalWallSeconds" : 523.9779959917068
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "nemotron-2240ms",
+      "name" : "20260703-160317-asr-nemotron-2240ms",
+      "outputShape" : [
+        "Nemotron returns final text plus token timings through finishWithTokenTimings()."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-160317-asr-nemotron-2240ms",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 1.2774649858474731,
+        "loadSeconds" : 703.1701830625534,
+        "producesLanguage" : true,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.00697131282558392,
+        "textLength" : 73,
+        "tokenTimingCount" : 39,
+        "totalWallSeconds" : 704.4494520425797
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "nemotron-multilingual-560ms",
+      "name" : "20260703-161235-asr-nemotron-multilingual-560ms",
+      "outputShape" : [
+        "Multilingual Nemotron returns final text plus token timings. Detected language is internal to the decoded result and not normalized here yet."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-161235-asr-nemotron-multilingual-560ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v2",
+        "downloadedBytesApprox" : "14M",
+        "fileCountApprox" : "3",
+        "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+        "nextStep" : "Inspect FluidAudio DownloadUtils/Hugging Face transfer behavior for this repo before retrying; isolated retry reproduced the same no-progress cache state.",
+        "reason" : "Isolated retry found 22 files to download, then produced no additional output and cache size stayed at 14M / 3 files for roughly two minutes. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "name" : "20260703-163330-asr-parakeet-tdt-0.6b-v2-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-163330-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v2",
+        "downloadedBytesApprox" : "14M",
+        "fileCountApprox" : "3",
+        "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+        "nextStep" : "Bypass or replace the FluidAudio URLSession download path for this repo. Direct Hugging Face API listing, HEAD, and ranged reads for Encoder.mlmodelc/weights/weight.bin all succeeded, but FluidAudio's delegated URLSession download produced no byte progress.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "Retry with persisted progress logging listed 22 files, wrote only the initial listing event to progress.jsonl, then produced no byte-progress callbacks and left the cache at 14M / 3 files. Direct API checks showed Encoder.mlmodelc/weights/weight.bin is reachable and 445187200 bytes.",
+        "status" : "interrupted"
+      },
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "name" : "20260703-164251-asr-parakeet-tdt-0.6b-v2-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-164251-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/Sortformer_v2.1.mlmodelc",
+        "modelID" : "sortformer-fast-v2.1",
+        "nextStep" : "Inspect MLModel load/compile for cached Sortformer_v2.1.mlmodelc. The run does not reach SortformerDiarizer.initialize(models:) completion or processComplete progress.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "Cached retry reached progress phase compiling Sortformer_v2.1.mlmodelc, then produced no additional progress, no diarization processing callbacks, and sat at 0% CPU after roughly two minutes. The run was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-fast-v2.1",
+      "name" : "20260703-164609-diarize-sortformer-fast-v2.1",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-164609-diarize-sortformer-fast-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 1.1932560205459595,
+        "loadSeconds" : 605.0738170146942,
+        "producesLanguage" : true,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.008100286170547278,
+        "textLength" : 69,
+        "tokenTimingCount" : 37,
+        "totalWallSeconds" : 606.2671610116959
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "nemotron-multilingual-1120ms",
+      "name" : "20260703-164851-asr-nemotron-multilingual-1120ms",
+      "outputShape" : [
+        "Multilingual Nemotron returns final text plus token timings. Detected language is internal to the decoded result and not normalized here yet."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-164851-asr-nemotron-multilingual-1120ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/nemotron-multilingual/multilingual/2240ms",
+        "downloadedBytesApprox" : "76M",
+        "fileCountApprox" : "9",
+        "modelID" : "nemotron-multilingual-2240ms",
+        "nextStep" : "Isolate the FluidAudio multilingual Nemotron download path for larger variants. The 1120ms variant completed, but this 2240ms variant stopped advancing at 9/22 files with flat cache size and no new progress callbacks.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run found 22 files, downloaded 9/22 files, then produced no new stdout, no new progress.jsonl entries, and no cache-size growth while the process remained alive. It was interrupted manually after the stalled state was verified.",
+        "status" : "interrupted"
+      },
+      "modelID" : "nemotron-multilingual-2240ms",
+      "name" : "20260703-170225-asr-nemotron-multilingual-2240ms",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-170225-asr-nemotron-multilingual-2240ms",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/cohere-transcribe/q8",
+        "downloadedBytesApprox" : "1247016 KiB",
+        "fileCountApprox" : "14",
+        "modelID" : "cohere-transcribe-03-2026-coreml",
+        "nextStep" : "Isolate FluidAudio DownloadUtils for cohere-transcribe/q8 or add a repo-owned downloader fallback. The download advanced normally through 14/21 files, then stopped producing stdout, progress callbacks, and cache-size growth while the process remained alive.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run found 21 files, downloaded 14 files, reached 1247016 KiB in the FluidAudio cache, then stayed flat with no visible partial files and no new progress.jsonl entries. It was interrupted manually after repeated flat checks.",
+        "status" : "interrupted"
+      },
+      "modelID" : "cohere-transcribe-03-2026-coreml",
+      "name" : "20260703-170641-asr-cohere-transcribe-03-2026-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-170641-asr-cohere-transcribe-03-2026-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "confidence" : 0.8245239,
+        "inferenceSeconds" : 0.23586702346801758,
+        "loadSeconds" : 166.79229092597961,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 21.299020767211914,
+        "textLength" : 19,
+        "tokenTimingCount" : 16,
+        "totalWallSeconds" : 167.02816498279572
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "parakeet-0.6b-ja-coreml",
+      "name" : "20260703-171239-asr-parakeet-0.6b-ja-coreml",
+      "outputShape" : [
+        "ASRResult includes text, confidence, duration, processingTime, RTFx, tokenTimings, and optional CTC metadata."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171239-asr-parakeet-0.6b-ja-coreml",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 2.9450008869171143,
+        "loadSeconds" : 70.10890400409698,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : false,
+        "producesWordTimings" : false,
+        "rtfx" : 0.06722319909919193,
+        "textLength" : 72,
+        "totalWallSeconds" : 73.05420696735382
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "parakeet-eou-1280ms",
+      "name" : "20260703-171625-asr-parakeet-eou-1280ms",
+      "outputShape" : [
+        "Streaming EOU public API returns partial callbacks and final text. Token timestamps are available through EOU-specific getters, not normalized here yet."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171625-asr-parakeet-eou-1280ms",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 0.31653499603271484,
+        "loadSeconds" : 105.38139402866364,
+        "producesLanguage" : true,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.046461792024320596,
+        "textLength" : 69,
+        "tokenTimingCount" : 37,
+        "totalWallSeconds" : 105.69840908050537
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "nemotron-multilingual-4480ms",
+      "name" : "20260703-171823-asr-nemotron-multilingual-4480ms",
+      "outputShape" : [
+        "Multilingual Nemotron returns final text plus token timings. Detected language is internal to the decoded result and not normalized here yet."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171823-asr-nemotron-multilingual-4480ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/Sortformer_v2.mlmodelc",
+        "modelID" : "sortformer-fast-v2",
+        "nextStep" : "Inspect MLModel load/compile for cached Sortformer_v2.mlmodelc. The run does not reach SortformerDiarizer.initialize(models:) completion or processComplete progress.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run downloaded the Sortformer cache, reached progress phase compiling Sortformer_v2.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result. It was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-fast-v2",
+      "name" : "20260703-172108-diarize-sortformer-fast-v2",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172108-diarize-sortformer-fast-v2",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/SortformerNvidiaLow_v2.mlmodelc",
+        "modelID" : "sortformer-balanced-v2",
+        "nextStep" : "Inspect MLModel load/compile for cached SortformerNvidiaLow_v2.mlmodelc. The run does not reach SortformerDiarizer.initialize(models:) completion or processComplete progress.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run downloaded the Sortformer cache, reached progress phase compiling SortformerNvidiaLow_v2.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result. It was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-balanced-v2",
+      "name" : "20260703-172415-diarize-sortformer-balanced-v2",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172415-diarize-sortformer-balanced-v2",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/SortformerNvidiaLow_v2.1.mlmodelc",
+        "modelID" : "sortformer-balanced-v2.1",
+        "nextStep" : "Inspect MLModel load/compile for cached SortformerNvidiaLow_v2.1.mlmodelc. The run does not reach SortformerDiarizer.initialize(models:) completion or processComplete progress.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run downloaded the Sortformer cache, reached progress phase compiling SortformerNvidiaLow_v2.1.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result. It was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-balanced-v2.1",
+      "name" : "20260703-172647-diarize-sortformer-balanced-v2.1",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172647-diarize-sortformer-balanced-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/SortformerNvidiaHigh_v2.mlmodelc",
+        "modelID" : "sortformer-high-context-v2",
+        "nextStep" : "Inspect MLModel load/compile for cached SortformerNvidiaHigh_v2.mlmodelc. The run does not reach SortformerDiarizer.initialize(models:) completion or processComplete progress.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run downloaded the Sortformer cache, reached progress phase compiling SortformerNvidiaHigh_v2.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result. It was interrupted manually.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-high-context-v2",
+      "name" : "20260703-172846-diarize-sortformer-high-context-v2",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-172846-diarize-sortformer-high-context-v2",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "cachedModelPath" : "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/SortformerNvidiaHigh_v2.1.mlmodelc",
+        "modelID" : "sortformer-high-context-v2.1",
+        "nextStep" : "Retry with Sortformer computeUnits .cpuOnly, matching FluidAudioCLI. The earlier run used the pre-fix prototype path and stalled at CoreML compile/load.",
+        "progressLogPath" : "progress.jsonl",
+        "reason" : "The run downloaded the Sortformer cache, reached progress phase compiling SortformerNvidiaHigh_v2.1.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result before manual interruption.",
+        "status" : "interrupted"
+      },
+      "modelID" : "sortformer-high-context-v2.1",
+      "name" : "20260703-173123-diarize-sortformer-high-context-v2.1",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-173123-diarize-sortformer-high-context-v2.1",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 4.88,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 5.404910922050476,
+        "rtfx" : 0.9086065563013801,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 1,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.88
+          }
+        ],
+        "totalSpeechSeconds" : 4.88
+      },
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sortformer-fast-v2.1",
+      "name" : "20260703-180554-diarize-sortformer-fast-v2.1",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-180554-diarize-sortformer-fast-v2.1",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 4.88,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 10.369704961776733,
+        "rtfx" : 0.47358507480222134,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 1,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.88
+          }
+        ],
+        "totalSpeechSeconds" : 4.88
+      },
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sortformer-fast-v2",
+      "name" : "20260703-181037-diarize-sortformer-fast-v2",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181037-diarize-sortformer-fast-v2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 4.88,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 21.09819197654724,
+        "rtfx" : 0.23276579838969141,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 1,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.88
+          }
+        ],
+        "totalSpeechSeconds" : 4.88
+      },
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sortformer-balanced-v2",
+      "name" : "20260703-181055-diarize-sortformer-balanced-v2",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181055-diarize-sortformer-balanced-v2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 4.88,
+        "maxConcurrentSpeakers" : 1,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 17.84622597694397,
+        "rtfx" : 0.2751807304437686,
+        "segmentCount" : 1,
+        "speakerCount" : 1,
+        "speakerStats" : [
+          {
+            "segmentCount" : 1,
+            "speakerIndex" : 0,
+            "speechSeconds" : 4.88
+          }
+        ],
+        "totalSpeechSeconds" : 4.88
+      },
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sortformer-balanced-v2.1",
+      "name" : "20260703-181121-diarize-sortformer-balanced-v2.1",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181121-diarize-sortformer-balanced-v2.1",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 0,
+        "maxConcurrentSpeakers" : 0,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 10.63159191608429,
+        "rtfx" : 0.4619193003984997,
+        "segmentCount" : 0,
+        "speakerCount" : 0,
+        "speakerStats" : [
+
+        ],
+        "totalSpeechSeconds" : 0
+      },
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sortformer-high-context-v2",
+      "name" : "20260703-181146-diarize-sortformer-high-context-v2",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181146-diarize-sortformer-high-context-v2",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "diarize",
+      "diarization" : {
+        "averageSegmentSeconds" : 0,
+        "maxConcurrentSpeakers" : 0,
+        "overlapSeconds" : 0,
+        "processingSeconds" : 5.847461938858032,
+        "rtfx" : 0.8398408662338505,
+        "segmentCount" : 0,
+        "speakerCount" : 0,
+        "speakerStats" : [
+
+        ],
+        "totalSpeechSeconds" : 0
+      },
+      "hasDiagnostics" : true,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sortformer-high-context-v2.1",
+      "name" : "20260703-181201-diarize-sortformer-high-context-v2.1",
+      "outputShape" : [
+        "speaker-indexed timeline segments",
+        "start/end frame",
+        "start/end time",
+        "finalized flag",
+        "activity score"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-181201-diarize-sortformer-high-context-v2.1",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 2.6339709758758545,
+        "loadSeconds" : 104.28931903839111,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : false,
+        "producesWordTimings" : false,
+        "rtfx" : 0.04592951528322061,
+        "textLength" : 65,
+        "totalWallSeconds" : 106.92334699630737
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "parakeet-eou-320ms",
+      "name" : "20260703-191000-asr-parakeet-eou-320ms",
+      "outputShape" : [
+        "Streaming EOU public API returns partial callbacks and final text. Token timestamps are available through EOU-specific getters, not normalized here yet."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191000-asr-parakeet-eou-320ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "command" : "asr",
+        "errorType" : "NSError",
+        "message" : "The model is not found at URL: file:///Users/simonpeacocks/Library/Application%20Support/FluidAudio/Models/parakeet-unified-en-0.6b/parakeet_unified_preprocessor.mlmodelc",
+        "modelID" : "parakeet-unified-offline-15s",
+        "status" : "failed"
+      },
+      "modelID" : "parakeet-unified-offline-15s",
+      "name" : "20260703-191152-asr-parakeet-unified-offline-15s",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191152-asr-parakeet-unified-offline-15s",
+      "status" : "failed"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 0.22960400581359863,
+        "loadSeconds" : 114.72670590877533,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : false,
+        "producesWordTimings" : false,
+        "rtfx" : 0.04272002346846896,
+        "textLength" : 75,
+        "totalWallSeconds" : 114.95633900165558
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "parakeet-unified-offline-15s",
+      "name" : "20260703-191239-asr-parakeet-unified-offline-15s",
+      "outputShape" : [
+        "Unified offline returns text only through public manager API."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191239-asr-parakeet-unified-offline-15s",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "ctc06b",
+      "name" : "20260703-191443-keyword-ctc06b",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191443-keyword-ctc06b",
+      "status" : "interrupted"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 0.39653992652893066,
+        "loadSeconds" : 141.57902097702026,
+        "producesLanguage" : true,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 0.03458983049705545,
+        "textLength" : 69,
+        "tokenTimingCount" : 37,
+        "totalWallSeconds" : 141.9763389825821
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "nemotron-multilingual-2240ms",
+      "name" : "20260703-191847-asr-nemotron-multilingual-2240ms",
+      "outputShape" : [
+        "Multilingual Nemotron returns final text plus token timings. Detected language is internal to the decoded result and not normalized here yet."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-191847-asr-nemotron-multilingual-2240ms",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sensevoice-small-coreml",
+      "name" : "20260703-192117-asr-sensevoice-small-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192117-asr-sensevoice-small-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "interruptionOrFailure" : {
+        "command" : "asr",
+        "errorType" : "NSError",
+        "message" : "MultiArray shape (1 x 128 x 560) does not match the shape (1 x 1800 x 560) specified in the model description",
+        "modelID" : "sensevoice-small-coreml",
+        "status" : "failed"
+      },
+      "modelID" : "sensevoice-small-coreml",
+      "name" : "20260703-192300-asr-sensevoice-small-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192300-asr-sensevoice-small-coreml",
+      "status" : "failed"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "sensevoice-small-coreml",
+      "name" : "20260703-192538-asr-sensevoice-small-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192538-asr-sensevoice-small-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "paraformer-large-zh-coreml",
+      "name" : "20260703-192737-asr-paraformer-large-zh-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-192737-asr-paraformer-large-zh-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "paraformer-large-zh-coreml",
+      "name" : "20260703-193145-asr-paraformer-large-zh-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193145-asr-paraformer-large-zh-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "name" : "20260703-193344-asr-parakeet-tdt-0.6b-v2-coreml",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193344-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "interrupted"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "confidence" : 0.9603795,
+        "inferenceSeconds" : 0.7426539659500122,
+        "loadSeconds" : 9.038339018821716,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : true,
+        "producesWordTimings" : false,
+        "rtfx" : 6.645966529846191,
+        "textLength" : 75,
+        "tokenTimingCount" : 35,
+        "totalWallSeconds" : 9.781046032905579
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "parakeet-tdt-0.6b-v2-coreml",
+      "name" : "20260703-193745-asr-parakeet-tdt-0.6b-v2-coreml",
+      "outputShape" : [
+        "ASRResult includes text, confidence, duration, processingTime, RTFx, tokenTimings, and optional CTC metadata."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193745-asr-parakeet-tdt-0.6b-v2-coreml",
+      "status" : "ok"
+    },
+    {
+      "asr" : {
+        "audioDurationSeconds" : 4.9109375,
+        "inferenceSeconds" : 353.7572640180588,
+        "loadSeconds" : 673.661337018013,
+        "producesLanguage" : false,
+        "producesSpeakerLabels" : false,
+        "producesText" : true,
+        "producesTokenTimings" : false,
+        "producesWordTimings" : false,
+        "rtfx" : 0.004779879843396542,
+        "textLength" : 75,
+        "totalWallSeconds" : 1027.4186090230942
+      },
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "asr",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "modelID" : "cohere-transcribe-03-2026-coreml",
+      "name" : "20260703-193802-asr-cohere-transcribe-03-2026-coreml",
+      "outputShape" : [
+        "CoherePipeline returns text, token IDs, encoder/decoder seconds, and total seconds. This probe persists the normalized text path first."
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-193802-asr-cohere-transcribe-03-2026-coreml",
+      "status" : "ok"
+    },
+    {
+      "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+      "command" : "keyword",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : true,
+      "hasRaw" : false,
+      "keyword" : {
+        "detectedTermCount" : 0,
+        "frameDuration" : 0.07920866935483871,
+        "logProbabilityShape" : [
+          62,
+          1025
+        ],
+        "processingSeconds" : 544.9938069581985,
+        "requestedTermCount" : 3,
+        "rtfx" : 0.009010996890789756,
+        "totalFrames" : 62,
+        "uniqueDetectedTermCount" : 0
+      },
+      "modelID" : "ctc06b",
+      "name" : "20260703-195540-keyword-ctc06b",
+      "outputShape" : [
+        "detections with term, score, start/end frame, start/end seconds",
+        "full CTC log-probability matrix shape only; matrix is not persisted by default",
+        "lower score semantics come from FluidAudio CtcKeywordSpotter result and need calibration before UI display"
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-195540-keyword-ctc06b",
+      "status" : "ok"
+    },
+    {
+      "command" : "inventory",
+      "hasDiagnostics" : false,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "fluidaudio",
+      "name" : "20260703-211323-inventory-fluidaudio",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-211323-inventory-fluidaudio",
+      "status" : "ok"
+    },
+    {
+      "command" : "diagnostics",
+      "hasDiagnostics" : true,
+      "hasProgressLog" : false,
+      "hasRaw" : false,
+      "modelID" : "quick",
+      "name" : "20260703-211334-diagnostics-quick",
+      "outputShape" : [
+
+      ],
+      "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-211334-diagnostics-quick",
+      "status" : "ok"
+    }
+  ],
+  "statusCounts" : {
+    "failed" : 2,
+    "interrupted" : 24,
+    "ok" : 40
+  }
+}

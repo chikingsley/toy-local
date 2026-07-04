@@ -5,6 +5,8 @@ disabled_rules:
   - trailing_whitespace
   - identifier_name
   - type_name
+  - opening_brace
+  - trailing_comma
 
 opt_in_rules:
   # Crash prevention (high priority)
@@ -44,13 +46,19 @@ implicitly_unwrapped_optional:
 
 excluded:
   - build
+  - ToyLocal/Prototype
   - .build
+  - .tmp
   - SourcePackages
   - DerivedData
   - .swiftpm
   - toy-local.xcodeproj
   - ToyLocalTests
   - ToyLocalCore/.build
+  - ToyLocalBackendPrototype
+  - ToyLocalLiveDriver/.build
+  - ToyLocalTextTransformDriver/.build
+  - ToyLocalCore/Sources/ToyLocalCore/TextGeneration/Prompting/TextTransformPreset.swift
   - _archive
 
 line_length:

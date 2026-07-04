@@ -1,0 +1,6 @@
+{
+  "command" : "vad",
+  "modelID" : "silero-vad",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150204-vad-silero-vad",
+  "status" : "ok"
+}

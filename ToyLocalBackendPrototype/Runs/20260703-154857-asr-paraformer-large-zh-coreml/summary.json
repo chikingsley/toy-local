@@ -1,0 +1,6 @@
+{
+  "command": "asr",
+  "modelID": "paraformer-large-zh-coreml",
+  "status": "interrupted",
+  "resultPath": "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-154857-asr-paraformer-large-zh-coreml"
+}

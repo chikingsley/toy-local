@@ -1,0 +1,7 @@
+{
+  "stderrWarnings": [
+    "E5RT encountered an STL exception. msg = Failed to PropagateInputTensorShapes: std::runtime_error during type inference for ios17.slice_by_index: zero shape error."
+  ],
+  "observedTranscriptIssue": "Expected fixture starts with 'Toy local'; Nemotron 2240ms returned 'Boy local'.",
+  "timingNote": "loadSeconds includes first download/load/compile cost for this streaming probe path."
+}

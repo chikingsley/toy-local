@@ -1,0 +1,8 @@
+{
+  "modelID": "paraformer-large-zh-coreml",
+  "status": "interrupted",
+  "reason": "Download reached 10/25 files and approximately 170M, then produced no additional output and cache size stopped growing for multiple minutes. The run was interrupted manually.",
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/paraformer-large-zh",
+  "downloadedBytesApprox": "170M",
+  "nextStep": "Retry with per-file logging or inspect FluidAudio DownloadUtils behavior for large repo downloads."
+}

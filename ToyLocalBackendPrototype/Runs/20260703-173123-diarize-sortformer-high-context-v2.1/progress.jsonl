@@ -1,0 +1,13 @@
+{"fractionCompleted":0,"kind":"download","phase":"listing","timestamp":"2026-07-04T00:31:23Z"}
+{"completedFiles":1,"fractionCompleted":3.956900297979274e-07,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:31:25Z","totalFiles":12}
+{"completedFiles":2,"fractionCompleted":6.072470754324629e-07,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:31:25Z","totalFiles":12}
+{"completedFiles":3,"fractionCompleted":0.01752956587087773,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:31:27Z","totalFiles":12}
+{"completedFiles":4,"fractionCompleted":0.017530823459982338,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:31:27Z","totalFiles":12}
+{"completedFiles":5,"fractionCompleted":0.017655412930107275,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:31:28Z","totalFiles":12}
+{"completedFiles":6,"fractionCompleted":0.01765562448715291,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:31:28Z","totalFiles":12}
+{"completedFiles":7,"fractionCompleted":0.49406190714688397,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:32:00Z","totalFiles":12}
+{"completedFiles":8,"fractionCompleted":0.4940630961758349,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:32:00Z","totalFiles":12}
+{"completedFiles":9,"fractionCompleted":0.49998766700778413,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:32:01Z","totalFiles":12}
+{"completedFiles":10,"fractionCompleted":0.49998982371433265,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:32:01Z","totalFiles":12}
+{"completedFiles":11,"fractionCompleted":0.4999999960822769,"kind":"download","phase":"downloading","timestamp":"2026-07-04T00:32:02Z","totalFiles":12}
+{"fractionCompleted":0.5,"kind":"download","modelName":"SortformerNvidiaHigh_v2.1.mlmodelc","phase":"compiling","timestamp":"2026-07-04T00:32:02Z"}

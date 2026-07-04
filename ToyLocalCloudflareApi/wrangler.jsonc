@@ -1,0 +1,74 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "toy-local-cloudflare-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "vars": {
+    "CLOUDFLARE_ACCOUNT_ID": "5888cce2210bbb0bda4b77fd8a9018e1",
+    "TOY_LOCAL_USAGE_DATASET": "toy_local_usage"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "analytics_engine_datasets": [
+    {
+      "binding": "USAGE_ANALYTICS",
+      "dataset": "toy_local_usage"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "toy-local-cloudflare-api",
+      "database_id": "fd2ddb13-af46-4dd7-96d8-8b1c9621c5f7"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "toy-local-cloudflare-api-artifacts"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "JOBS_QUEUE",
+        "queue": "toy-local-cloudflare-api-jobs"
+      },
+      {
+        "binding": "JOBS_DLQ",
+        "queue": "toy-local-cloudflare-api-jobs-dlq"
+      }
+    ],
+    "consumers": [
+      {
+        "max_batch_size": 1,
+        "max_retries": 2,
+        "max_batch_timeout": 1,
+        "dead_letter_queue": "toy-local-cloudflare-api-jobs-dlq",
+        "queue": "toy-local-cloudflare-api-jobs"
+      },
+      {
+        "max_batch_size": 10,
+        "max_retries": 3,
+        "max_batch_timeout": 30,
+        "queue": "toy-local-cloudflare-api-jobs-dlq"
+      }
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "RealtimeSession",
+        "name": "REALTIME_SESSIONS"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["RealtimeSession"],
+      "tag": "v1"
+    }
+  ]
+}

@@ -1,70 +1,23 @@
-import Inject
 import SwiftUI
 
 struct AppView: View {
-	@Bindable var store: AppStore
-	@State private var columnVisibility = NavigationSplitViewVisibility.automatic
+  @Bindable var store: AppStore
 
-	var body: some View {
-		NavigationSplitView(columnVisibility: $columnVisibility) {
-			List(selection: $store.activeTab) {
-				Button {
-					store.setActiveTab(.settings)
-				} label: {
-					Label("Settings", systemImage: "gearshape")
-				}
-				.buttonStyle(.plain)
-				.tag(ActiveTab.settings)
+  var body: some View {
+    AppShellView(store: store)
+  }
+}
 
-				Button {
-					store.setActiveTab(.remappings)
-				} label: {
-					Label("Transforms", systemImage: "text.badge.plus")
-				}
-				.buttonStyle(.plain)
-				.tag(ActiveTab.remappings)
+#Preview("Main Window") {
+  AppViewPreviewContainer()
+}
 
-				Button {
-					store.setActiveTab(.history)
-				} label: {
-					Label("History", systemImage: "clock")
-				}
-				.buttonStyle(.plain)
-				.tag(ActiveTab.history)
+@MainActor
+private struct AppViewPreviewContainer: View {
+  @State private var store = AppPreviewState.makeStore()
 
-				Button {
-					store.setActiveTab(.about)
-				} label: {
-					Label("About", systemImage: "info.circle")
-				}
-				.buttonStyle(.plain)
-				.tag(ActiveTab.about)
-			}
-			} detail: {
-				switch store.activeTab {
-			case .settings:
-				SettingsView(
-					store: store.settings,
-					alwaysOnStore: store.alwaysOn,
-					microphonePermission: store.microphonePermission,
-					accessibilityPermission: store.accessibilityPermission,
-					inputMonitoringPermission: store.inputMonitoringPermission,
-					requestMicrophonePermission: store.requestMicrophone,
-					requestAccessibilityPermission: store.requestAccessibility,
-					requestInputMonitoringPermission: store.requestInputMonitoring
-				)
-				.navigationTitle("Settings")
-			case .remappings:
-				WordRemappingsView(store: store.settings)
-					.navigationTitle("Transforms")
-			case .history:
-				HistoryView(store: store.history)
-					.navigationTitle("History")
-			case .about:
-				AboutView(store: store.settings)
-					.navigationTitle("About")
-			}
-		}
-		.enableInjection()
-	}
+  var body: some View {
+    AppView(store: store)
+      .frame(width: 820, height: 680)
+  }
 }

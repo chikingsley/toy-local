@@ -1,0 +1,37 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "detections" : [
+
+  ],
+  "frameDuration" : 0.07920866935483871,
+  "logProbabilityShape" : [
+    62,
+    1025
+  ],
+  "modelID" : "ctc06b",
+  "outputShape" : [
+    "detections with term, score, start/end frame, start/end seconds",
+    "full CTC log-probability matrix shape only; matrix is not persisted by default",
+    "lower score semantics come from FluidAudio CtcKeywordSpotter result and need calibration before UI display"
+  ],
+  "processingSeconds" : 544.9938069581985,
+  "rtfx" : 0.009010996890789756,
+  "stats" : {
+    "detectedTermCount" : 0,
+    "requestedTermCount" : 3,
+    "uniqueDetectedTermCount" : 0
+  },
+  "terms" : [
+    "Toy Local",
+    "FluidAudio",
+    "Parakeet"
+  ],
+  "totalFrames" : 62
+}

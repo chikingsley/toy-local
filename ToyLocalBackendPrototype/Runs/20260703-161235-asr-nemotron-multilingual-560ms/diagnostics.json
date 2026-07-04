@@ -1,0 +1,8 @@
+{
+  "stderrWarnings": [
+    "Smart-spec: assets missing (joint_noencproj_batched.mlpackage); falling back to legacy inner loop",
+    "E5RT encountered an STL exception. msg = Failed to PropagateInputTensorShapes: std::runtime_error during type inference for ios17.slice_by_index: zero shape error."
+  ],
+  "observedTranscriptIssue": "Expected fixture starts with 'Toy local'; multilingual Nemotron 560ms returned 'Boy local'.",
+  "timingNote": "loadSeconds includes first download/load/compile cost for this streaming probe path."
+}

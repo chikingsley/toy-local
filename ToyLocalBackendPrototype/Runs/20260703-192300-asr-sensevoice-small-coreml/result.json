@@ -1,0 +1,7 @@
+{
+  "command" : "asr",
+  "errorType" : "NSError",
+  "message" : "MultiArray shape (1 x 128 x 560) does not match the shape (1 x 1800 x 560) specified in the model description",
+  "modelID" : "sensevoice-small-coreml",
+  "status" : "failed"
+}

@@ -1,5 +1,38 @@
 # Changelog
 
+## Unreleased
+
+### Patch Changes
+
+- ToyLocal is FluidAudio-only.
+- The visible model catalog is limited to supported Parakeet models.
+- Settings and history are stored under ToyLocal application support paths.
+- Added a first-run setup flow for Microphone and Accessibility permissions.
+- Normal ToyLocal windows now stay hidden until required permissions are granted.
+- If a required permission is removed later, ToyLocal returns to setup instead of continuing with broken hotkey/paste behavior.
+- Removed App Sandbox so Accessibility permission prompting and text insertion can work correctly.
+- Added PermissionPilot as a pinned Swift Package dependency for permission status/request plumbing.
+- Added `toylocal://` and `toylocal-debug://` app-control links plus a Swift live driver that launches ToyLocal, resets permissions, captures debug state, and drives onboarding through AX button presses.
+- Fixed hotkey keycap display for the grave/backtick key and Sauce-supported non-letter keys.
+- Added Xcode preview entry points for the App and Settings shells with preview-safe settings storage.
+- Removed InjectionIII/Inject hot-reload wiring and disabled Hardened Runtime for Debug builds so Xcode SwiftUI previews can JIT-link and render.
+- Improved local dictation diagnostics by logging the selected/default microphone and detecting all-zero captured audio before transcription.
+- Fixed Parakeet model readiness checks to recognize FluidAudio's Application Support cache directories.
+- Documented the next Settings split around Dictation, Models, Transforms, History, and About/Updates.
+- Added a source-backed FluidAudio model metrics inventory plus codable local diagnostic result schema.
+- Added Core cloud transcription and language-model catalogs plus cloud metric profiles that stay aligned with Toy Local Cloud route IDs.
+- Removed unsupported SenseVoice and Paraformer from the backend prototype supported inventory after probe runs hung or failed shape validation.
+- Added a backend prototype `diagnostics` command that writes per-machine model timing/output reports.
+- Added a Core transcription workflow contract for ASR, native/local VAD, native/local diarization, vocabulary handling, cloud text transforms, and output formats.
+- Wired the production dictation path through an app-facing transcription workflow service for local FluidAudio ASR, Toy Local Cloud batch ASR, and cloud text transforms.
+- Added quiet startup prewarm for the selected already-downloaded local batch ASR model.
+- Added a production model-library adapter that groups local dictation, cloud dictation, streaming preview, cloud text, and support models for the future Models UI.
+- Added observable text-transform/post-processing state, including empty-result and failure reporting in debug snapshots plus a real `toylocal-debug://text-transform` trigger.
+- Consolidated the UI prototype onto a shared component library (`Prototype/UI/`, one component per file): one `ProtoDivider` replaced eight per-pane separator forks, surface colors/radii moved into `ProtoTheme` tokens, and one provider-logo registry replaced the two divergent logo systems.
+- Prototype panes reorganized into `Panes/`/`Recorders/`; the outdated General pane was deleted after Configuration V2 absorbed its Permissions and Updates sections; Dictionary/History were brought onto the current design language, including a History detail picker default fix.
+- Shortcut recording in the prototype now shows a pulsing recording chip and cancels on click-away/Escape (Shortcuts V2 and Hot Mic share one `ProtoShortcutRecorder`).
+- Provider logos and appearance thumbnails moved into the asset catalog (template SVGs where available), replacing runtime `#filePath` PNG loading.
+
 ## 0.6.9
 
 ### Patch Changes

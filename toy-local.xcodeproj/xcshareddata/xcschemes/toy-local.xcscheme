@@ -21,6 +21,20 @@
                ReferencedContainer = "container:toy-local.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "478637A42D48725900319BFA"
+               BuildableName = "ToyLocalTests.xctest"
+               BlueprintName = "ToyLocalTests"
+               ReferencedContainer = "container:toy-local.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

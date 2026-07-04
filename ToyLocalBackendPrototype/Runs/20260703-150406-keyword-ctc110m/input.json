@@ -1,0 +1,10 @@
+{
+  "audioPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+  "command" : "keyword",
+  "modelID" : "ctc110m",
+  "options" : {
+    "audio" : "../ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "model" : "ctc110m",
+    "terms" : "Toy Local,FluidAudio,Parakeet"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "command" : "asr",
+  "errorType" : "NSError",
+  "message" : "The model is not found at URL: file:///Users/simonpeacocks/Library/Application%20Support/FluidAudio/Models/parakeet-unified-en-0.6b/parakeet_unified_preprocessor.mlmodelc",
+  "modelID" : "parakeet-unified-offline-15s",
+  "status" : "failed"
+}

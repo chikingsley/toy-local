@@ -1,0 +1,266 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "confidence" : 0.89186007,
+  "durationSeconds" : 4.9109375,
+  "modelID" : "parakeet-tdt-ctc-110m-coreml",
+  "outputShape" : {
+    "notes" : [
+      "ASRResult includes text, confidence, duration, processingTime, RTFx, tokenTimings, and optional CTC metadata."
+    ],
+    "producesLanguage" : false,
+    "producesSpeakerLabels" : false,
+    "producesText" : true,
+    "producesTokenTimings" : true,
+    "producesWordTimings" : false
+  },
+  "processingSeconds" : 0.12255501747131348,
+  "rtfx" : 40.0712890625,
+  "text" : "Toy Local Live ASR smoke test. The quick brown fox jumps over the lazy dog.",
+  "tokenTimings" : [
+    {
+      "confidence" : 0.95703125,
+      "endTime" : 0.16,
+      "startTime" : 0.08,
+      "token" : " T",
+      "tokenId" : 57
+    },
+    {
+      "confidence" : 0.99121094,
+      "endTime" : 0.32,
+      "startTime" : 0.24,
+      "token" : "oy",
+      "tokenId" : 564
+    },
+    {
+      "confidence" : 0.5161133,
+      "endTime" : 0.48000000000000004,
+      "startTime" : 0.4,
+      "token" : " L",
+      "tokenId" : 199
+    },
+    {
+      "confidence" : 0.9345703,
+      "endTime" : 0.5599999999999999,
+      "startTime" : 0.48,
+      "token" : "oc",
+      "tokenId" : 739
+    },
+    {
+      "confidence" : 0.59472656,
+      "endTime" : 0.64,
+      "startTime" : 0.56,
+      "token" : "al",
+      "tokenId" : 51
+    },
+    {
+      "confidence" : 0.7763672,
+      "endTime" : 0.7999999999999999,
+      "startTime" : 0.72,
+      "token" : " L",
+      "tokenId" : 199
+    },
+    {
+      "confidence" : 0.87060547,
+      "endTime" : 0.88,
+      "startTime" : 0.8,
+      "token" : "ive",
+      "tokenId" : 172
+    },
+    {
+      "confidence" : 0.8334961,
+      "endTime" : 1.04,
+      "startTime" : 0.96,
+      "token" : " A",
+      "tokenId" : 65
+    },
+    {
+      "confidence" : 0.97509766,
+      "endTime" : 1.2000000000000002,
+      "startTime" : 1.12,
+      "token" : "S",
+      "tokenId" : 995
+    },
+    {
+      "confidence" : 0.9941406,
+      "endTime" : 1.36,
+      "startTime" : 1.28,
+      "token" : "R",
+      "tokenId" : 1015
+    },
+    {
+      "confidence" : 0.5541992,
+      "endTime" : 1.52,
+      "startTime" : 1.44,
+      "token" : " sm",
+      "tokenId" : 542
+    },
+    {
+      "confidence" : 0.99658203,
+      "endTime" : 1.76,
+      "startTime" : 1.68,
+      "token" : "o",
+      "tokenId" : 969
+    },
+    {
+      "confidence" : 0.8803711,
+      "endTime" : 1.84,
+      "startTime" : 1.76,
+      "token" : "ke",
+      "tokenId" : 74
+    },
+    {
+      "confidence" : 0.94140625,
+      "endTime" : 2,
+      "startTime" : 1.92,
+      "token" : " t",
+      "tokenId" : 1
+    },
+    {
+      "confidence" : 0.8515625,
+      "endTime" : 2.08,
+      "startTime" : 2,
+      "token" : "est",
+      "tokenId" : 163
+    },
+    {
+      "confidence" : 0.46044922,
+      "endTime" : 2.3200000000000003,
+      "startTime" : 2.24,
+      "token" : ".",
+      "tokenId" : 986
+    },
+    {
+      "confidence" : 0.99609375,
+      "endTime" : 2.48,
+      "startTime" : 2.32,
+      "token" : " The",
+      "tokenId" : 104
+    },
+    {
+      "confidence" : 0.9663086,
+      "endTime" : 2.56,
+      "startTime" : 2.48,
+      "token" : " qu",
+      "tokenId" : 304
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 2.72,
+      "startTime" : 2.64,
+      "token" : "ick",
+      "tokenId" : 350
+    },
+    {
+      "confidence" : 0.94921875,
+      "endTime" : 2.8800000000000003,
+      "startTime" : 2.8000000000000003,
+      "token" : " br",
+      "tokenId" : 528
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 3.12,
+      "startTime" : 2.96,
+      "token" : "own",
+      "tokenId" : 321
+    },
+    {
+      "confidence" : 0.9746094,
+      "endTime" : 3.2,
+      "startTime" : 3.12,
+      "token" : " fo",
+      "tokenId" : 502
+    },
+    {
+      "confidence" : 0.9995117,
+      "endTime" : 3.3600000000000003,
+      "startTime" : 3.2800000000000002,
+      "token" : "x",
+      "tokenId" : 996
+    },
+    {
+      "confidence" : 0.9873047,
+      "endTime" : 3.52,
+      "startTime" : 3.44,
+      "token" : " j",
+      "tokenId" : 118
+    },
+    {
+      "confidence" : 0.9995117,
+      "endTime" : 3.6,
+      "startTime" : 3.52,
+      "token" : "um",
+      "tokenId" : 190
+    },
+    {
+      "confidence" : 0.99902344,
+      "endTime" : 3.68,
+      "startTime" : 3.6,
+      "token" : "ps",
+      "tokenId" : 861
+    },
+    {
+      "confidence" : 0.6513672,
+      "endTime" : 3.8400000000000003,
+      "startTime" : 3.7600000000000002,
+      "token" : " over",
+      "tokenId" : 342
+    },
+    {
+      "confidence" : 0.9863281,
+      "endTime" : 4.16,
+      "startTime" : 4,
+      "token" : " the",
+      "tokenId" : 6
+    },
+    {
+      "confidence" : 0.9794922,
+      "endTime" : 4.24,
+      "startTime" : 4.16,
+      "token" : " la",
+      "tokenId" : 726
+    },
+    {
+      "confidence" : 0.9614258,
+      "endTime" : 4.32,
+      "startTime" : 4.24,
+      "token" : "z",
+      "tokenId" : 1012
+    },
+    {
+      "confidence" : 1,
+      "endTime" : 4.48,
+      "startTime" : 4.4,
+      "token" : "y",
+      "tokenId" : 981
+    },
+    {
+      "confidence" : 0.9916992,
+      "endTime" : 4.640000000000001,
+      "startTime" : 4.48,
+      "token" : " do",
+      "tokenId" : 106
+    },
+    {
+      "confidence" : 0.9980469,
+      "endTime" : 4.72,
+      "startTime" : 4.64,
+      "token" : "g",
+      "tokenId" : 982
+    },
+    {
+      "confidence" : 0.7553711,
+      "endTime" : 4.8,
+      "startTime" : 4.72,
+      "token" : ".",
+      "tokenId" : 986
+    }
+  ]
+}

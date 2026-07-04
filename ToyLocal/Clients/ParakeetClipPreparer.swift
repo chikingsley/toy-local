@@ -116,7 +116,7 @@ enum ParakeetClipPreparer {
       "Parakeet clip check file=\(url.lastPathComponent)",
       "duration=\(durationDescription)s",
       "sampleRate=\(sampleRateDescription)Hz",
-      "channels=\(format.channelCount)"
+      "channels=\(format.channelCount)",
     ].joined(separator: " ")
   }
 
@@ -132,7 +132,7 @@ enum ParakeetClipPreparer {
       "Padded clip for Parakeet file=\(inputURL.lastPathComponent)",
       "original=\(durationDescription)s",
       "paddedTo=\(minimumDurationDescription)s",
-      "output=\(outputURL.lastPathComponent)"
+      "output=\(outputURL.lastPathComponent)",
     ].joined(separator: " ")
   }
 }

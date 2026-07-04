@@ -1,0 +1,6 @@
+{
+  "command" : "asr",
+  "modelID" : "parakeet-0.6b-ja-coreml",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-171239-asr-parakeet-0.6b-ja-coreml",
+  "status" : "ok"
+}

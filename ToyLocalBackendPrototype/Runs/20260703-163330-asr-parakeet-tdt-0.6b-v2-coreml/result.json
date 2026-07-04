@@ -1,0 +1,9 @@
+{
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v2",
+  "downloadedBytesApprox": "14M",
+  "fileCountApprox": "3",
+  "modelID": "parakeet-tdt-0.6b-v2-coreml",
+  "nextStep": "Inspect FluidAudio DownloadUtils/Hugging Face transfer behavior for this repo before retrying; isolated retry reproduced the same no-progress cache state.",
+  "reason": "Isolated retry found 22 files to download, then produced no additional output and cache size stayed at 14M / 3 files for roughly two minutes. The run was interrupted manually.",
+  "status": "interrupted"
+}

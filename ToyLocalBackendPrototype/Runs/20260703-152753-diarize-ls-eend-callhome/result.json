@@ -1,0 +1,48 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "modelID" : "ls-eend-callhome",
+  "outputShape" : [
+    "speaker-indexed timeline segments",
+    "start/end frame",
+    "start/end time",
+    "finalized flag",
+    "activity score"
+  ],
+  "segments" : [
+    {
+      "activity" : 0.73098963,
+      "duration" : 4.9,
+      "endFrame" : 49,
+      "endTime" : 4.9,
+      "finalized" : true,
+      "speakerIndex" : 0,
+      "speakerLabel" : "Speaker 0",
+      "startFrame" : 0,
+      "startTime" : 0
+    }
+  ],
+  "speakerStats" : [
+    {
+      "segmentCount" : 1,
+      "speakerIndex" : 0,
+      "speechSeconds" : 4.9
+    }
+  ],
+  "stats" : {
+    "averageSegmentSeconds" : 4.9,
+    "maxConcurrentSpeakers" : 1,
+    "overlapSeconds" : 0,
+    "processingSeconds" : 82.65671694278717,
+    "rtfx" : 0.05941365301744592,
+    "segmentCount" : 1,
+    "speakerCount" : 1,
+    "totalSpeechSeconds" : 4.9
+  }
+}

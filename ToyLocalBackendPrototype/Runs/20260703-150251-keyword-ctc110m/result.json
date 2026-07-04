@@ -1,0 +1,58 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "detections" : [
+    {
+      "endFrame" : 58,
+      "endTime" : 4.594102822580645,
+      "score" : -6.022528,
+      "startFrame" : 3,
+      "startTime" : 0.23762600806451611,
+      "term" : "Toy Local"
+    },
+    {
+      "endFrame" : 62,
+      "endTime" : 4.9109375,
+      "score" : -6.7051783,
+      "startFrame" : 11,
+      "startTime" : 0.8712953629032258,
+      "term" : "FluidAudio"
+    },
+    {
+      "endFrame" : 22,
+      "endTime" : 1.7425907258064517,
+      "score" : -6.235832,
+      "startFrame" : 11,
+      "startTime" : 0.8712953629032258,
+      "term" : "Parakeet"
+    },
+    {
+      "endFrame" : 58,
+      "endTime" : 4.594102822580645,
+      "score" : -6.4416966,
+      "startFrame" : 47,
+      "startTime" : 3.722807459677419,
+      "term" : "Parakeet"
+    }
+  ],
+  "frameDuration" : 0.07920866935483871,
+  "logProbabilityShape" : [
+    62,
+    1025
+  ],
+  "modelID" : "ctc110m",
+  "processingSeconds" : 27.974650979042053,
+  "rtfx" : 0.17554955390432425,
+  "terms" : [
+    "Toy Local",
+    "FluidAudio",
+    "Parakeet"
+  ],
+  "totalFrames" : 62
+}

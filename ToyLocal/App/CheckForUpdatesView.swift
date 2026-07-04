@@ -1,45 +1,48 @@
 import Combine
-import Inject
 import Sparkle
 import SwiftUI
 
 @Observable
 @MainActor
 final class CheckForUpdatesViewModel {
-	init() {
-		anyCancellable = controller.updater.publisher(for: \.canCheckForUpdates)
-			.receive(on: RunLoop.main)
-			.sink { self.canCheckForUpdates = $0 }
-	}
+  init() {
+    guard isUpdaterAvailable else { return }
 
-	static let shared = CheckForUpdatesViewModel()
+    let controller = SPUStandardUpdaterController(
+      startingUpdater: true,
+      updaterDelegate: nil,
+      userDriverDelegate: nil
+    )
+    self.controller = controller
+    anyCancellable = controller.updater.publisher(for: \.canCheckForUpdates)
+      .receive(on: RunLoop.main)
+      .sink { self.canCheckForUpdates = $0 }
+  }
 
-	let controller = SPUStandardUpdaterController(
-		startingUpdater: true,
-		updaterDelegate: nil,
-		userDriverDelegate: nil
-	)
+  static let shared = CheckForUpdatesViewModel()
 
-	var anyCancellable: AnyCancellable?
+  let isUpdaterAvailable = !ProcessInfo.processInfo.environment.keys.contains("TOYLOCAL_DISABLE_SPARKLE")
 
-	var canCheckForUpdates = false
+  var controller: SPUStandardUpdaterController?
 
-	func checkForUpdates() {
-		controller.updater.checkForUpdates()
-	}
+  var anyCancellable: AnyCancellable?
+
+  var canCheckForUpdates = false
+
+  func checkForUpdates() {
+    controller?.updater.checkForUpdates()
+  }
 }
 
 struct CheckForUpdatesView: View {
-	let viewModel: CheckForUpdatesViewModel
-	@ObserveInjection var inject
+  let viewModel: CheckForUpdatesViewModel
 
-	init(viewModel: CheckForUpdatesViewModel = .shared) {
-		self.viewModel = viewModel
-	}
+  init(viewModel: CheckForUpdatesViewModel = .shared) {
+    self.viewModel = viewModel
+  }
 
-	var body: some View {
-		Button("Check for Updates...", action: viewModel.checkForUpdates)
-			.disabled(!viewModel.canCheckForUpdates)
-			.enableInjection()
-	}
+  var body: some View {
+    Button("Check for Updates...", action: viewModel.checkForUpdates)
+      .disabled(!viewModel.canCheckForUpdates)
+  }
 }

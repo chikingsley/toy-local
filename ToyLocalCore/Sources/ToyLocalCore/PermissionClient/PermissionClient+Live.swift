@@ -1,9 +1,10 @@
-@preconcurrency import AppKit
 import AVFoundation
+@preconcurrency import AppKit
 import CoreGraphics
 import Foundation
 
 private let logger = ToyLocalLog.permissions
+private let axTrustedCheckOptionPromptKey = "AXTrustedCheckOptionPrompt"
 
 /// Live implementation of the PermissionClient.
 ///
@@ -91,15 +92,9 @@ public actor PermissionClientLive: PermissionClient {
 
   nonisolated public func accessibilityStatus() -> PermissionStatus {
     // Check without prompting (kAXTrustedCheckOptionPrompt: false)
-    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
+    let options = [axTrustedCheckOptionPromptKey: false] as CFDictionary
     let result = AXIsProcessTrustedWithOptions(options) ? PermissionStatus.granted : .denied
     logger.info("Accessibility status: \(String(describing: result))")
-    return result
-  }
-
-  nonisolated public func inputMonitoringStatus() -> PermissionStatus {
-    let result: PermissionStatus = CGPreflightListenEventAccess() ? .granted : .denied
-    logger.info("Input monitoring status: \(String(describing: result))")
     return result
   }
 
@@ -107,7 +102,7 @@ public actor PermissionClientLive: PermissionClient {
     logger.info("Requesting accessibility permission...")
     // First, trigger the system prompt (on main actor for safety)
     await MainActor.run {
-      let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+      let options = [axTrustedCheckOptionPromptKey: true] as CFDictionary
       _ = AXIsProcessTrustedWithOptions(options)
     }
 
@@ -115,50 +110,61 @@ public actor PermissionClientLive: PermissionClient {
     await openAccessibilitySettings()
   }
 
-  public func requestInputMonitoring() async -> Bool {
-    logger.info("Requesting input monitoring permission...")
+  public func openAccessibilitySettings() async {
+    logger.info("Opening accessibility settings in System Preferences...")
+    await openPrivacyPane("Privacy_Accessibility")
+  }
+
+  // MARK: - Screen Capture Permissions
+
+  nonisolated public func screenCaptureStatus() -> PermissionStatus {
+    let result = CGPreflightScreenCaptureAccess() ? PermissionStatus.granted : .denied
+    logger.info("Screen capture status: \(String(describing: result))")
+    return result
+  }
+
+  public func requestScreenCapture() async -> Bool {
+    logger.info("Requesting screen capture permission...")
     let granted = await MainActor.run {
-      if CGPreflightListenEventAccess() {
-        return true
-      }
-      return CGRequestListenEventAccess()
+      CGRequestScreenCaptureAccess()
     }
-
+    logger.info("Screen capture permission granted: \(granted)")
     if !granted {
-      logger.info("Input monitoring not granted, opening Settings...")
-      await openInputMonitoringSettings()
-    } else {
-      logger.info("Input monitoring permission granted: \(granted)")
+      await openScreenCaptureSettings()
     }
-
     return granted
   }
 
-  public func openAccessibilitySettings() async {
-    logger.info("Opening accessibility settings in System Preferences...")
-    await MainActor.run {
-      guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
-        logger.error("Failed to create accessibility settings URL")
-        return
-      }
-      NSWorkspace.shared.open(url)
-    }
+  public func openScreenCaptureSettings() async {
+    logger.info("Opening screen recording settings in System Preferences...")
+    await openPrivacyPane("Privacy_ScreenCapture")
   }
 
-  public func openInputMonitoringSettings() async {
-    logger.info("Opening input monitoring settings in System Preferences...")
-    await MainActor.run {
-      guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") else {
-        logger.error("Failed to create input monitoring settings URL")
-        return
-      }
-      NSWorkspace.shared.open(url)
-    }
+  // MARK: - Context Permission Settings
+
+  public func openSystemAudioCaptureSettings() async {
+    logger.info("Opening system audio capture settings in System Preferences...")
+    await openPrivacyPane("Privacy_AudioCapture")
+  }
+
+  public func openAutomationSettings() async {
+    logger.info("Opening automation settings in System Preferences...")
+    await openPrivacyPane("Privacy_Automation")
   }
 
   // MARK: - Reactive Monitoring
 
   nonisolated public func observeAppActivation() -> AsyncStream<AppActivation> {
     activationStream
+  }
+
+  private func openPrivacyPane(_ anchor: String) async {
+    await MainActor.run {
+      guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)") else {
+        logger.error("Failed to create privacy settings URL for \(anchor)")
+        return
+      }
+      NSWorkspace.shared.open(url)
+    }
   }
 }

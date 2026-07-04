@@ -1,0 +1,6 @@
+{
+  "command" : "diarize",
+  "modelID" : "offline-diarizer",
+  "resultPath" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalBackendPrototype/Runs/20260703-150251-diarize-offline-diarizer",
+  "status" : "ok"
+}

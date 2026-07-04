@@ -1,0 +1,30 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "durationSeconds" : 4.9109375,
+  "modelID" : "cohere-transcribe-03-2026-coreml",
+  "outputShape" : {
+    "notes" : [
+      "CoherePipeline returns text, token IDs, encoder/decoder seconds, and total seconds. This probe persists the normalized text path first."
+    ],
+    "producesLanguage" : false,
+    "producesSpeakerLabels" : false,
+    "producesText" : true,
+    "producesTokenTimings" : false,
+    "producesWordTimings" : false
+  },
+  "processingSeconds" : 1027.4186090230942,
+  "rtfx" : 0.004779879843396542,
+  "text" : "Toy Local live ASR smoke test, the quick brown fox jumps over the lazy dog.",
+  "timings" : {
+    "inferenceSeconds" : 353.7572640180588,
+    "loadSeconds" : 673.661337018013,
+    "totalWallSeconds" : 1027.4186090230942
+  }
+}

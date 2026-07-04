@@ -1,0 +1,8 @@
+{
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/sortformer/SortformerNvidiaHigh_v2.1.mlmodelc",
+  "modelID": "sortformer-high-context-v2.1",
+  "nextStep": "Retry with Sortformer computeUnits .cpuOnly, matching FluidAudioCLI. The earlier run used the pre-fix prototype path and stalled at CoreML compile/load.",
+  "progressLogPath": "progress.jsonl",
+  "reason": "The run downloaded the Sortformer cache, reached progress phase compiling SortformerNvidiaHigh_v2.1.mlmodelc, then produced no additional progress, no diarization processing callbacks, and no result before manual interruption.",
+  "status": "interrupted"
+}

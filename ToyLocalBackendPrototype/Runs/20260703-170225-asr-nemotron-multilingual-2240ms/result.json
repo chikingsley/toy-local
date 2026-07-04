@@ -1,0 +1,10 @@
+{
+  "cachedModelPath": "/Users/simonpeacocks/Library/Application Support/FluidAudio/Models/nemotron-multilingual/multilingual/2240ms",
+  "downloadedBytesApprox": "76M",
+  "fileCountApprox": "9",
+  "modelID": "nemotron-multilingual-2240ms",
+  "nextStep": "Isolate the FluidAudio multilingual Nemotron download path for larger variants. The 1120ms variant completed, but this 2240ms variant stopped advancing at 9/22 files with flat cache size and no new progress callbacks.",
+  "progressLogPath": "progress.jsonl",
+  "reason": "The run found 22 files, downloaded 9/22 files, then produced no new stdout, no new progress.jsonl entries, and no cache-size growth while the process remained alive. It was interrupted manually after the stalled state was verified.",
+  "status": "interrupted"
+}

@@ -1,0 +1,126 @@
+{
+  "diarize" : true,
+  "modelID" : "nova-3",
+  "requestURL" : "https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&diarize=true",
+  "segments" : [
+    {
+      "end" : 4.88,
+      "speaker" : 0,
+      "start" : 0,
+      "text" : "toy local live asr smoke test the quick brown fox jumps over the lazy dog"
+    }
+  ],
+  "stats" : {
+    "durationSeconds" : 4.88,
+    "speakerCount" : 1,
+    "wordCount" : 15
+  },
+  "transcript" : "Toy local live ASR smoke test. The quick brown fox jumps over the lazy dog.",
+  "words" : [
+    {
+      "confidence" : 0.6479492,
+      "end" : 0.24,
+      "speaker" : 0,
+      "start" : 0,
+      "word" : "toy"
+    },
+    {
+      "confidence" : 0.8745117,
+      "end" : 0.56,
+      "speaker" : 0,
+      "start" : 0.24,
+      "word" : "local"
+    },
+    {
+      "confidence" : 0.9140625,
+      "end" : 0.88,
+      "speaker" : 0,
+      "start" : 0.56,
+      "word" : "live"
+    },
+    {
+      "confidence" : 0.9248047,
+      "end" : 1.36,
+      "speaker" : 0,
+      "start" : 0.88,
+      "word" : "asr"
+    },
+    {
+      "confidence" : 0.99316406,
+      "end" : 1.76,
+      "speaker" : 0,
+      "start" : 1.36,
+      "word" : "smoke"
+    },
+    {
+      "confidence" : 0.9267578,
+      "end" : 2.3999999,
+      "speaker" : 0,
+      "start" : 1.76,
+      "word" : "test"
+    },
+    {
+      "confidence" : 1,
+      "end" : 2.56,
+      "speaker" : 0,
+      "start" : 2.3999999,
+      "word" : "the"
+    },
+    {
+      "confidence" : 0.99902344,
+      "end" : 2.8,
+      "speaker" : 0,
+      "start" : 2.56,
+      "word" : "quick"
+    },
+    {
+      "confidence" : 0.9980469,
+      "end" : 3.12,
+      "speaker" : 0,
+      "start" : 2.8,
+      "word" : "brown"
+    },
+    {
+      "confidence" : 0.99902344,
+      "end" : 3.52,
+      "speaker" : 0,
+      "start" : 3.12,
+      "word" : "fox"
+    },
+    {
+      "confidence" : 1,
+      "end" : 3.84,
+      "speaker" : 0,
+      "start" : 3.52,
+      "word" : "jumps"
+    },
+    {
+      "confidence" : 1,
+      "end" : 4.08,
+      "speaker" : 0,
+      "start" : 3.84,
+      "word" : "over"
+    },
+    {
+      "confidence" : 1,
+      "end" : 4.24,
+      "speaker" : 0,
+      "start" : 4.08,
+      "word" : "the"
+    },
+    {
+      "confidence" : 0.9980469,
+      "end" : 4.56,
+      "speaker" : 0,
+      "start" : 4.24,
+      "word" : "lazy"
+    },
+    {
+      "confidence" : 0.99658203,
+      "end" : 4.88,
+      "speaker" : 0,
+      "start" : 4.56,
+      "word" : "dog"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "stderrWarnings": [
+    "E5RT encountered an STL exception: unordered_map::at: key not found."
+  ],
+  "timingNote": "This run used SortformerModels.loadFromHuggingFace with computeUnits .cpuOnly to match FluidAudioCLI's Sortformer command path.",
+  "progressLogPath": "progress.jsonl"
+}

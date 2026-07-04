@@ -1,0 +1,59 @@
+{
+  "audio" : {
+    "durationSeconds" : 4.9109375,
+    "inputChannels" : 1,
+    "inputSampleRate" : 16000,
+    "path" : "/Users/simonpeacocks/GitHub/toy-local/ToyLocalCloudflareApi/tests/fixtures/audio/asr-smoke.wav",
+    "resampledSampleRate" : 16000,
+    "resampledSamples" : 78575
+  },
+  "modelID" : "ls-eend-dihard3",
+  "outputShape" : [
+    "speaker-indexed timeline segments",
+    "start/end frame",
+    "start/end time",
+    "finalized flag",
+    "activity score"
+  ],
+  "segments" : [
+    {
+      "activity" : 0.727409,
+      "duration" : 2.2,
+      "endFrame" : 22,
+      "endTime" : 2.2,
+      "finalized" : true,
+      "speakerIndex" : 0,
+      "speakerLabel" : "Speaker 0",
+      "startFrame" : 0,
+      "startTime" : 0
+    },
+    {
+      "activity" : 0.72292334,
+      "duration" : 2.5,
+      "endFrame" : 49,
+      "endTime" : 4.9,
+      "finalized" : true,
+      "speakerIndex" : 0,
+      "speakerLabel" : "Speaker 0",
+      "startFrame" : 24,
+      "startTime" : 2.4
+    }
+  ],
+  "speakerStats" : [
+    {
+      "segmentCount" : 2,
+      "speakerIndex" : 0,
+      "speechSeconds" : 4.7
+    }
+  ],
+  "stats" : {
+    "averageSegmentSeconds" : 2.35,
+    "maxConcurrentSpeakers" : 1,
+    "overlapSeconds" : 0,
+    "processingSeconds" : 87.29634201526642,
+    "rtfx" : 0.05625593680822472,
+    "segmentCount" : 2,
+    "speakerCount" : 1,
+    "totalSpeechSeconds" : 4.7
+  }
+}

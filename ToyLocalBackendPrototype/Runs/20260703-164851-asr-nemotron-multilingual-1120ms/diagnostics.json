@@ -1,0 +1,10 @@
+{
+  "stderrWarnings": [
+    "Smart-spec assets missing: joint_noencproj_batched.mlpackage was not present, so FluidAudio fell back to the legacy inner loop.",
+    "E5RT encountered an STL exception: Failed to PropagateInputTensorShapes during type inference for ios17.slice_by_index: zero shape error.",
+    "E5RT encountered an STL exception: MILCompilerForANE error: failed to compile ANE model using ANEF."
+  ],
+  "observedTranscriptIssue": null,
+  "timingNote": "processingSeconds includes first-run download, load, and compile cost for this streaming probe path. inferenceSeconds is the warm model inference time reported by the probe.",
+  "progressLogPath": "progress.jsonl"
+}

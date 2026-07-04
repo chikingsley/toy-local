@@ -1,347 +1,366 @@
 import AVFoundation
 import AppKit
 import Foundation
-import ToyLocalCore
 import Sauce
 import ServiceManagement
 import SwiftUI
+import ToyLocalCore
 
 private let settingsLogger = ToyLocalLog.settings
 
 @MainActor @Observable
 final class SettingsStore {
-	// MARK: - State
+  // MARK: - State
 
-	var languages: [Language] = []
-	var currentModifiers: Modifiers = .init(modifiers: [])
-	var currentPasteLastModifiers: Modifiers = .init(modifiers: [])
-	var remappingScratchpadText: String = ""
-	var availableInputDevices: [AudioInputDevice] = []
-	var defaultInputDeviceName: String?
-	var shouldFlashModelSection = false
+  var languages: [Language] = []
+  var currentModifiers: Modifiers = .init(modifiers: [])
+  var currentPasteLastModifiers: Modifiers = .init(modifiers: [])
+  var remappingScratchpadText: String = ""
+  var availableInputDevices: [AudioInputDevice] = []
+  var defaultInputDeviceName: String?
+  var shouldFlashModelSection = false
 
-	// MARK: - Child Stores
+  // MARK: - Child Stores
 
-	let modelDownload: ModelDownloadStore
+  let modelDownload: ModelDownloadStore
 
-	// MARK: - Dependencies
+  // MARK: - Dependencies
 
-	private let settings: SettingsManager
-	private let keyEventMonitor: KeyEventMonitorClientLive
-	private let transcription: TranscriptionClientLive
-	private let recording: RecordingClientLive
-	private let permissions: PermissionClientLive
+  private let settings: SettingsManager
+  private let keyEventMonitor: KeyEventMonitorClientLive
+  private let transcription: TranscriptionClientLive
+  private let recording: RecordingClientLive
+  private let permissions: PermissionClientLive
 
-	// MARK: - Task Handles
+  // MARK: - Task Handles
 
-	@ObservationIgnored private var keyEventTask: Task<Void, Never>?
-	@ObservationIgnored private var deviceRefreshTask: Task<Void, Never>?
-	@ObservationIgnored nonisolated(unsafe) private var deviceConnectionObserver: Any?
-	@ObservationIgnored nonisolated(unsafe) private var deviceDisconnectionObserver: Any?
-	@ObservationIgnored private var deviceUpdateTask: Task<Void, Never>?
-	@ObservationIgnored private var hasStarted = false
+  @ObservationIgnored private var keyEventTask: Task<Void, Never>?
+  @ObservationIgnored private var deviceRefreshTask: Task<Void, Never>?
+  @ObservationIgnored nonisolated(unsafe) private var deviceConnectionObserver: Any?
+  @ObservationIgnored nonisolated(unsafe) private var deviceDisconnectionObserver: Any?
+  @ObservationIgnored private var deviceUpdateTask: Task<Void, Never>?
+  @ObservationIgnored private var hasStarted = false
 
-	// MARK: - Init
+  // MARK: - Init
 
-	init(services: ServiceContainer) {
-		self.settings = services.settings
-		self.keyEventMonitor = services.keyEventMonitor
-		self.transcription = services.transcription
-		self.recording = services.recording
-		self.permissions = services.permissions
-		self.modelDownload = ModelDownloadStore(services: services)
-	}
+  init(services: ServiceContainer) {
+    self.settings = services.settings
+    self.keyEventMonitor = services.keyEventMonitor
+    self.transcription = services.transcription
+    self.recording = services.recording
+    self.permissions = services.permissions
+    self.modelDownload = ModelDownloadStore(services: services)
+  }
 
-	deinit {
-		keyEventTask?.cancel()
-		deviceRefreshTask?.cancel()
-		deviceUpdateTask?.cancel()
-		if let obs = deviceConnectionObserver {
-			NotificationCenter.default.removeObserver(obs)
-		}
-		if let obs = deviceDisconnectionObserver {
-			NotificationCenter.default.removeObserver(obs)
-		}
-	}
+  deinit {
+    keyEventTask?.cancel()
+    deviceRefreshTask?.cancel()
+    deviceUpdateTask?.cancel()
+    if let obs = deviceConnectionObserver {
+      NotificationCenter.default.removeObserver(obs)
+    }
+    if let obs = deviceDisconnectionObserver {
+      NotificationCenter.default.removeObserver(obs)
+    }
+  }
 
-	// MARK: - Convenience Accessors
+  // MARK: - Convenience Accessors
 
-	var hexSettings: ToyLocalSettings {
-		get { settings.settings }
-		set { settings.settings = newValue }
-	}
+  var toyLocalSettings: ToyLocalSettings {
+    get { settings.settings }
+    set { settings.settings = newValue }
+  }
 
-	var isSettingHotKey: Bool {
-		get { settings.isSettingHotKey }
-		set { settings.isSettingHotKey = newValue }
-	}
+  var isSettingHotKey: Bool {
+    get { settings.isSettingHotKey }
+    set { settings.isSettingHotKey = newValue }
+  }
 
-	var isSettingPasteLastTranscriptHotkey: Bool {
-		get { settings.isSettingPasteLastTranscriptHotkey }
-		set { settings.isSettingPasteLastTranscriptHotkey = newValue }
-	}
+  var isSettingPasteLastTranscriptHotkey: Bool {
+    get { settings.isSettingPasteLastTranscriptHotkey }
+    set { settings.isSettingPasteLastTranscriptHotkey = newValue }
+  }
 
-	var isRemappingScratchpadFocused: Bool {
-		get { settings.isRemappingScratchpadFocused }
-		set { settings.isRemappingScratchpadFocused = newValue }
-	}
+  var isRemappingScratchpadFocused: Bool {
+    get { settings.isRemappingScratchpadFocused }
+    set { settings.isRemappingScratchpadFocused = newValue }
+  }
 
-	var transcriptionHistory: TranscriptionHistory {
-		get { settings.transcriptionHistory }
-		set { settings.transcriptionHistory = newValue }
-	}
+  var transcriptionHistory: TranscriptionHistory {
+    get { settings.transcriptionHistory }
+    set { settings.transcriptionHistory = newValue }
+  }
 
-	var hotkeyPermissionState: HotkeyPermissionState {
-		settings.hotkeyPermissionState
-	}
+  var hotkeyPermissionState: HotkeyPermissionState {
+    settings.hotkeyPermissionState
+  }
 
-	// MARK: - Lifecycle
+  // MARK: - Lifecycle
 
-	func start() {
-		guard !hasStarted else { return }
-		hasStarted = true
+  func start() {
+    guard !hasStarted else { return }
+    hasStarted = true
 
-		loadLanguages()
-		modelDownload.fetchModels()
-		loadAvailableInputDevices()
-		startDeviceRefresh()
-		startDeviceConnectionObservers()
-		startKeyEventListening()
-	}
+    loadLanguages()
+    modelDownload.fetchModels()
+    loadAvailableInputDevices()
+    startDeviceRefresh()
+    startDeviceConnectionObservers()
+    startKeyEventListening()
+  }
 
-	// MARK: - Language Loading
+  // MARK: - Language Loading
 
-	private func loadLanguages() {
-		if let url = Bundle.main.url(forResource: "languages", withExtension: "json"),
-		   let data = try? Data(contentsOf: url),
-		   let langs = try? JSONDecoder().decode([Language].self, from: data) {
-			languages = langs
-		} else {
-			settingsLogger.error("Failed to load languages JSON from bundle")
-		}
-	}
+  private func loadLanguages() {
+    if let url = Bundle.main.url(forResource: "languages", withExtension: "json"),
+      let data = try? Data(contentsOf: url),
+      let langs = try? JSONDecoder().decode([Language].self, from: data)
+    {
+      languages = langs
+    } else {
+      settingsLogger.error("Failed to load languages JSON from bundle")
+    }
+  }
 
-	// MARK: - Key Event Listening
+  // MARK: - Key Event Listening
 
-	private func startKeyEventListening() {
-		keyEventTask?.cancel()
-		keyEventTask = Task { [weak self] in
-			guard let self else { return }
-			do {
-				for try await keyEvent in self.keyEventMonitor.listenForKeyPress() {
-					self.handleKeyEvent(keyEvent)
-				}
-			} catch {
-				// Stream ended or was cancelled
-			}
-		}
-	}
+  private func startKeyEventListening() {
+    keyEventTask?.cancel()
+    keyEventTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        for try await keyEvent in self.keyEventMonitor.listenForKeyPress() {
+          self.handleKeyEvent(keyEvent)
+        }
+      } catch {
+        // Stream ended or was cancelled
+      }
+    }
+  }
 
-	// MARK: - Hotkey Setting
+  // MARK: - Hotkey Setting
 
-	func startSettingHotKey() {
-		settings.isSettingHotKey = true
-	}
+  func startSettingHotKey() {
+    settings.isSettingHotKey = true
+  }
 
-	func startSettingPasteLastTranscriptHotkey() {
-		settings.isSettingPasteLastTranscriptHotkey = true
-		currentPasteLastModifiers = .init(modifiers: [])
-	}
+  func startSettingPasteLastTranscriptHotkey() {
+    settings.isSettingPasteLastTranscriptHotkey = true
+    currentPasteLastModifiers = .init(modifiers: [])
+  }
 
-	func clearPasteLastTranscriptHotkey() {
-		hexSettings.pasteLastTranscriptHotkey = nil
-	}
+  func clearPasteLastTranscriptHotkey() {
+    toyLocalSettings.pasteLastTranscriptHotkey = nil
+  }
 
-	func handleKeyEvent(_ keyEvent: KeyEvent) {
-		// Handle paste last transcript hotkey setting
-		if settings.isSettingPasteLastTranscriptHotkey {
-			if keyEvent.key == .escape {
-				settings.isSettingPasteLastTranscriptHotkey = false
-				currentPasteLastModifiers = []
-				return
-			}
+  func handleKeyEvent(_ keyEvent: KeyEvent) {
+    // Handle paste last transcript hotkey setting
+    if settings.isSettingPasteLastTranscriptHotkey {
+      if keyEvent.key == .escape {
+        settings.isSettingPasteLastTranscriptHotkey = false
+        currentPasteLastModifiers = []
+        return
+      }
 
-			currentPasteLastModifiers = keyEvent.modifiers.union(currentPasteLastModifiers)
-			let mods = currentPasteLastModifiers
-			if let key = keyEvent.key {
-				guard !mods.isEmpty else { return }
-				hexSettings.pasteLastTranscriptHotkey = HotKey(key: key, modifiers: mods.erasingSides())
-				settings.isSettingPasteLastTranscriptHotkey = false
-				currentPasteLastModifiers = []
-			}
-			return
-		}
+      currentPasteLastModifiers = keyEvent.modifiers.union(currentPasteLastModifiers)
+      let mods = currentPasteLastModifiers
+      if let key = keyEvent.key {
+        guard !mods.isEmpty else { return }
+        toyLocalSettings.pasteLastTranscriptHotkey = HotKey(key: key, modifiers: mods.erasingSides())
+        settings.isSettingPasteLastTranscriptHotkey = false
+        currentPasteLastModifiers = []
+      }
+      return
+    }
 
-		// Handle main recording hotkey setting
-		guard settings.isSettingHotKey else { return }
+    // Handle main recording hotkey setting
+    guard settings.isSettingHotKey else { return }
 
-		if keyEvent.key == .escape {
-			settings.isSettingHotKey = false
-			currentModifiers = []
-			return
-		}
+    if keyEvent.key == .escape {
+      settings.isSettingHotKey = false
+      currentModifiers = []
+      return
+    }
 
-		currentModifiers = keyEvent.modifiers.union(currentModifiers)
-		let mods = currentModifiers
-		if let key = keyEvent.key {
-			hexSettings.hotkey.key = key
-			hexSettings.hotkey.modifiers = mods.erasingSides()
-			settings.isSettingHotKey = false
-			currentModifiers = []
-		} else if keyEvent.modifiers.isEmpty {
-			hexSettings.hotkey.key = nil
-			hexSettings.hotkey.modifiers = mods.erasingSides()
-			settings.isSettingHotKey = false
-			currentModifiers = []
-		}
-	}
+    currentModifiers = keyEvent.modifiers.union(currentModifiers)
+    let mods = currentModifiers
+    if let key = keyEvent.key {
+      toyLocalSettings.hotkey.key = key
+      toyLocalSettings.hotkey.modifiers = mods.erasingSides()
+      settings.isSettingHotKey = false
+      currentModifiers = []
+    } else if keyEvent.modifiers.isEmpty {
+      toyLocalSettings.hotkey.key = nil
+      toyLocalSettings.hotkey.modifiers = mods.erasingSides()
+      settings.isSettingHotKey = false
+      currentModifiers = []
+    }
+  }
 
-	// MARK: - Settings Toggles
+  // MARK: - Settings Toggles
 
-	func toggleOpenOnLogin(_ enabled: Bool) {
-		hexSettings.openOnLogin = enabled
-		Task.detached {
-			if enabled {
-				try? SMAppService.mainApp.register()
-			} else {
-				try? SMAppService.mainApp.unregister()
-			}
-		}
-	}
+  func toggleOpenOnLogin(_ enabled: Bool) {
+    toyLocalSettings.openOnLogin = enabled
+    Task.detached {
+      if enabled {
+        try? SMAppService.mainApp.register()
+      } else {
+        try? SMAppService.mainApp.unregister()
+      }
+    }
+  }
 
-	func togglePreventSystemSleep(_ enabled: Bool) {
-		hexSettings.preventSystemSleep = enabled
-	}
+  func togglePreventSystemSleep(_ enabled: Bool) {
+    toyLocalSettings.preventSystemSleep = enabled
+  }
 
-	func setRecordingAudioBehavior(_ behavior: RecordingAudioBehavior) {
-		hexSettings.recordingAudioBehavior = behavior
-	}
+  func setRecordingAudioBehavior(_ behavior: RecordingAudioBehavior) {
+    toyLocalSettings.recordingAudioBehavior = behavior
+  }
 
-	// MARK: - Permissions
+  func setRecordingInputMode(_ mode: RecordingInputMode) {
+    toyLocalSettings.recordingInputMode = mode
+  }
 
-	func requestMicrophone() {
-		settingsLogger.info("User requested microphone permission from settings")
-		Task {
-			_ = await permissions.requestMicrophone()
-		}
-	}
+  // MARK: - Permissions
 
-	func requestAccessibility() {
-		settingsLogger.info("User requested accessibility permission from settings")
-		Task {
-			await permissions.requestAccessibility()
-		}
-	}
+  func requestMicrophone() {
+    settingsLogger.info("User requested microphone permission from settings")
+    Task {
+      _ = await permissions.requestMicrophone()
+    }
+  }
 
-	func requestInputMonitoring() {
-		settingsLogger.info("User requested input monitoring permission from settings")
-		Task {
-			_ = await permissions.requestInputMonitoring()
-		}
-	}
+  func requestAccessibility() {
+    settingsLogger.info("User requested accessibility permission from settings")
+    Task {
+      await permissions.requestAccessibility()
+    }
+  }
 
-	// MARK: - Microphone Devices
+  func requestScreenCapture() {
+    settingsLogger.info("User requested screen recording permission from settings")
+    Task {
+      _ = await permissions.requestScreenCapture()
+    }
+  }
 
-	func loadAvailableInputDevices() {
-		Task {
-			let devices = await recording.getAvailableInputDevices()
-			let defaultName = await recording.getDefaultInputDeviceName()
-			self.availableInputDevices = devices
-			self.defaultInputDeviceName = defaultName
-		}
-	}
+  func openSystemAudioCaptureSettings() {
+    settingsLogger.info("User opened system audio capture settings")
+    Task {
+      await permissions.openSystemAudioCaptureSettings()
+    }
+  }
 
-	private func startDeviceRefresh() {
-		deviceRefreshTask?.cancel()
-		deviceRefreshTask = Task { [weak self] in
-			while !Task.isCancelled {
-				try? await Task.sleep(for: .seconds(120))
-				guard let self, NSApplication.shared.isActive else { continue }
-				self.loadAvailableInputDevices()
-			}
-		}
-	}
+  func openAutomationSettings() {
+    settingsLogger.info("User opened automation settings")
+    Task {
+      await permissions.openAutomationSettings()
+    }
+  }
 
-	private func startDeviceConnectionObservers() {
-		deviceConnectionObserver = NotificationCenter.default.addObserver(
-			forName: NSNotification.Name(rawValue: "AVCaptureDeviceWasConnected"),
-			object: nil,
-			queue: .main
-		) { [weak self] _ in
-			Task { @MainActor [weak self] in
-				self?.debounceDeviceUpdate()
-			}
-		}
+  // MARK: - Microphone Devices
 
-		deviceDisconnectionObserver = NotificationCenter.default.addObserver(
-			forName: NSNotification.Name(rawValue: "AVCaptureDeviceWasDisconnected"),
-			object: nil,
-			queue: .main
-		) { [weak self] _ in
-			Task { @MainActor [weak self] in
-				self?.debounceDeviceUpdate()
-			}
-		}
-	}
+  func loadAvailableInputDevices() {
+    Task {
+      let devices = await recording.getAvailableInputDevices()
+      let defaultName = await recording.getDefaultInputDeviceName()
+      self.availableInputDevices = devices
+      self.defaultInputDeviceName = defaultName
+    }
+  }
 
-	private func debounceDeviceUpdate() {
-		deviceUpdateTask?.cancel()
-		deviceUpdateTask = Task { [weak self] in
-			try? await Task.sleep(nanoseconds: 500_000_000)
-			guard !Task.isCancelled, let self else { return }
-			self.loadAvailableInputDevices()
-		}
-	}
+  private func startDeviceRefresh() {
+    deviceRefreshTask?.cancel()
+    deviceRefreshTask = Task { [weak self] in
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(120))
+        guard let self, NSApplication.shared.isActive else { continue }
+        self.loadAvailableInputDevices()
+      }
+    }
+  }
 
-	// MARK: - History Management
+  private func startDeviceConnectionObservers() {
+    deviceConnectionObserver = NotificationCenter.default.addObserver(
+      forName: NSNotification.Name(rawValue: "AVCaptureDeviceWasConnected"),
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.debounceDeviceUpdate()
+      }
+    }
 
-	func toggleSaveTranscriptionHistory(_ enabled: Bool) {
-		hexSettings.saveTranscriptionHistory = enabled
+    deviceDisconnectionObserver = NotificationCenter.default.addObserver(
+      forName: NSNotification.Name(rawValue: "AVCaptureDeviceWasDisconnected"),
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.debounceDeviceUpdate()
+      }
+    }
+  }
 
-		if !enabled {
-			let transcripts = settings.transcriptionHistory.history
-			settings.transcriptionHistory.history.removeAll()
+  private func debounceDeviceUpdate() {
+    deviceUpdateTask?.cancel()
+    deviceUpdateTask = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: 500_000_000)
+      guard !Task.isCancelled, let self else { return }
+      self.loadAvailableInputDevices()
+    }
+  }
 
-			Task.detached {
-				for transcript in transcripts {
-					try? FileManager.default.removeItem(at: transcript.audioPath)
-				}
-			}
-		}
-	}
+  // MARK: - History Management
 
-	// MARK: - Word Removals/Remappings
+  func toggleSaveTranscriptionHistory(_ enabled: Bool) {
+    toyLocalSettings.saveTranscriptionHistory = enabled
 
-	func addWordRemoval() {
-		hexSettings.wordRemovals.append(.init(pattern: ""))
-	}
+    if !enabled {
+      let transcripts = settings.transcriptionHistory.history
+      settings.transcriptionHistory.history.removeAll()
 
-	func removeWordRemoval(_ id: UUID) {
-		hexSettings.wordRemovals.removeAll { $0.id == id }
-	}
+      Task.detached {
+        for transcript in transcripts {
+          try? FileManager.default.removeItem(at: transcript.audioPath)
+        }
+      }
+    }
+  }
 
-	func addWordRemapping() {
-		hexSettings.wordRemappings.append(.init(match: "", replacement: ""))
-	}
+  // MARK: - Word Removals/Remappings
 
-	func removeWordRemapping(_ id: UUID) {
-		hexSettings.wordRemappings.removeAll { $0.id == id }
-	}
+  func addWordRemoval() {
+    toyLocalSettings.wordRemovals.append(.init(pattern: ""))
+  }
 
-	func setRemappingScratchpadFocused(_ isFocused: Bool) {
-		settings.isRemappingScratchpadFocused = isFocused
-	}
+  func removeWordRemoval(_ id: UUID) {
+    toyLocalSettings.wordRemovals.removeAll { $0.id == id }
+  }
 
-	// MARK: - Modifier Configuration
+  func addWordRemapping() {
+    toyLocalSettings.wordRemappings.append(.init(match: "", replacement: ""))
+  }
 
-	func setModifierSide(_ kind: Modifier.Kind, _ side: Modifier.Side) {
-		guard hexSettings.hotkey.key == nil else { return }
-		hexSettings.hotkey.modifiers = hexSettings.hotkey.modifiers.setting(kind: kind, to: side)
-	}
+  func removeWordRemapping(_ id: UUID) {
+    toyLocalSettings.wordRemappings.removeAll { $0.id == id }
+  }
 
-	// MARK: - Binding Change Handler
+  func setRemappingScratchpadFocused(_ isFocused: Bool) {
+    settings.isRemappingScratchpadFocused = isFocused
+  }
 
-	func settingsBindingChanged() {
-		NotificationCenter.default.post(name: .updateAppMode, object: nil)
-	}
+  // MARK: - Modifier Configuration
+
+  func setModifierSide(_ kind: Modifier.Kind, _ side: Modifier.Side) {
+    guard toyLocalSettings.hotkey.key == nil else { return }
+    toyLocalSettings.hotkey.modifiers = toyLocalSettings.hotkey.modifiers.setting(kind: kind, to: side)
+  }
+
+  // MARK: - Binding Change Handler
+
+  func settingsBindingChanged() {
+    NotificationCenter.default.post(name: .updateAppMode, object: nil)
+  }
 }

@@ -2,6 +2,8 @@ build/
 updates/
 .vscode
 .DS_Store
+.env
+.env.*
 
 # Xcode
 *.xcodeproj/xcuserdata/
@@ -10,6 +12,9 @@ updates/
 buildServer.json
 ExportOptions.plist
 ToyLocalCore/.build
+ToyLocalLiveDriver/.build
+ToyLocalTextTransformDriver/.build
+ToyLocalTextTransformDriver/Runs/
 ToyLocalCore/.swiftpm/xcode/xcuserdata/kit.xcuserdatad/xcschemes
 FluidAudio/
 node_modules/
