@@ -11,7 +11,10 @@ struct HistoryDetail: View {
   let item: HistoryItem
   let title: String
   let isPlaying: Bool
+  let playbackPosition: TimeInterval
+  let playbackDuration: TimeInterval
   let togglePlayback: () -> Void
+  let seek: (TimeInterval) -> Void
   @State private var selectedTextView: HistoryTextView = .processed
 
   private var activeText: String {
@@ -47,7 +50,10 @@ struct HistoryDetail: View {
         duration: item.duration,
         hasAudio: item.audioURL != nil,
         isPlaying: isPlaying,
-        togglePlayback: togglePlayback
+        position: playbackPosition,
+        playbackDuration: playbackDuration,
+        togglePlayback: togglePlayback,
+        seek: seek
       )
 
       HStack {
@@ -230,7 +236,10 @@ struct HistoryPlaybackBar: View {
   let duration: String
   let hasAudio: Bool
   let isPlaying: Bool
+  let position: TimeInterval
+  let playbackDuration: TimeInterval
   let togglePlayback: () -> Void
+  let seek: (TimeInterval) -> Void
 
   var body: some View {
     HStack(spacing: 12) {
@@ -244,15 +253,18 @@ struct HistoryPlaybackBar: View {
       .disabled(!hasAudio)
       .opacity(hasAudio ? 1 : 0.45)
 
-      Text("0:00")
+      Text(HistoryItem.formatDuration(position))
         .font(.system(size: 11, weight: .medium))
         .foregroundStyle(.secondary)
         .frame(width: 32, alignment: .leading)
 
-      Slider(value: .constant(0), in: 0...1)
-        .tint(HistoryStyle.playbackBlue)
-        .controlSize(.small)
-        .disabled(true)
+      Slider(
+        value: Binding(get: { position }, set: { seek($0) }),
+        in: 0...max(playbackDuration, 0.01)
+      )
+      .tint(HistoryStyle.playbackBlue)
+      .controlSize(.small)
+      .disabled(!isPlaying)
 
       Text(duration)
         .font(.system(size: 11, weight: .medium))

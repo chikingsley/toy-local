@@ -34,8 +34,11 @@ class AudioPlayerController: NSObject, AVAudioPlayerDelegate, @unchecked Sendabl
 final class HistoryStore {
   var records: [TranscriptRecord] = []
   var playingTranscriptID: String?
+  var playbackPosition: TimeInterval = 0
+  var playbackDuration: TimeInterval = 0
   var audioPlayer: AVAudioPlayer?
   var audioPlayerController: AudioPlayerController?
+  private var playbackTicker: Task<Void, Never>?
 
   private let settings: SettingsManager
   private let pasteboard: PasteboardClientLive
@@ -122,6 +125,9 @@ final class HistoryStore {
       audioPlayer = player
       audioPlayerController = controller
       playingTranscriptID = id
+      playbackDuration = player.duration
+      playbackPosition = 0
+      startPlaybackTicker()
 
       controller.onPlaybackFinished = { [weak self] in
         Task { @MainActor in
@@ -133,11 +139,32 @@ final class HistoryStore {
     }
   }
 
+  func seek(to position: TimeInterval) {
+    guard let audioPlayer else { return }
+    audioPlayer.currentTime = min(max(0, position), audioPlayer.duration)
+    playbackPosition = audioPlayer.currentTime
+  }
+
   func stopPlayback() {
+    playbackTicker?.cancel()
+    playbackTicker = nil
     audioPlayerController?.stop()
     audioPlayer = nil
     audioPlayerController = nil
     playingTranscriptID = nil
+    playbackPosition = 0
+    playbackDuration = 0
+  }
+
+  private func startPlaybackTicker() {
+    playbackTicker?.cancel()
+    playbackTicker = Task { [weak self] in
+      while !Task.isCancelled {
+        guard let self, let player = self.audioPlayer else { return }
+        self.playbackPosition = player.currentTime
+        try? await Task.sleep(for: .milliseconds(100))
+      }
+    }
   }
 
   func copyToClipboard(_ text: String) {

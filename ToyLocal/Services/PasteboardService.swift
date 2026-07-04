@@ -12,6 +12,14 @@ struct PasteboardClientLive {
   private var toyLocalSettings: ToyLocalSettings { settingsManager.settings }
   private let clipboardRestoreDelay: Duration = .milliseconds(1_200)
 
+  private var shouldRestoreClipboard: Bool {
+    switch toyLocalSettings.clipboardRestoreBehavior {
+    case .defaultBehavior: !toyLocalSettings.copyToClipboard
+    case .restore: true
+    case .bypass: false
+    }
+  }
+
   private struct PasteboardSnapshot {
     let items: [[String: Any]]
 
@@ -135,10 +143,7 @@ struct PasteboardClientLive {
     }
     let pasteSucceeded = await performPaste(text)
 
-    // Only restore original pasteboard contents if:
-    // 1. Copying to clipboard is disabled AND
-    // 2. The paste operation succeeded
-    if !toyLocalSettings.copyToClipboard && pasteSucceeded {
+    if shouldRestoreClipboard && pasteSucceeded {
       let savedSnapshot = snapshot
       Task { @MainActor in
         // Give target apps a wider window to consume Cmd+V contents before restore.

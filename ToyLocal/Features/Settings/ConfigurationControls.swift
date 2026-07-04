@@ -188,25 +188,6 @@ struct ConfigurationMenuRow<Value: Hashable & Sendable>: View {
   }
 }
 
-struct ConfigurationAgentRow: View {
-  let name: String
-  let asset: String
-
-  var body: some View {
-    TLSettingsRow(title: name, height: 44) {
-      HStack(spacing: 12) {
-        Image(asset)
-          .resizable()
-          .scaledToFit()
-          .frame(width: 20, height: 20)
-          .clipShape(RoundedRectangle(cornerRadius: 4))
-        Button("Install") {}
-          .controlSize(.small)
-      }
-    }
-  }
-}
-
 struct ConfigurationHeaderPill: View {
   let icon: String
   let text: String

@@ -8,11 +8,8 @@ struct ModeDraft: Identifiable, Equatable {
   var language: String
   var voiceModel: ModeModelOption
   var languageModel: ModeModelOption
-  var realtime: Bool
   var playbackBehavior: String
   var recordSystemAudio: Bool
-  var identifySpeakers: Bool
-  var autocapitalizeInsert: Bool
   var autoPaste: String
   let isActive: Bool
 
@@ -39,11 +36,8 @@ struct ModeDraft: Identifiable, Equatable {
       language: languageName,
       voiceModel: voice,
       languageModel: language,
-      realtime: false,
       playbackBehavior: settings.recordingAudioBehavior.displayName,
       recordSystemAudio: settings.recordingInputMode == .systemAudio,
-      identifySpeakers: false,
-      autocapitalizeInsert: true,
       autoPaste: settings.autoPasteResult ? "On" : "Off",
       isActive: true
     )
@@ -57,11 +51,8 @@ struct ModeDraft: Identifiable, Equatable {
       language: "Automatic",
       voiceModel: .voiceModels[0],
       languageModel: .languageModels[0],
-      realtime: false,
       playbackBehavior: RecordingAudioBehavior.doNothing.displayName,
       recordSystemAudio: false,
-      identifySpeakers: false,
-      autocapitalizeInsert: true,
       autoPaste: "On",
       isActive: true
     )

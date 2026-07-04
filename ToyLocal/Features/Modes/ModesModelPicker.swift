@@ -5,7 +5,6 @@ struct ModesModelMenu: View {
   @Binding var selection: ModeModelOption
   let models: [ModeModelOption]
   var width: CGFloat = 190
-  var panelWidth: CGFloat = 300
 
   @State private var presentationID = UUID()
   @State private var anchorFrame: CGRect = .zero
@@ -46,7 +45,7 @@ struct ModesModelMenu: View {
       anchor: anchorFrame,
       placement: .bottomTrailing,
       spacing: 6,
-      estimatedSize: CGSize(width: panelWidth, height: estimatedPanelHeight),
+      estimatedSize: CGSize(width: PickerMetrics.minPanelWidth, height: estimatedPanelHeight),
       blocksBackground: true
     ) {
       ModesModelPicker(
@@ -62,9 +61,25 @@ struct ModesModelMenu: View {
   private var estimatedPanelHeight: CGFloat {
     let searchArea: CGFloat = 52
     let sectionTitles: CGFloat = 52
-    let visibleRows = CGFloat(min(models.count, 6))
-    return searchArea + sectionTitles + visibleRows * 31 + 12
+    let visibleRows = CGFloat(min(models.count, PickerMetrics.visibleRows))
+    return searchArea + sectionTitles + visibleRows * PickerMetrics.rowHeight + 12
   }
+}
+
+private enum PickerMetrics {
+  static let visibleRows = 6
+  static let rowHeight: CGFloat = 31
+  static let minPanelWidth: CGFloat = 300
+  static let maxListHeight = CGFloat(visibleRows) * rowHeight + 60
+}
+
+#Preview("Voice model picker sizes to content") {
+  ModesModelPicker(
+    selection: .constant(ModeModelOption.voiceModels[0]),
+    models: ModeModelOption.voiceModels,
+    hoverNamespace: "preview"
+  ) {}
+  .padding(24)
 }
 
 struct ModesModelPicker: View {
@@ -119,15 +134,8 @@ struct ModesModelPicker: View {
       }
       .frame(maxHeight: PickerMetrics.maxListHeight)
     }
-    .frame(width: PickerMetrics.panelWidth)
+    .frame(minWidth: PickerMetrics.minPanelWidth, alignment: .leading)
     .background(tlPopoverSurface, in: RoundedRectangle(cornerRadius: 9))
-  }
-
-  private enum PickerMetrics {
-    static let visibleRows = 6
-    static let rowHeight: CGFloat = 31
-    static let panelWidth: CGFloat = 300
-    static let maxListHeight = CGFloat(visibleRows) * rowHeight + 60
   }
 
   private func modelButton(_ model: ModeModelOption) -> some View {

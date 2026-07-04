@@ -130,7 +130,7 @@ struct TLFloatingHost<Content: View>: View {
             )
 
             presentation.content
-              .fixedSize(horizontal: false, vertical: true)
+              .fixedSize()
               .onGeometryChange(for: CGSize.self) { contentProxy in
                 contentProxy.size
               } action: { size in

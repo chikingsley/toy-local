@@ -110,10 +110,6 @@ struct ConfigurationPane: View {
     VStack(alignment: .leading, spacing: 20) {
       advancedApplicationSection
       advancedTextInputSection
-      advancedVoiceModelSection
-      advancedAppFolderSection
-      advancedAgentPluginsSection
-      advancedAIModelsSection
     }
   }
 }
@@ -174,12 +170,6 @@ private extension ConfigurationPane {
             get: { store.toyLocalSettings.openOnLogin },
             set: { store.toggleOpenOnLogin($0) }
           )
-        )
-        TLSettingsToggleRow(
-          icon: "ladybug",
-          title: "Error logging",
-          hint: "If enabled, errors you encounter will be automatically recorded and sent to our error tracker to assist with fixing the issue.",
-          isOn: $store.toyLocalSettings.errorLoggingEnabled
         )
         ConfigurationMenuRow(
           icon: "clock.arrow.circlepath",
@@ -275,18 +265,6 @@ private extension ConfigurationPane {
             + "If disabled, the Application will only show in Dock when the settings window is open.",
           isOn: $store.toyLocalSettings.showDockIcon
         )
-        TLSettingsToggleRow(
-          icon: "menubar.arrow.up.rectangle",
-          title: "Start Recording on Menubar Click",
-          hint: "If enabled, left clicking the menubar icon will start a new recording.",
-          isOn: $store.toyLocalSettings.startRecordingOnMenubarClick
-        )
-        TLSettingsToggleRow(
-          icon: "xmark.circle",
-          title: "Always close",
-          hint: "If enabled, when your dictation is complete, the recording window will be automatically closed. Even if we are not able to paste.",
-          isOn: $store.toyLocalSettings.alwaysCloseRecordingWindow
-        )
 
       }
     }
@@ -300,13 +278,6 @@ private extension ConfigurationPane {
           title: "Paste result text",
           hint: "If enabled, the results of your dictation will be automatically pasted into the focused text input when your dictation completes.",
           isOn: $store.toyLocalSettings.autoPasteResult
-        )
-        TLSettingsToggleRow(
-          icon: "paperplane",
-          title: "Hold shift to auto-send after paste",
-          hint: "If enabled, hold shift as you're finishing your recording ToyLocal will send your message.",
-          showsAI: true,
-          isOn: $store.toyLocalSettings.holdShiftToAutoSend
         )
         ConfigurationMenuRow(
           icon: "doc.on.clipboard",
@@ -333,64 +304,6 @@ private extension ConfigurationPane {
     }
   }
 
-  private var advancedVoiceModelSection: some View {
-    TLSection(title: "Voice model") {
-      TLCard {
-        ConfigurationMenuRow(
-          icon: "memorychip",
-          title: "Voice model active duration",
-          hint: "How many minutes should the Voice model be kept loaded and ready.",
-          options: [1, 5, 15].map { TLMenuOption(value: $0, label: $0 == 1 ? "1 minute" : "\($0) minutes") },
-          selection: $store.toyLocalSettings.voiceModelActiveDurationMinutes
-        )
-      }
-    }
-  }
-
-  private var advancedAppFolderSection: some View {
-    TLSection(title: "App folder location") {
-      TLCard {
-        TLSettingsRow(
-          icon: "folder",
-          title: "~/Documents/ToyLocal",
-          height: 44
-        ) {
-          HStack(spacing: 8) {
-            Button("Change folder...") {}
-              .controlSize(.small)
-            TLInfoHint(
-              "The folder where all ToyLocal configuration, recordings and modes are saved. The default location is ~/Documents/ToyLocal."
-            )
-          }
-        }
-      }
-    }
-  }
-
-  private var advancedAgentPluginsSection: some View {
-    TLSection(title: "Agent Plugins") {
-      TLSettingsCard {
-        ConfigurationAgentRow(name: "Claude Code", asset: "agent-claudecode")
-        ConfigurationAgentRow(name: "OpenCode", asset: "agent-opencode")
-        ConfigurationAgentRow(name: "Codex", asset: "agent-codex")
-
-      }
-    }
-  }
-
-  private var advancedAIModelsSection: some View {
-    TLSection(title: "AI Models") {
-      TLCard {
-        TLSettingsToggleRow(
-          icon: "atom",
-          title: "Show experimental models",
-          hint: "If enabled, experimental AI models will be shown in the models list. These models may be unstable or in development.",
-          showsAI: true,
-          isOn: $store.toyLocalSettings.showExperimentalModels
-        )
-      }
-    }
-  }
 }
 
 #Preview("Configuration") {

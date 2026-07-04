@@ -4,35 +4,33 @@ Work items only. Rules and resources live in `AGENTS.md`; landed changes in `CHA
 
 ## Broken UI
 
-- [ ] The Voice Model picker popover clips its content: logos flush to the edge, "Popular" header loses its first letter. The rows demand more width than the fixed 300pt frame (`ModesModelPicker.swift` PickerMetrics.panelWidth) while `TLFloatingWindowBridge.swift:72` sizes the child panel from `hosting.fittingSize` — two competing size authorities. Give the panel one size authority and make the content fit it. [B]
-- [ ] The Modes language dropdown is double/triple the size of every other dropdown: `TLOptionMenuPanel` (TLOptionMenu.swift:122-156) stacks ALL options in a plain VStack — no row cap, no ScrollView — and the language list is the full bundled `languages.json`. Put the bounded-rows-then-scroll behavior INSIDE `TLOptionMenu`. Documented exception: the Preset dropdown may stay full height. [B]
-- [ ] Dropdown sizing is set per call site — the banned pattern. Verified spread: TLOptionMenu default 152; ModesPane preset 152/204 (ModesPane.swift:167); stringOptionMenu threads width per call (ModesPane.swift:358); History filters 112/150 and 110/156 (HistoryPane.swift:157,163); ModesModelMenu 190/300 (ModesModelPicker.swift:7-8). Delete the parameters; components own their sizing. [B]
-- [ ] After those three fixes: full popover pass in the REAL app (child panels cannot render in previews) — every dropdown in Configuration, Sound, Modes, Hot Mic, History filters: size, position, clipping, hover, click-away, screen edges. [C]
+- [x] 2026-07-04: The popover system was fixed in one pass. `TLOptionMenu` now caps at six rows then scrolls (`TLOptionMenuMetrics`; the bound lives inside the component), every call site lost its width/panelWidth overrides (the Preset menu keeps `panelWidth: 204` + `showsAllRows: true` as the ONE documented exception), the voice-model picker sizes to its content (`minWidth` 300, fixed frame removed), and both presentation paths (`TLFloatingHost` in-window and `TLFloatingWindowBridge` child panels) propose content its ideal size via `.fixedSize()`. Verification previews added in TLOptionMenu.swift and ModesModelPicker.swift; build and lint green.
+- [ ] Chi's popover pass in the REAL app (child panels cannot render in previews) — every dropdown in Configuration, Sound, Modes, Hot Mic, History filters: size, position, clipping, hover, click-away, screen edges. [C]
 
 ---
 
-## Dead controls — settings that render and persist but change NOTHING (verified consumer-by-consumer)
+## Dead controls — resolved 2026-07-04 (each was wired for real or removed from the UI)
 
-Each needs a decision: wire it for real or delete the control before ship. Sorted worst first.
+Wired to real behavior (settings defaults preserve prior behavior; Chi verifies feel):
+- [x] "Paste result text" now gates the paste: off = transcript copied to clipboard only (`TranscriptionStore.finishTranscription`). [C to feel]
+- [x] Clipboard restore behavior consumed: Default = restore unless copy-to-clipboard is on (previous behavior), Restore = always, Bypass = never (`PasteboardService.shouldRestoreClipboard`).
+- [x] "Lower volume" playback now actually ducks to 25% instead of full-muting (`RecordingClientLive+MediaControl.swift`, `RecordingAudioHardware+Volume.swift`), restore path unchanged.
+- [x] Auto increase microphone volume: raises the system-default input device to max at record start and restores it after (`raiseInputVolumeToMax`/`restoreInputVolume`); skipped when a specific mic is selected, matching the control's hint.
 
-- [ ] "Paste result text" (autoPasteResult) — the paste path pastes UNCONDITIONALLY (`TranscriptionStore.swift:359` never reads the flag). Turning it off does nothing; this is a live behavior bug, not just a dead toggle. [A]
-- [ ] Clipboard restore behavior — `PasteboardService.swift:141-150` uses a hardcoded delay and never reads `clipboardRestoreBehavior`. [A]
-- [ ] Hold Shift to auto-send — `holdShiftToAutoSend` has zero references outside its toggle and schema. [A]
-- [ ] Silence removal — production workflow omits VAD entirely (`TranscriptionStore+Workflow.swift:79-84` defaults `.disabled`) and `TranscriptionWorkflowService.swift:188-191` actively rejects local VAD. [A]
-- [ ] Dynamic normalization — no consumer anywhere; recorder uses fixed PCM settings (`RecordingService.swift:29-37`). [A]
-- [ ] Auto increase microphone volume — `RecordingAudioHardware.swift:154-171` only UNMUTES; no CoreAudio input-volume setter exists. [A]
-- [ ] Error logging toggle — no log sink reads `errorLoggingEnabled`. [A]
-- [ ] Voice model active duration — no keep-alive/unload timer reads `voiceModelActiveDurationMinutes`. [A]
-- [ ] Show experimental models — nothing filters the catalog by `showExperimentalModels`. [A]
-- [ ] Start recording on menubar click — no runtime consumer. [A]
-- [ ] Always close recording window — no runtime consumer. [A]
-- [ ] Autocapitalize insert (Modes) — not even persisted: lives only on `ModeDraft` (ModeDraft.swift:15), `applyDefaultMode` never saves it, and `insertTextAtCursor` inserts verbatim. [A]
-- [ ] Identify speakers (Modes) — not persisted; production workflow omits diarization (defaults `.disabled`); a real FluidAudio diarization client exists but production rejects it (`TranscriptionWorkflowService.swift:193-197`). [B]
-- [ ] Realtime toggle (Modes) — the capability gate works (`ModesPane.swift:191` checks supportsRealtime) but the toggle's value is never persisted or consumed. [A]
+Removed from the UI until their feature exists (settings fields kept; restore each row when wiring lands):
+- [x] Silence removal and Dynamic normalization rows (SoundPane) — restore with the VAD/normalization work in the wiring matrix.
+- [x] Error logging row — restore with the sink decision.
+- [x] Start Recording on Menubar Click and Always close rows — menubar click needs an NSStatusItem rewrite (SwiftUI MenuBarExtra menu-style can't intercept left-click); always-close needs defined semantics.
+- [x] Hold shift to auto-send row — restore with the auto-send feature.
+- [x] Voice model active duration section — restore with the model keep-alive/unload timer.
+- [x] App folder location section — the "Change folder..." button did nothing and the shown path (~/Documents/ToyLocal) was not where data lives.
+- [x] Agent Plugins section — "Install" buttons did nothing; restore with the agent-plugins feature.
+- [x] Show experimental models section — restore when the library adapter exposes an experimental flag.
+- [x] Modes rows: Realtime (restore with the app-side realtime client), Identify Speakers (restore with diarization), Autocapitalize Insert (restore with the insert post-step); the backing `ModeDraft` fields were removed with them.
 
-Wired and confirmed working, for the record: playback-pause-on-record (`RecordingService.swift:130-186`), system-audio capture (`SystemAudioTapRecorder.swift`), model prewarm (`AppStore.swift:326`), show Dock icon (`ToyLocalAppDelegate.swift:326-330`).
+Wired and confirmed working, for the record: playback-pause-on-record, system-audio capture (`SystemAudioTapRecorder.swift`), model prewarm (`AppStore.swift:326`), show Dock icon (`ToyLocalAppDelegate.swift:326-330`).
 
-- [ ] "Lower volume" playback option actually FULL-MUTES — `.lowerVolume` falls into the same branch as `.mute` (`RecordingService.swift:149`). Implement real ducking or remove the option. [A]
+- [ ] Unit tests for the newly wired branches (paste gate, restore decision, duck factor, input-volume raise) as part of the settings-persistence audit. [A]
 
 ---
 
@@ -48,8 +46,8 @@ Wired and confirmed working, for the record: playback-pause-on-record (`Recordin
 
 ## Half-built or orphaned
 
-- [ ] History playback scrubber is a decorative fake: `Slider(value: .constant(0)).disabled(true)` with a static "0:00" (`HistoryDetail.swift:247-255`). Wire it to real playback position or remove the bar's slider. [B]
-- [ ] Dictionary is mounted but unreachable: `PrototypeDictionaryPaneV2` renders for the `.dictionary` tab (`AppShellView.swift:73`) but `.dictionary` is in NO sidebar array — reachable only programmatically. Either add the sidebar entry or unmount it until the design pass. [B]
+- [x] 2026-07-04: History playback scrubber is real — `HistoryStore` tracks live position (100ms ticker) and duration, `seek(to:)` moves the player, and the detail bar's slider scrubs while playing with a live elapsed label. Chi verifies feel. [C]
+- [x] 2026-07-04: Dictionary is back in the sidebar (`ActiveTab.libraryTop = [.modes, .dictionary]`, matching Chi's stated grouping). The pane itself is still `PrototypeDictionaryPaneV2` pending Chi's design pass.
 - [ ] `WordRemappingsView` (Features/Transforms) is orphaned — the only word-remapping editor, referenced solely by its own #Preview. Re-home it (Dictionary work). Note: the remap/removal APPLIERS are live in the pipeline and tested (WordRemappingTests, WordRemovalTests); only the editor is unreachable. [B]
 - [ ] Language dropdown uses one global list (`["Automatic"] + store.languages` from bundled languages.json, ModesPane.swift:297, SettingsStore.swift:127-136) instead of per-model `supportedLanguages` (exists on specs, unused). Derive per model; reset to Automatic when unsupported. [A]
 - [ ] Extra modes are mock — only the settings-backed Default mode is real. `Mode` model in Core with per-mode overrides resolving against global defaults; global paste-off forces per-mode Auto-paste off. [A]

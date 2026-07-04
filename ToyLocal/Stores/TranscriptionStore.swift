@@ -356,6 +356,12 @@ final class TranscriptionStore {
       try? FileManager.default.removeItem(at: payload.audioURL)
     }
 
+    guard toyLocalSettings.autoPasteResult else {
+      await pasteboard.copy(text: payload.finalText)
+      transcriptionFeatureLogger.notice("Auto paste disabled; transcript copied to clipboard only.")
+      return
+    }
+
     let didPaste = await pasteboard.paste(text: payload.finalText)
     if didPaste {
       transcriptionFeatureLogger.notice("Paste completed for transcribed result (\(payload.finalText.count) chars).")

@@ -8,13 +8,21 @@ extension RecordingClientLive {
     playersToResume: [String],
     shouldResumeMedia: Bool,
     shouldResumeViaMediaRemote: Bool,
-    volumeToRestore: Float?
+    volumeToRestore: Float?,
+    inputVolumeToRestore: Float?
   ) {
-    guard !playersToResume.isEmpty || shouldResumeMedia || shouldResumeViaMediaRemote || volumeToRestore != nil else {
+    guard
+      !playersToResume.isEmpty || shouldResumeMedia || shouldResumeViaMediaRemote || volumeToRestore != nil
+        || inputVolumeToRestore != nil
+    else {
       return
     }
 
     Task {
+      if let inputVolume = inputVolumeToRestore {
+        RecordingAudioHardware.restoreInputVolume(inputVolume)
+      }
+
       if let volume = volumeToRestore {
         RecordingAudioHardware.restoreSystemVolume(volume)
       } else if !playersToResume.isEmpty {
@@ -49,5 +57,6 @@ extension RecordingClientLive {
     didPauseMedia = false
     didPauseViaMediaRemote = false
     previousVolume = nil
+    previousInputVolume = nil
   }
 }

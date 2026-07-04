@@ -11,11 +11,30 @@ struct TLMenuOption<Value: Hashable & Sendable>: Identifiable, Sendable {
   var id: Value { value }
 }
 
+enum TLOptionMenuMetrics {
+  static let pillWidth: CGFloat = 152
+  static let pillHeight: CGFloat = 30
+  static let rowHeight: CGFloat = 30
+  static let rowSpacing: CGFloat = 1
+  static let panelPadding: CGFloat = 6
+  static let maxVisibleRows = 6
+
+  static func listHeight(forVisibleRows rows: Int) -> CGFloat {
+    CGFloat(rows) * rowHeight + CGFloat(max(0, rows - 1)) * rowSpacing
+  }
+
+  static func panelHeight(forRowCount count: Int, showsAllRows: Bool) -> CGFloat {
+    let visible = showsAllRows ? count : min(count, maxVisibleRows)
+    return listHeight(forVisibleRows: visible) + panelPadding * 2
+  }
+}
+
 struct TLOptionMenu<Value: Hashable & Sendable>: View {
   @Binding var selection: Value
   let options: [TLMenuOption<Value>]
-  var width: CGFloat = 152
+  var width: CGFloat = TLOptionMenuMetrics.pillWidth
   var panelWidth: CGFloat?
+  var showsAllRows = false
   var selectedTint = TLTheme.accentGreen
   var onSelect: (Value) -> Void = { _ in }
 
@@ -79,6 +98,7 @@ struct TLOptionMenu<Value: Hashable & Sendable>: View {
         selection: $selection,
         options: options,
         width: resolvedPanelWidth,
+        showsAllRows: showsAllRows,
         selectedTint: selectedTint
       ) { value in
         onSelect(value)
@@ -87,14 +107,14 @@ struct TLOptionMenu<Value: Hashable & Sendable>: View {
   }
 
   private var estimatedPanelHeight: CGFloat {
-    CGFloat(options.count) * 31 + 12
+    TLOptionMenuMetrics.panelHeight(forRowCount: options.count, showsAllRows: showsAllRows)
   }
 }
 
 struct TLOptionValuePill: View {
   let text: String
   var systemImage: String?
-  var width: CGFloat = 152
+  var width: CGFloat = TLOptionMenuMetrics.pillWidth
   var selectedTint = TLTheme.accentGreen
 
   var body: some View {
@@ -114,7 +134,7 @@ struct TLOptionValuePill: View {
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 10)
-    .frame(width: width, height: 30, alignment: .leading)
+    .frame(width: width, height: TLOptionMenuMetrics.pillHeight, alignment: .leading)
     .background(.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
   }
 }
@@ -124,13 +144,38 @@ private struct TLOptionMenuPanel<Value: Hashable & Sendable>: View {
   @Binding var selection: Value
   let options: [TLMenuOption<Value>]
   let width: CGFloat
+  let showsAllRows: Bool
   let selectedTint: Color
   let onSelect: (Value) -> Void
 
   @Environment(\.tlFloatingLayer) private var floatingLayer
 
+  private var needsScroll: Bool {
+    !showsAllRows && options.count > TLOptionMenuMetrics.maxVisibleRows
+  }
+
   var body: some View {
-    VStack(spacing: 1) {
+    Group {
+      if needsScroll {
+        ScrollView {
+          rowList
+        }
+        .frame(height: TLOptionMenuMetrics.listHeight(forVisibleRows: TLOptionMenuMetrics.maxVisibleRows))
+      } else {
+        rowList
+      }
+    }
+    .padding(TLOptionMenuMetrics.panelPadding)
+    .frame(width: width)
+    .background(tlPopoverSurface, in: RoundedRectangle(cornerRadius: 9))
+    .overlay(
+      RoundedRectangle(cornerRadius: 9)
+        .strokeBorder(.primary.opacity(0.14), lineWidth: 1)
+    )
+  }
+
+  private var rowList: some View {
+    VStack(spacing: TLOptionMenuMetrics.rowSpacing) {
       ForEach(options) { option in
         TLOptionMenuRow(
           menuID: menuID,
@@ -144,14 +189,22 @@ private struct TLOptionMenuPanel<Value: Hashable & Sendable>: View {
         }
       }
     }
-    .padding(6)
-    .frame(width: width)
-    .background(tlPopoverSurface, in: RoundedRectangle(cornerRadius: 9))
-    .overlay(
-      RoundedRectangle(cornerRadius: 9)
-        .strokeBorder(.primary.opacity(0.14), lineWidth: 1)
-    )
   }
+}
+
+#Preview("Long list caps at six rows") {
+  TLOptionMenuPanel(
+    menuID: UUID(),
+    selection: .constant("English"),
+    options: [
+      "Automatic", "English", "Spanish", "French", "German", "Italian", "Portuguese", "Dutch",
+      "Japanese", "Korean", "Mandarin", "Cantonese", "Arabic", "Hindi", "Turkish", "Polish",
+    ].map { TLMenuOption(value: $0, label: $0) },
+    width: TLOptionMenuMetrics.pillWidth,
+    showsAllRows: false,
+    selectedTint: TLTheme.accentGreen
+  ) { _ in }
+  .padding(24)
 }
 
 private struct TLOptionMenuRow<Value: Hashable & Sendable>: View {
@@ -196,7 +249,7 @@ private struct TLOptionMenuRow<Value: Hashable & Sendable>: View {
         }
       }
       .padding(.horizontal, 8)
-      .frame(height: 30)
+      .frame(height: TLOptionMenuMetrics.rowHeight)
       .background(
         RoundedRectangle(cornerRadius: 7)
           .fill(isSelected ? Color.primary.opacity(0.09) : (hovering ? Color.primary.opacity(0.07) : .clear))

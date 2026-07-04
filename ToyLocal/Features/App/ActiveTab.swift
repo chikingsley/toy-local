@@ -48,7 +48,7 @@ enum ActiveTab: String, CaseIterable, Identifiable {
     }
   }
 
-  static let libraryTop: [ActiveTab] = [.modes]
+  static let libraryTop: [ActiveTab] = [.modes, .dictionary]
   static let settings: [ActiveTab] = [.configuration, .sound, .hotMic, .models]
 
   var debugName: String { rawValue }

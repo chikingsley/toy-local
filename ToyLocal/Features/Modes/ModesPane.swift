@@ -164,8 +164,8 @@ struct ModesPane: View {
                   detailText: preset.description
                 )
               },
-              width: 152,
               panelWidth: 204,
+              showsAllRows: true,
               selectedTint: TLTheme.accentGreen
             ) { preset in
               if selectedModeBinding.wrappedValue.id != "default" {
@@ -187,11 +187,6 @@ struct ModesPane: View {
               selection: selectedModeBinding.voiceModel,
               models: ModeModelOption.voiceModels
             )
-          }
-          if selectedModeBinding.wrappedValue.voiceModel.supportsRealtime {
-            TLSettingsRow(title: "Realtime") {
-              settingToggle(isOn: selectedModeBinding.realtime)
-            }
           }
           if selectedModeBinding.wrappedValue.usesLanguageModel {
             TLSettingsRow(title: "Language Model") {
@@ -220,8 +215,7 @@ struct ModesPane: View {
             ) {
               stringOptionMenu(
                 value: selectedModeBinding.playbackBehavior,
-                options: ModeDraft.playbackOptions,
-                width: 160
+                options: ModeDraft.playbackOptions
               )
             }
             TLSettingsRow(
@@ -230,32 +224,18 @@ struct ModesPane: View {
             ) {
               settingToggle(isOn: selectedModeBinding.recordSystemAudio)
             }
-            TLSettingsRow(
-              title: "Identify Speakers",
-              hint: "If enabled, speakers will be separated and identified (Speaker 1, Speaker 2, Speaker 3, etc.) in your recording."
-            ) {
-              settingToggle(isOn: selectedModeBinding.identifySpeakers)
-            }
 
           }
           .transition(.opacity.combined(with: .move(edge: .top)))
 
           TLSettingsCard {
             TLSettingsRow(
-              title: "Autocapitalize Insert",
-              hint: "If enabled, the first word of inserted transcript text is adjusted to match cursor context "
-                + "(start of sentence or mid-sentence). Turn this off for always-lowercase dictation."
-            ) {
-              settingToggle(isOn: selectedModeBinding.autocapitalizeInsert)
-            }
-            TLSettingsRow(
               title: "Auto paste",
               hint: "Controls whether transcribed text is automatically pasted into the active application when recording stops."
             ) {
               stringOptionMenu(
                 value: selectedModeBinding.autoPaste,
-                options: ModeDraft.autoPasteOptions,
-                width: 136
+                options: ModeDraft.autoPasteOptions
               )
             }
 
@@ -323,11 +303,8 @@ extension ModesPane {
       language: "Automatic",
       voiceModel: template.voiceModel,
       languageModel: template.languageModel,
-      realtime: false,
       playbackBehavior: "Default",
       recordSystemAudio: false,
-      identifySpeakers: false,
-      autocapitalizeInsert: template.autocapitalizeInsert,
       autoPaste: "Default",
       isActive: false
     )
@@ -357,14 +334,11 @@ extension ModesPane {
 
   private func stringOptionMenu(
     value: Binding<String>,
-    options: [String],
-    width: CGFloat = 152
+    options: [String]
   ) -> some View {
     TLOptionMenu(
       selection: value,
       options: options.map { TLMenuOption(value: $0, label: $0) },
-      width: width,
-      panelWidth: width,
       selectedTint: TLTheme.accentGreen
     )
   }

@@ -54,10 +54,12 @@ struct HistoryPane: View {
             HistoryDetail(
               item: item,
               title: item.title,
-              isPlaying: store.playingTranscriptID == item.id
-            ) {
-              store.playTranscript(item.id)
-            }
+              isPlaying: store.playingTranscriptID == item.id,
+              playbackPosition: store.playbackPosition,
+              playbackDuration: store.playbackDuration,
+              togglePlayback: { store.playTranscript(item.id) },
+              seek: { store.seek(to: $0) }
+            )
             .transition(.opacity.combined(with: .move(edge: .trailing)))
           } else {
             HistoryEmptyState(
@@ -153,15 +155,11 @@ struct HistoryPane: View {
     HStack(spacing: 8) {
       TLOptionMenu(
         selection: $dayFilter,
-        options: HistoryDayFilter.options(for: fetchedItems),
-        width: 112,
-        panelWidth: 150
+        options: HistoryDayFilter.options(for: fetchedItems)
       )
       TLOptionMenu(
         selection: $appFilter,
-        options: appFilterOptions,
-        width: 110,
-        panelWidth: 156
+        options: appFilterOptions
       )
     }
     .fixedSize()

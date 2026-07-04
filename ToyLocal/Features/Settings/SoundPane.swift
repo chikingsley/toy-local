@@ -91,21 +91,6 @@ struct SoundPane: View {
           hint: "Sets microphone input volume to max when starting a recording. Only works if using system default device.",
           isOn: $store.toyLocalSettings.autoIncreaseMicrophoneVolume
         )
-        TLSettingsToggleRow(
-          title: "Silence removal",
-          hint:
-            "If enabled, silence will be removed from your recordings before processing, improving accuracy and reducing "
-            + "hallucinations. For long recordings with a lot of silence, this significantly improves processing times.",
-          isOn: $store.toyLocalSettings.silenceRemovalEnabled
-        )
-        TLSettingsToggleRow(
-          title: "Dynamic normalization",
-          hint:
-            "If enabled, recordings will be normalized and filtered dynamically based on the particular characteristics of "
-            + "the audio. This feature is intended to maintain consistent loudness levels and speech intelligibility across "
-            + "recordings.",
-          isOn: $store.toyLocalSettings.dynamicNormalizationEnabled
-        )
         playbackRow
 
       }

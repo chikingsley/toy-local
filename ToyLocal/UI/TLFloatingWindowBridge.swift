@@ -67,7 +67,7 @@ final class TLFloatingBridgeView: NSView {
       let hosting = panel.contentView as? NSHostingView<AnyView>
       hosting?.rootView = AnyView(
         presentation.content
-          .fixedSize(horizontal: false, vertical: true)
+          .fixedSize()
       )
       let size = hosting?.fittingSize ?? presentation.estimatedSize
       let frame = panelFrame(for: presentation, size: size, window: window)
