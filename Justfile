@@ -35,19 +35,22 @@ build-release: generate
   xcodebuild build -project TimberVox.xcodeproj -scheme "TimberVox" -configuration Release -destination "platform=macOS,arch=arm64" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet
 
 app-store-export output="build/app-store/current": generate
-  tools/release/export_app_store "{{output}}"
+  swift run --package-path tools/timbervox-cli timbervox-live app-store export "{{output}}"
 
 app-store-validate package="build/app-store/current/export/TimberVox.pkg":
-  tools/release/upload_app_store validate "{{package}}"
+  swift run --package-path tools/timbervox-cli timbervox-live app-store validate "{{package}}"
 
 app-store-list:
-  tools/release/upload_app_store list-apps
+  swift run --package-path tools/timbervox-cli timbervox-live app-store list-apps
 
 app-store-upload package="build/app-store/current/export/TimberVox.pkg":
-  tools/release/upload_app_store upload "{{package}}"
+  swift run --package-path tools/timbervox-cli timbervox-live app-store upload "{{package}}"
 
 app-store-upload-wait package="build/app-store/current/export/TimberVox.pkg":
-  tools/release/upload_app_store upload-wait "{{package}}"
+  swift run --package-path tools/timbervox-cli timbervox-live app-store upload "{{package}}" --wait
+
+appcast +args:
+  swift run --package-path tools/timbervox-cli timbervox-live app-store appcast {{args}}
 
 tcc-reset target="debug":
   cd tools/timbervox-cli && swift run timbervox-live tcc-reset --target {{target}}

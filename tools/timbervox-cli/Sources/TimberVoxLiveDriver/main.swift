@@ -12,6 +12,7 @@ struct TimberVoxLive: ParsableCommand {
       TCCResetCommand.self,
       AXTreeCommand.self,
       SuiteCommand.self,
+      AppStoreCommand.self,
     ],
     defaultSubcommand: StateCommand.self
   )
