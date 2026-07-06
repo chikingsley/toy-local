@@ -18,9 +18,9 @@ Every agent (Claude, Codex, or otherwise) reads this file before touching anythi
 ## Gates
 
 Fast gate (every change):
-- `swift format lint --recursive --configuration .swift-format ToyLocal ToyLocalCore ToyLocalLiveDriver/Sources`
+- `swift format lint --recursive --configuration .swift-format TimberVox TimberVoxCore TimberVoxLiveDriver/Sources`
 - `swiftlint lint --quiet`
-- `cd ToyLocalCore && swift test --parallel`
+- `cd TimberVoxCore && swift test --parallel`
 - `just test-app`
 
 Live gate (user-visible behavior):
@@ -34,7 +34,7 @@ Visual verification: render the relevant #Preview (Xcode MCP RenderPreview) in B
 ## UI system (locked)
 
 - Design tokens only: `TLTheme` + `Shadcn` named steps. No raw hex or opacity literals in panes.
-- One component per file under ToyLocal/UI/ with the `TL` prefix.
+- One component per file under TimberVox/UI/ with the `TL` prefix.
 - `TLSettingsCard` interleaves dividers automatically; rows are `TLSettingsRow`/`TLSettingsToggleRow`; dropdowns are `TLOptionMenu` popovers (segmented controls excepted); never system Menu/Picker in panes.
 - Dropdown panels show a bounded number of rows then scroll; the bound lives INSIDE the component.
 - Shortcut recorder state machine lives in `TLShortcutRecorder`; real capture goes through `SettingsStore` capture modes per docs/hotkey-semantics.md.
@@ -49,10 +49,10 @@ Visual verification: render the relevant #Preview (Xcode MCP RenderPreview) in B
 - Chat history across all agents: `chat-sync` skill (search before re-deriving decisions; sessions cover Superwhisper reverse-engineering, storage schema findings, chrome research).
 - Reference apps ON THIS MACHINE: /Applications/superwhisper.app (primary design reference; its SQLite/GRDB schema was inspected and documented), /Applications/MacWhisper.app (secondary; competitive target).
 - ~/GitHub/superwhisper-api — reverse-engineered wire contract, mode files, captured prompts, and superwhisper-ui-clone (exact CSS values, layouts).
-- ToyLocalBackendPrototype/Runs/ — 69 recorded provider responses (Deepgram raw included). Replay before any live call; keep live calls to 3–5 per feature.
-- Debug deep links (`toylocal-debug://`): state, check-permissions, show-onboarding, download-model, transcribe-file?model=&path=, text-transform?text=, quit. These drive REAL runs from a shell.
-- ToyLocalLiveDriver — launch/AX-drive the real app; `just live-suite`.
-- API keys: ToyLocalCloudflareApi/.env (MISTRAL_API_KEY, DEEPGRAM_API_KEY, TOY_LOCAL_ADMIN_TOKEN). License minting runs against local `wrangler dev` only; the deployed admin token is not retrievable. Wrangler ignores .env when .dev.vars exists — keep the two in sync or use only .env.
+- TimberVoxBackendPrototype/Runs/ — 69 recorded provider responses (Deepgram raw included). Replay before any live call; keep live calls to 3–5 per feature.
+- Debug deep links (`timbervox-debug://`): state, check-permissions, show-onboarding, download-model, transcribe-file?model=&path=, text-transform?text=, quit. These drive REAL runs from a shell.
+- TimberVoxLiveDriver — launch/AX-drive the real app; `just live-suite`.
+- API keys: TimberVoxCloudflareApi/.env (MISTRAL_API_KEY, DEEPGRAM_API_KEY, TIMBERVOX_ADMIN_TOKEN). License minting runs against local `wrangler dev` only; the deployed admin token is not retrievable. Wrangler ignores .env when .dev.vars exists — keep the two in sync or use only .env.
 - Codex dispatch (when Claude orchestrates): `codex exec --sandbox workspace-write --model gpt-5.5 -c model_reasoning_effort="xhigh" "<brief>" < /dev/null` — stdin MUST be closed or codex hangs. Codex sandboxes cannot run xcodebuild or default-path swiftlint caches; the auditor runs those after.
 
 ## Testability classes (used in docs/TODO.md)

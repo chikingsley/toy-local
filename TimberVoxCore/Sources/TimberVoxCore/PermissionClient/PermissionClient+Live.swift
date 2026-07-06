@@ -1,0 +1,170 @@
+import AVFoundation
+@preconcurrency import AppKit
+import CoreGraphics
+import Foundation
+
+private let logger = TimberVoxLog.permissions
+private let axTrustedCheckOptionPromptKey = "AXTrustedCheckOptionPrompt"
+
+/// Live implementation of the PermissionClient.
+///
+/// This actor manages permission checking, requesting, and app activation monitoring.
+/// It uses NotificationCenter to observe app lifecycle events and provides an AsyncStream
+/// for reactive permission updates.
+public actor PermissionClientLive: PermissionClient {
+  private let (activationStream, activationContinuation) = AsyncStream<AppActivation>.makeStream()
+  private nonisolated(unsafe) var observations: [Any] = []
+
+  public init() {
+    logger.debug("Initializing PermissionClient, setting up app activation observers")
+    // Subscribe to app activation notifications
+    let didBecomeActiveObserver = NotificationCenter.default.addObserver(
+      forName: NSApplication.didBecomeActiveNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      logger.debug("App became active")
+      Task {
+        self?.activationContinuation.yield(.didBecomeActive)
+      }
+    }
+
+    let willResignActiveObserver = NotificationCenter.default.addObserver(
+      forName: NSApplication.willResignActiveNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      logger.debug("App will resign active")
+      Task {
+        self?.activationContinuation.yield(.willResignActive)
+      }
+    }
+
+    observations = [didBecomeActiveObserver, willResignActiveObserver]
+  }
+
+  deinit {
+    observations.forEach { NotificationCenter.default.removeObserver($0) }
+  }
+
+  // MARK: - Microphone Permissions
+
+  public func microphoneStatus() async -> PermissionStatus {
+    let status = AVCaptureDevice.authorizationStatus(for: .audio)
+    let result: PermissionStatus
+    switch status {
+    case .authorized:
+      result = .granted
+    case .denied, .restricted:
+      result = .denied
+    case .notDetermined:
+      result = .notDetermined
+    @unknown default:
+      result = .denied
+    }
+    logger.info("Microphone status: \(String(describing: result))")
+    return result
+  }
+
+  public func requestMicrophone() async -> Bool {
+    logger.info("Requesting microphone permission...")
+    let granted = await withCheckedContinuation { continuation in
+      AVCaptureDevice.requestAccess(for: .audio) { granted in
+        continuation.resume(returning: granted)
+      }
+    }
+    logger.info("Microphone permission granted: \(granted)")
+    return granted
+  }
+
+  public func openMicrophoneSettings() async {
+    logger.info("Opening microphone settings in System Preferences...")
+    await MainActor.run {
+      guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") else {
+        logger.error("Failed to create microphone settings URL")
+        return
+      }
+      NSWorkspace.shared.open(url)
+    }
+  }
+
+  // MARK: - Accessibility Permissions
+
+  nonisolated public func accessibilityStatus() -> PermissionStatus {
+    // Check without prompting (kAXTrustedCheckOptionPrompt: false)
+    let options = [axTrustedCheckOptionPromptKey: false] as CFDictionary
+    let result = AXIsProcessTrustedWithOptions(options) ? PermissionStatus.granted : .denied
+    logger.info("Accessibility status: \(String(describing: result))")
+    return result
+  }
+
+  public func requestAccessibility() async {
+    logger.info("Requesting accessibility permission...")
+    // First, trigger the system prompt (on main actor for safety)
+    await MainActor.run {
+      let options = [axTrustedCheckOptionPromptKey: true] as CFDictionary
+      _ = AXIsProcessTrustedWithOptions(options)
+    }
+
+    // Also open System Settings (the prompt alone is insufficient on modern macOS)
+    await openAccessibilitySettings()
+  }
+
+  public func openAccessibilitySettings() async {
+    logger.info("Opening accessibility settings in System Preferences...")
+    await openPrivacyPane("Privacy_Accessibility")
+  }
+
+  // MARK: - Screen Capture Permissions
+
+  nonisolated public func screenCaptureStatus() -> PermissionStatus {
+    let result = CGPreflightScreenCaptureAccess() ? PermissionStatus.granted : .denied
+    logger.info("Screen capture status: \(String(describing: result))")
+    return result
+  }
+
+  public func requestScreenCapture() async -> Bool {
+    logger.info("Requesting screen capture permission...")
+    let granted = await MainActor.run {
+      CGRequestScreenCaptureAccess()
+    }
+    logger.info("Screen capture permission granted: \(granted)")
+    if !granted {
+      await openScreenCaptureSettings()
+    }
+    return granted
+  }
+
+  public func openScreenCaptureSettings() async {
+    logger.info("Opening screen recording settings in System Preferences...")
+    await openPrivacyPane("Privacy_ScreenCapture")
+  }
+
+  // MARK: - Context Permission Settings
+
+  public func openSystemAudioCaptureSettings() async {
+    logger.info("Opening system audio capture settings in System Preferences...")
+    await openPrivacyPane("Privacy_AudioCapture")
+  }
+
+  public func openAutomationSettings() async {
+    logger.info("Opening automation settings in System Preferences...")
+    await openPrivacyPane("Privacy_Automation")
+  }
+
+  // MARK: - Reactive Monitoring
+
+  nonisolated public func observeAppActivation() -> AsyncStream<AppActivation> {
+    activationStream
+  }
+
+  private func openPrivacyPane(_ anchor: String) async {
+    await MainActor.run {
+      guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)") else {
+        logger.error("Failed to create privacy settings URL for \(anchor)")
+        return
+      }
+      NSWorkspace.shared.open(url)
+    }
+  }
+}

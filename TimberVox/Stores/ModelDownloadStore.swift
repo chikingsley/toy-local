@@ -1,0 +1,423 @@
+import AppKit
+import TimberVoxCore
+import Foundation
+
+// MARK: - Data Models
+
+public struct ModelInfo: Equatable, Identifiable, Sendable {
+  public let name: String
+  public var isDownloaded: Bool
+
+  public var id: String { name }
+  public init(name: String, isDownloaded: Bool) {
+    self.name = name
+    self.isDownloaded = isDownloaded
+  }
+}
+
+public struct CuratedModelInfo: Equatable, Identifiable, Codable {
+  public let displayName: String
+  public let internalName: String
+  public let size: String
+  public let accuracyStars: Int
+  public let speedStars: Int
+  public let storageSize: String
+  public var isDownloaded: Bool
+  public var id: String { internalName }
+
+  public var badge: String? {
+    if let model = FluidAudioModels.model(id: internalName) {
+      return model.badge
+    }
+    return nil
+  }
+
+  public var isRuntimeSelectable: Bool {
+    FluidAudioModels.model(id: internalName)?.isUserSelectableASR == true
+  }
+
+  public init(
+    displayName: String,
+    internalName: String,
+    size: String,
+    accuracyStars: Int,
+    speedStars: Int,
+    storageSize: String,
+    isDownloaded: Bool
+  ) {
+    self.displayName = displayName
+    self.internalName = internalName
+    self.size = size
+    self.accuracyStars = accuracyStars
+    self.speedStars = speedStars
+    self.storageSize = storageSize
+    self.isDownloaded = isDownloaded
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case displayName, internalName, size, accuracyStars, speedStars, storageSize
+  }
+
+  public init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    displayName = try c.decode(String.self, forKey: .displayName)
+    internalName = try c.decode(String.self, forKey: .internalName)
+    size = try c.decode(String.self, forKey: .size)
+    accuracyStars = try c.decode(Int.self, forKey: .accuracyStars)
+    speedStars = try c.decode(Int.self, forKey: .speedStars)
+    storageSize = try c.decode(String.self, forKey: .storageSize)
+    isDownloaded = false
+  }
+}
+
+private enum CuratedModelLoader {
+  static func load() -> [CuratedModelInfo] {
+    guard
+      let url = Bundle.main.url(forResource: "models", withExtension: "json")
+        ?? Bundle.main.url(forResource: "models", withExtension: "json", subdirectory: "Data")
+    else {
+      assertionFailure("models.json not found in bundle")
+      return []
+    }
+    do { return try JSONDecoder().decode([CuratedModelInfo].self, from: Data(contentsOf: url)) } catch {
+      assertionFailure("Failed to decode models.json – \(error)")
+      return []
+    }
+  }
+}
+
+// MARK: - Model Download Store
+
+@MainActor @Observable
+final class ModelDownloadStore {
+  // MARK: - State
+
+  var availableModels: [ModelInfo] = []
+  var curatedModels: [CuratedModelInfo] = []
+  var recommendedModel: String = ""
+  var showAllModels = false
+  var isDownloading = false
+  var downloadProgress: Double = 0
+  var downloadError: String?
+  var downloadingModelName: String?
+
+  private var activeDownloadTask: Task<Void, Never>?
+  private var activeDownloadUpdatesBootstrap = false
+  @ObservationIgnored private var fetchModelsTask: Task<Void, Never>?
+  @ObservationIgnored private var needsFetchAfterCurrent = false
+
+  // MARK: - Dependencies
+
+  let settings: SettingsManager
+  private let transcription: TranscriptionClientLive
+
+  // MARK: - Init
+
+  init(services: ServiceContainer) {
+    self.settings = services.settings
+    self.transcription = services.transcription
+  }
+
+  // MARK: - Computed
+
+  // MARK: - Methods
+
+  func fetchModels() {
+    guard fetchModelsTask == nil else {
+      needsFetchAfterCurrent = true
+      return
+    }
+    fetchModelsTask = Task { [weak self] in
+      guard let self else { return }
+      defer {
+        self.fetchModelsTask = nil
+        if self.needsFetchAfterCurrent {
+          self.needsFetchAfterCurrent = false
+          self.fetchModels()
+        }
+      }
+
+      do {
+        let recommended = await transcription.getRecommendedModel()
+        let names = try await supportedModelNames()
+        let infos = try await withThrowingTaskGroup(of: ModelInfo.self) { group -> [ModelInfo] in
+          for name in names {
+            group.addTask {
+              ModelInfo(
+                name: name,
+                isDownloaded: await self.transcription.isModelDownloaded(name)
+              )
+            }
+          }
+          var results: [ModelInfo] = []
+          for try await info in group {
+            results.append(info)
+          }
+          return results
+        }
+        handleModelsLoaded(recommended: recommended, available: infos)
+      } catch {
+        handleModelsLoaded(recommended: "", available: [])
+      }
+    }
+  }
+
+  func selectModel(_ model: String) {
+    let resolved = resolvePattern(model, from: availableModels) ?? model
+    let isStreaming = FluidAudioModels.model(id: resolved)?.isStreamingASR == true
+    if isStreaming {
+      timberVoxSettings.alwaysOnStreamingModel = resolved
+    } else {
+      timberVoxSettings.selectedModel = resolved
+    }
+    updateBootstrapState()
+  }
+
+  func toggleModelDisplay() {
+    showAllModels.toggle()
+  }
+
+  func downloadSelectedModel() {
+    downloadModel(timberVoxSettings.selectedModel)
+  }
+
+  func downloadModel(_ model: String) {
+    guard !model.isEmpty else { return }
+    downloadError = nil
+    isDownloading = true
+    let selected = model
+    let updatesBootstrap = modelAffectsPrimaryBootstrap(selected)
+    downloadingModelName = selected
+    let displayName = curatedDisplayName(for: selected, curated: curatedModels)
+
+    if updatesBootstrap {
+      settings.modelBootstrapState.modelIdentifier = selected
+      settings.modelBootstrapState.modelDisplayName = displayName
+      settings.modelBootstrapState.isModelReady = false
+      settings.modelBootstrapState.progress = 0
+      settings.modelBootstrapState.lastError = nil
+    }
+
+    activeDownloadTask?.cancel()
+    activeDownloadUpdatesBootstrap = updatesBootstrap
+    activeDownloadTask = Task {
+      do {
+        try await transcription.downloadAndLoadModel(variant: selected) { [weak self] progress in
+          Task { @MainActor [weak self] in
+            self?.downloadProgress = progress.fractionCompleted
+            if self?.downloadingModelName == selected, self?.activeDownloadUpdatesBootstrap == true {
+              self?.settings.modelBootstrapState.progress = progress.fractionCompleted
+            }
+          }
+        }
+        handleDownloadCompleted(model: selected, error: nil, updatesBootstrap: updatesBootstrap)
+      } catch {
+        if !Task.isCancelled {
+          handleDownloadCompleted(model: selected, error: error, updatesBootstrap: updatesBootstrap)
+        }
+      }
+    }
+  }
+
+  func cancelDownload() {
+    activeDownloadTask?.cancel()
+    activeDownloadTask = nil
+    isDownloading = false
+    downloadingModelName = nil
+    if activeDownloadUpdatesBootstrap {
+      settings.modelBootstrapState.progress = 0
+      settings.modelBootstrapState.isModelReady = false
+      settings.modelBootstrapState.lastError = "Download cancelled"
+    }
+    activeDownloadUpdatesBootstrap = false
+  }
+
+  func deleteSelectedModel() {
+    deleteModel(selectedModel)
+  }
+
+  func deleteModel(_ model: String) {
+    guard !model.isEmpty else { return }
+    let updatesBootstrap = modelAffectsPrimaryBootstrap(model)
+    if updatesBootstrap {
+      settings.modelBootstrapState.isModelReady = false
+    }
+    Task {
+      do {
+        try await transcription.deleteModel(variant: model)
+        fetchModels()
+      } catch {
+        handleDownloadCompleted(model: model, error: error, updatesBootstrap: updatesBootstrap)
+      }
+    }
+  }
+
+  func openModelLocation() {
+    Task.detached {
+      let fm = FileManager.default
+      let base = try fm.url(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+      )
+      .appendingPathComponent("com.chiejimofor.timbervox/models", isDirectory: true)
+
+      if !fm.fileExists(atPath: base.path) {
+        try fm.createDirectory(at: base, withIntermediateDirectories: true)
+      }
+      _ = await MainActor.run {
+        NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: base.path)
+      }
+    }
+  }
+
+  // MARK: - Private
+
+  private func supportedModelNames() async throws -> [String] {
+    let serviceNames = try await transcription.getAvailableModels()
+    let catalogNames =
+      ModelLibraryCatalog.entries
+      .filter { $0.runtime == .local && $0.isDownloadable }
+      .map(\.id)
+    return Array(Set(serviceNames + catalogNames)).sorted()
+  }
+
+  private func handleModelsLoaded(recommended: String, available: [ModelInfo]) {
+    var availablePlus = available
+    for model in FluidAudioModels.userSelectableASR.reversed()
+    where !availablePlus.contains(where: { $0.name == model.id }) {
+      availablePlus.insert(ModelInfo(name: model.id, isDownloaded: false), at: 0)
+    }
+
+    if availablePlus.contains(where: { $0.name == preferredParakeetIdentifier }) {
+      recommendedModel = preferredParakeetIdentifier
+    } else {
+      recommendedModel = recommended
+    }
+    availableModels = availablePlus
+
+    // Resolve pattern if selected model contains wildcards
+    if timberVoxSettings.selectedModel.contains("*") || timberVoxSettings.selectedModel.contains("?") {
+      if let resolved = resolvePattern(timberVoxSettings.selectedModel, from: available) {
+        timberVoxSettings.selectedModel = resolved
+      }
+    }
+    if !availablePlus.contains(where: { $0.name == timberVoxSettings.selectedModel }) {
+      let replacement = recommendedModel.isEmpty ? FluidAudioModels.parakeetTdtV3.id : recommendedModel
+      timberVoxSettings.selectedModel = replacement
+    }
+
+    // Merge curated + download status
+    var curated = CuratedModelLoader.load()
+    for idx in curated.indices {
+      let internalName = curated[idx].internalName
+      if let match = availablePlus.first(where: { ModelPatternMatcher.matches(internalName, $0.name) }) {
+        curated[idx].isDownloaded = match.isDownloaded
+      } else {
+        curated[idx].isDownloaded = false
+      }
+    }
+    curatedModels = curated
+
+    updateBootstrapState()
+
+    if !anyModelDownloaded && !timberVoxSettings.hasCompletedModelBootstrap {
+      let preferred = recommendedModel.isEmpty ? timberVoxSettings.selectedModel : recommendedModel
+      if !preferred.isEmpty {
+        timberVoxSettings.selectedModel = preferred
+        updateBootstrapState()
+      }
+    }
+  }
+
+  private func handleDownloadCompleted(model: String, error: Error?, updatesBootstrap: Bool? = nil) {
+    let updatesBootstrap = updatesBootstrap ?? modelAffectsPrimaryBootstrap(model)
+    isDownloading = false
+    downloadingModelName = nil
+    activeDownloadUpdatesBootstrap = false
+
+    if let error {
+      let message = Self.downloadErrorMessage(from: error)
+      downloadError = message
+      if updatesBootstrap {
+        settings.modelBootstrapState.isModelReady = false
+        settings.modelBootstrapState.lastError = message
+        settings.modelBootstrapState.progress = 0
+      }
+    } else {
+      if let idx = availableModels.firstIndex(where: { $0.id == model }) {
+        availableModels[idx].isDownloaded = true
+      } else {
+        availableModels.append(ModelInfo(name: model, isDownloaded: true))
+      }
+      if let idx = curatedModels.firstIndex(where: { $0.internalName == model }) {
+        curatedModels[idx].isDownloaded = true
+      }
+      downloadError = nil
+      if updatesBootstrap {
+        timberVoxSettings.hasCompletedModelBootstrap = true
+        settings.modelBootstrapState.isModelReady = true
+        settings.modelBootstrapState.lastError = nil
+        settings.modelBootstrapState.progress = 1
+      }
+    }
+    updateBootstrapState()
+  }
+
+  private func modelAffectsPrimaryBootstrap(_ model: String) -> Bool {
+    guard model == timberVoxSettings.selectedModel else { return false }
+    return ModelLibraryCatalog.entry(id: model)?.sectionID == .localDictation
+  }
+
+  static func downloadErrorMessage(from error: Error) -> String {
+    let ns = error as NSError
+    var message = ns.localizedDescription
+    if let url = ns.userInfo[NSURLErrorFailingURLErrorKey] as? URL,
+      let host = url.host
+    {
+      message += " (\(host))"
+    } else if let str = ns.userInfo[NSURLErrorFailingURLStringErrorKey] as? String,
+      let url = URL(string: str), let host = url.host
+    {
+      message += " (\(host))"
+    }
+    return message
+  }
+
+  static func resolveModelPattern(_ pattern: String, from available: [ModelInfo]) -> String? {
+    ModelPatternMatcher.resolvePattern(pattern, from: available.map { ($0.name, $0.isDownloaded) })
+  }
+
+  static func modelDisplayName(for model: String, curated: [CuratedModelInfo]) -> String {
+    if let match = curated.first(where: { ModelPatternMatcher.matches($0.internalName, model) }) {
+      return match.displayName
+    }
+    return
+      model
+      .replacingOccurrences(of: "-", with: " ")
+      .replacingOccurrences(of: "_", with: " ")
+      .capitalized
+  }
+
+  private func resolvePattern(_ pattern: String, from available: [ModelInfo]) -> String? {
+    Self.resolveModelPattern(pattern, from: available)
+  }
+
+  private func curatedDisplayName(for model: String, curated: [CuratedModelInfo]) -> String {
+    Self.modelDisplayName(for: model, curated: curated)
+  }
+
+  private func updateBootstrapState() {
+    let model = timberVoxSettings.selectedModel
+    guard !model.isEmpty else { return }
+    let displayName = curatedDisplayName(for: model, curated: curatedModels)
+    settings.modelBootstrapState.modelIdentifier = model
+    settings.modelBootstrapState.modelDisplayName = displayName
+    settings.modelBootstrapState.isModelReady = selectedModelIsDownloaded
+    if selectedModelIsDownloaded {
+      settings.modelBootstrapState.lastError = nil
+      settings.modelBootstrapState.progress = 1
+    }
+  }
+}

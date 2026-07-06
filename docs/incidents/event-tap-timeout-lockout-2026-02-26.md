@@ -6,7 +6,7 @@ Severity: P0 (global input reliability risk)
 
 ## Summary
 
-ToyLocal intermittently triggered global keyboard/mouse instability while the app was running.  
+TimberVox intermittently triggered global keyboard/mouse instability while the app was running.  
 The concrete failure signal is repeated Quartz event tap timeout disable events:
 
 - `Event tap disabled by timeout; scheduling restart.`
@@ -24,7 +24,7 @@ This is a high-risk path because the app uses a `kCGHIDEventTap` callback and ma
 Collected with:
 
 ```bash
-/usr/bin/log show --style syslog --last 12h --predicate 'process == "toy-local"' > /tmp/toylocal_process_12h.log
+/usr/bin/log show --style syslog --last 12h --predicate 'process == "TimberVox"' > /tmp/timbervox_process_12h.log
 ```
 
 Counts:
@@ -61,11 +61,11 @@ Representative excerpts:
 
 The event tap callback fans out to synchronous handlers inside the callback path:
 
-- [KeyEventMonitorService.swift](/Users/chiejimofor/Documents/Github/always-on-local/ToyLocal/Services/KeyEventMonitorService.swift)
+- [KeyEventMonitorService.swift](/Users/chiejimofor/Documents/Github/always-on-local/TimberVox/Services/KeyEventMonitorService.swift)
 
 The callback was also indirectly running typing-session tracking work for every key event via a synchronous main-actor hop:
 
-- [AppStore.swift](/Users/chiejimofor/Documents/Github/always-on-local/ToyLocal/Stores/AppStore.swift)
+- [AppStore.swift](/Users/chiejimofor/Documents/Github/always-on-local/TimberVox/Stores/AppStore.swift)
 
 That work includes app-focus checks and tracker updates on every key press, which increases callback latency risk under load.
 
@@ -90,18 +90,18 @@ Typing session monitoring now uses a buffered async stream:
 
 File:
 
-- [AppStore.swift](/Users/chiejimofor/Documents/Github/always-on-local/ToyLocal/Stores/AppStore.swift)
+- [AppStore.swift](/Users/chiejimofor/Documents/Github/always-on-local/TimberVox/Stores/AppStore.swift)
 
 ## Validation Protocol
 
 1. Build + tests:
-   - `xcodebuild -project toy-local.xcodeproj -scheme "toy-local" -configuration Debug build CODE_SIGNING_ALLOWED=NO`
-   - `cd ToyLocalCore && swift test`
+   - `xcodebuild -project TimberVox.xcodeproj -scheme "TimberVox" -configuration Debug build CODE_SIGNING_ALLOWED=NO`
+   - `cd TimberVoxCore && swift test`
 2. Runtime verification:
    - Run app for normal typing sessions (5-10 min).
    - Confirm no repeated timeout bursts in logs.
 3. Log check:
-   - `rg -n "Event tap disabled by timeout" /tmp/toylocal_process_12h.log`
+   - `rg -n "Event tap disabled by timeout" /tmp/timbervox_process_12h.log`
    - Expectation after fix: none or isolated rare events, not burst patterns.
 
 ## Safe Reproduction Guidance
@@ -110,7 +110,7 @@ Deterministic timeout reproduction usually requires intentionally stalling the c
 Safer approach:
 
 1. Reproduce only on a secondary machine/VM/test account.
-2. Keep a remote recovery path ready (`ssh` + `pkill -f toy-local`) before test.
+2. Keep a remote recovery path ready (`ssh` + `pkill -f TimberVox`) before test.
 3. Use log monitoring as the success criterion for detection.
 
 Given the 22 concrete timeout events already captured with exact timestamps, confidence in diagnosis is high even without deliberate callback stalling.

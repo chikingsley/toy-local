@@ -3,15 +3,14 @@
 Research and planning snapshot: July 2026.
 
 This is a product and architecture note for Hot Mic voice commands. It is not
-an implementation claim. The current Toy Local app already has an always-on
+an implementation claim. The current TimberVox app already has an always-on
 streaming path; this plan describes how voice commands should sit on top of it.
 
 ## Direction
 
-Hot Mic should stay owned by Toy Local.
+Hot Mic should stay owned by TimberVox.
 
-The first implementation should be a local command layer that watches Toy
-Local's own streaming transcript output. A wake word can be added later, but it
+The first implementation should be a local command layer that watches TimberVox's own streaming transcript output. A wake word can be added later, but it
 should not be the core command system.
 
 Target mental model:
@@ -27,15 +26,15 @@ Hot Mic audio
 
 The command system should work with whichever ASR backend is active. Apple
 SpeechAnalyzer, FluidAudio streaming models, or another engine can produce
-text, but command matching and action dispatch should belong to Toy Local.
+text, but command matching and action dispatch should belong to TimberVox.
 
 ## Research Summary
 
 ### Apple SpeechAnalyzer
 
 Apple SpeechAnalyzer is an Apple Speech framework API, not a generic command
-watcher and not a place where Toy Local plugs in its own ASR model. It can be
-an optional Apple-native ASR backend: Toy Local feeds audio buffers into
+watcher and not a place where TimberVox plugs in its own ASR model. It can be
+an optional Apple-native ASR backend: TimberVox feeds audio buffers into
 SpeechAnalyzer modules such as SpeechTranscriber and receives live/final
 transcription results. Under the hood, this uses Apple's speech stack and model
 assets.
@@ -51,7 +50,7 @@ Reference:
 
 This is the preferred v1.
 
-Toy Local watches its own transcript events and matches configured command
+TimberVox watches its own transcript events and matches configured command
 phrases against finalized or near-final utterances. This requires no retraining
 when the user adds an alias such as "clear it" for Dump. The command registry
 changes, and the matcher immediately sees the new phrase.
@@ -82,7 +81,7 @@ This is an optional second command path if transcript watching is too fragile.
 
 Options:
 
-- FluidAudio keyword spotting: already present as a dormant client in Toy Local.
+- FluidAudio keyword spotting: already present as a dormant client in TimberVox.
 - Picovoice Rhino: realtime speech-to-intent for commands inside a fixed
   context.
 - Vosk: older offline ASR toolkit with streaming and configurable vocabulary.
@@ -97,10 +96,10 @@ References:
 ### Cloud Voice Understanding
 
 OpenAI Realtime, Voxtral Realtime, and similar systems can understand spoken
-intent, but they are not the Toy Local v1 direction for Hot Mic commands. The
+intent, but they are not the TimberVox v1 direction for Hot Mic commands. The
 local command layer should not depend on a cloud realtime API.
 
-## Current Toy Local State
+## Current TimberVox State
 
 The app already has much of the Hot Mic substrate, currently named
 "Always-On" in code.
@@ -117,7 +116,7 @@ Relevant current pieces:
 - `StreamingAudioClientLive` captures 16 kHz mono audio chunks.
 - `TranscriptionClientLive` routes streaming buffers to streaming Parakeet or
   streaming Nemotron.
-- `ToyLocalSettings` already has `alwaysOnEnabled`,
+- `TimberVoxSettings` already has `alwaysOnEnabled`,
   `alwaysOnPasteHotkey`, `alwaysOnDumpHotkey`, and
   `alwaysOnStreamingModel`.
 - `FluidAudioKeywordSpottingClient` exists but is not wired into Hot Mic voice
@@ -185,7 +184,7 @@ The v1 matcher should be intentionally boring:
 Data-driven command definitions.
 
 The user should be able to add phrases and aliases without rebuilding or
-retraining. Adding a new action requires Toy Local to support that action type
+retraining. Adding a new action requires TimberVox to support that action type
 or an external action provider such as Shortcuts or AppleScript.
 
 Sketch:
@@ -248,11 +247,11 @@ Phrases: dump, clear it, forget that
 
 New actions should be constrained by provider:
 
-- Built-in action: Toy Local code owns the behavior.
-- Shortcut action: Toy Local runs a named Shortcut.
-- AppleScript action: Toy Local runs a stored script through osascript or
+- Built-in action: TimberVox code owns the behavior.
+- Shortcut action: TimberVox runs a named Shortcut.
+- AppleScript action: TimberVox runs a stored script through osascript or
   NSAppleScript.
-- App/window/system action: Toy Local uses existing macOS APIs, AppleScript,
+- App/window/system action: TimberVox uses existing macOS APIs, AppleScript,
   Accessibility, MediaRemote, or keyboard events where appropriate.
 
 ## False Positive Controls
@@ -306,9 +305,9 @@ Candidate: Porcupine.
 
 Potential behaviors:
 
-- "Toy Local" wakes Hot Mic from off to on.
-- "Toy Local" opens a short command attention window, for example 3 seconds.
-- A command prefix mode requires phrases like "Toy Local, dump" for risky
+- "TimberVox" wakes Hot Mic from off to on.
+- "TimberVox" opens a short command attention window, for example 3 seconds.
+- A command prefix mode requires phrases like "TimberVox, dump" for risky
   actions.
 
 Open questions:
@@ -317,7 +316,7 @@ Open questions:
 - Should it gate every command or only risky commands?
 - What is the product phrase?
 - Does a custom wake word require an account, cloud training step, or shipped
-  model file that conflicts with Toy Local packaging?
+  model file that conflicts with TimberVox packaging?
 
 ## UI Shape
 

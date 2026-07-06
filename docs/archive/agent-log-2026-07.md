@@ -93,8 +93,8 @@ it but don't write it. Decisions get logged here when made; specs live in
 
 ## Prototype track (2026-07-03, active)
 
-Sandbox: `ToyLocal/Prototype/` (SwiftLint-excluded; also excluded Chi's
-`ToyLocalBackendPrototype` package — sandboxes don't fight the linter).
+Sandbox: `TimberVox/Prototype/` (SwiftLint-excluded; also excluded Chi's
+`TimberVoxBackendPrototype` package — sandboxes don't fight the linter).
 Chrome research verdict (3-agent, sourced): Superwhisper = delegate-owned
 NSWindow + NSHostingView + hand-rolled HStack sidebar + content-owned
 TopBar; transparent titlebar, hidden title, no NSToolbar, no zoom button.
@@ -137,7 +137,7 @@ Round 3 decisions (Chi review, 2026-07-03 afternoon):
   per-mode Audio section (playback-while-recording, system audio) moved
   from Recording; autocapitalize-insert in Advanced. Text models menu uses
   real API catalog (anthropic/openai/google/mistral/groq/cerebras/deepseek/
-  zai — checked ToyLocalCloudflareApi/src/ai/model-routes.ts).
+  zai — checked TimberVoxCloudflareApi/src/ai/model-routes.ts).
 - Models: Voice/Text scope segments, Offline|Cloud badges, plain-language
   capability lines (no "Batch"), local vs cloud = separate entries
   (Scribe v2 and Scribe v2 Realtime split).
@@ -287,7 +287,7 @@ standardized on the WRONG reference):
 - 2026-07-03 · Rejected sindresorhus/KeyboardShortcuts as hotkey engine:
   built around key+modifier shortcuts; modifier-only support was disabled in
   the lib after macOS 15.0/15.1 broke Option-only hotkeys, and it can't do
-  left/right-side modifiers or double-tap. ToyLocal's push-to-talk (hold ⌥,
+  left/right-side modifiers or double-tap. TimberVox's push-to-talk (hold ⌥,
   sides, double-tap-lock, min-hold) needs the existing event-tap engine.
   HotKeyView stays the single shared recorder/renderer UI.
 

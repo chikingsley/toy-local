@@ -4,12 +4,15 @@
 
 ### Patch Changes
 
-- Added a Mac App Store build target (ToyLocal-AppStore) sharing all sources with the direct build: App Sandbox enabled with MAS entitlements, Sparkle unlinked with a stub updater, the MediaRemote private framework compiled out (binary-verified zero private symbols), and an SU-key-free Info.plist; the direct build is unchanged.
-- Deployed the cloud worker to https://toylocal.peacockery.studio and made it the app's default cloud endpoint (env override retained for local development); realtime streaming verified live against production.
+- Renamed the app identity to TimberVox across bundle IDs, URL schemes, app support paths, modules, targets, packages, cloud worker naming, release scripts, and docs.
+- Added `just app-store-export`, a repo-owned Mac App Store archive/export helper that writes automatic-signing proof artifacts under ignored `build/app-store/current`.
+- Added `just app-store-validate`, `just app-store-upload`, and `just app-store-upload-wait` for App Store Connect package validation and upload with local API-key credentials.
+- Added a Mac App Store build target (TimberVox-AppStore) sharing all sources with the direct build: App Sandbox enabled with MAS entitlements, Sparkle unlinked with a stub updater, the MediaRemote private framework compiled out (binary-verified zero private symbols), and an SU-key-free Info.plist; the direct build is unchanged.
+- Deployed the cloud worker to https://timbervox.peacockery.studio and made it the app's default cloud endpoint (env override retained for local development); realtime streaming verified live against production.
 - Realtime cloud dictation: when the selected model has a realtime route, recordings stream to the cloud session live and the final transcript arrives at stop time, with automatic fallback to batch upload; live partial text is published for the future recording HUD.
 - The realtime worker session now holds the client connection open until the provider flushes its final transcript on close, so utterance endings are no longer lost.
 - Removed the AVAudioRecorder fallback (the capture engine is the sole microphone backend) and the legacy JSON history mirror (the SQLite transcript store is the single source of truth; the JSON file is read once for migration).
-- Added a realtime transcription WebSocket client in ToyLocalCore (URLSessionWebSocketTask, no third-party dependency) with event parsing for the worker's control envelopes and raw Deepgram/Mistral provider events, a linear16 encoder, nine unit tests, and an opt-in live integration test — verified end to end against wrangler dev with real Deepgram partials.
+- Added a realtime transcription WebSocket client in TimberVoxCore (URLSessionWebSocketTask, no third-party dependency) with event parsing for the worker's control envelopes and raw Deepgram/Mistral provider events, a linear16 encoder, nine unit tests, and an opt-in live integration test — verified end to end against wrangler dev with real Deepgram partials.
 - Ported the Hex upstream recording-reliability work by behavior: a new capture engine (AVAudioEngine) is the primary recording backend with warm-mic Super Fast Mode (pre-roll so the first word is never clipped), adaptive stop-grace so endings are never clipped, wake/route-change observers with deferred rebuilds, stale-stop session guards, microphone identity by device UID with legacy migration, media pause/mute rollbacks on cancelled sessions, cancellable recording starts, stop chime after capture finalizes, audio cleanup for empty transcriptions, and single-fire History playback completion.
 
 - Moved agent rules, gates, and resource references into a root `AGENTS.md`; `docs/TODO.md` now lists only work items, and completed phase notes moved to `docs/archive/phase-log-2026-07-04.md`.
@@ -22,15 +25,15 @@
 - Replaced the placeholder smoke test with bundle-integrity checks for the language catalog and all sound-effect assets.
 - Renamed `TranscriptionStore+Workflow.swift` to `TranscriptionStore+TextTransform.swift` to match its content.
 - Verified every TODO item against the codebase (build, both test suites, settings consumers, cloud worker routes, entitlements, live-driver suites) and rewrote `docs/TODO.md` as a flat evidence-backed list with no phases and no tables.
-- ToyLocal is FluidAudio-only.
+- TimberVox is FluidAudio-only.
 - The visible model catalog is limited to supported Parakeet models.
-- Settings and history are stored under ToyLocal application support paths.
+- Settings and history are stored under TimberVox application support paths.
 - Added a first-run setup flow for Microphone and Accessibility permissions.
-- Normal ToyLocal windows now stay hidden until required permissions are granted.
-- If a required permission is removed later, ToyLocal returns to setup instead of continuing with broken hotkey/paste behavior.
+- Normal TimberVox windows now stay hidden until required permissions are granted.
+- If a required permission is removed later, TimberVox returns to setup instead of continuing with broken hotkey/paste behavior.
 - Removed App Sandbox so Accessibility permission prompting and text insertion can work correctly.
 - Added PermissionPilot as a pinned Swift Package dependency for permission status/request plumbing.
-- Added `toylocal://` and `toylocal-debug://` app-control links plus a Swift live driver that launches ToyLocal, resets permissions, captures debug state, and drives onboarding through AX button presses.
+- Added `timbervox://` and `timbervox-debug://` app-control links plus a Swift live driver that launches TimberVox, resets permissions, captures debug state, and drives onboarding through AX button presses.
 - Fixed hotkey keycap display for the grave/backtick key and Sauce-supported non-letter keys.
 - Added Xcode preview entry points for the App and Settings shells with preview-safe settings storage.
 - Removed InjectionIII/Inject hot-reload wiring and disabled Hardened Runtime for Debug builds so Xcode SwiftUI previews can JIT-link and render.
@@ -38,14 +41,14 @@
 - Fixed Parakeet model readiness checks to recognize FluidAudio's Application Support cache directories.
 - Documented the next Settings split around Dictation, Models, Transforms, History, and About/Updates.
 - Added a source-backed FluidAudio model metrics inventory plus codable local diagnostic result schema.
-- Added Core cloud transcription and language-model catalogs plus cloud metric profiles that stay aligned with Toy Local Cloud route IDs.
+- Added Core cloud transcription and language-model catalogs plus cloud metric profiles that stay aligned with TimberVox Cloud route IDs.
 - Removed unsupported SenseVoice and Paraformer from the backend prototype supported inventory after probe runs hung or failed shape validation.
 - Added a backend prototype `diagnostics` command that writes per-machine model timing/output reports.
 - Added a Core transcription workflow contract for ASR, native/local VAD, native/local diarization, vocabulary handling, cloud text transforms, and output formats.
-- Wired the production dictation path through an app-facing transcription workflow service for local FluidAudio ASR, Toy Local Cloud batch ASR, and cloud text transforms.
+- Wired the production dictation path through an app-facing transcription workflow service for local FluidAudio ASR, TimberVox Cloud batch ASR, and cloud text transforms.
 - Added quiet startup prewarm for the selected already-downloaded local batch ASR model.
 - Added a production model-library adapter that groups local dictation, cloud dictation, streaming preview, cloud text, and support models for the future Models UI.
-- Added observable text-transform/post-processing state, including empty-result and failure reporting in debug snapshots plus a real `toylocal-debug://text-transform` trigger.
+- Added observable text-transform/post-processing state, including empty-result and failure reporting in debug snapshots plus a real `timbervox-debug://text-transform` trigger.
 - Consolidated the UI prototype onto a shared component library (`Prototype/UI/`, one component per file): one `ProtoDivider` replaced eight per-pane separator forks, surface colors/radii moved into `ProtoTheme` tokens, and one provider-logo registry replaced the two divergent logo systems.
 - Prototype panes reorganized into `Panes/`/`Recorders/`; the outdated General pane was deleted after Configuration V2 absorbed its Permissions and Updates sections; Dictionary/History were brought onto the current design language, including a History detail picker default fix.
 - Shortcut recording in the prototype now shows a pulsing recording chip and cancels on click-away/Escape (Shortcuts V2 and Hot Mic share one `ProtoShortcutRecorder`).
@@ -57,8 +60,8 @@
 - Ported the Model library pane onto the production adapter: real sections, downloads, progress, deletion, sizes, and source-backed metrics, with selection persisted per model kind.
 - Ported the Modes pane with a settings-backed Default mode: preset, language, voice model (from the real transcription catalog), language model, playback behavior, system-audio input, and auto-paste read from and write back to persisted settings.
 - Ported and wired the Sound pane: real input-device list with System Default mapping, persisted recording toggles, playback-when-recording behavior, and Default/Classic sound-effect sets played by the sound service with volume and off states.
-- Ported and wired the Configuration pane: appearance, login item, dock icon, retention, updates (Sparkle), permissions pills, text-input behavior, voice-model duration, and experimental-models toggles now bind to persisted settings; added the corresponding ToyLocalCore settings fields and split the settings schema into its own file.
-- Ported the prototype shell into the app: `AppShellView` with the custom sidebar (Home / Modes / Settings / History / Pro card) replaced the TabView container, the prototype UI kit was promoted to `ToyLocal/UI/` under `TL*` names, and the main window is now hidden-title/transparent-titlebar with a fixed 820pt width, vertical resize, and a minimize button that hides while the sidebar rail is collapsed.
+- Ported and wired the Configuration pane: appearance, login item, dock icon, retention, updates (Sparkle), permissions pills, text-input behavior, voice-model duration, and experimental-models toggles now bind to persisted settings; added the corresponding TimberVoxCore settings fields and split the settings schema into its own file.
+- Ported the prototype shell into the app: `AppShellView` with the custom sidebar (Home / Modes / Settings / History / Pro card) replaced the TabView container, the prototype UI kit was promoted to `TimberVox/UI/` under `TL*` names, and the main window is now hidden-title/transparent-titlebar with a fixed 820pt width, vertical resize, and a minimize button that hides while the sidebar rail is collapsed.
 
 ## 0.6.9
 
@@ -115,7 +118,7 @@
 
 ### Patch Changes
 
-- 7e325ad: Fix Sequoia hotkey deadlock by removing Input Monitoring guard that prevented CGEventTap creation. Tap creation triggers permission prompt naturally. Re-add 'force quit ToyLocal now' voice escape hatch from v0.5.8 (#122 #124)
+- 7e325ad: Fix Sequoia hotkey deadlock by removing Input Monitoring guard that prevented CGEventTap creation. Tap creation triggers permission prompt naturally. Re-add 'force quit TimberVox now' voice escape hatch from v0.5.8 (#122 #124)
 - 7e325ad: Add missing-model callout and focus settings when transcription starts without a model
 
 ## 0.6.0
@@ -128,7 +131,7 @@
 
 ### Patch Changes
 
-- 083513c: Add comprehensive documentation to HotKeyProcessor and extract magic numbers into named constants (ToyLocalCoreConstants)
+- 083513c: Add comprehensive documentation to HotKeyProcessor and extract magic numbers into named constants (TimberVoxCoreConstants)
 
 ## 0.5.12
 
@@ -158,7 +161,7 @@
 
 ### Patch Changes
 
-- 03b81c7: Let the hotkey tap start even when Input Monitoring is missing so Sequoia users get prompts again, while keeping the accessibility watchdog (#122 #124). Add a spoken “force quit ToyLocal now” escape hatch in case permissions clobber input.
+- 03b81c7: Let the hotkey tap start even when Input Monitoring is missing so Sequoia users get prompts again, while keeping the accessibility watchdog (#122 #124). Add a spoken “force quit TimberVox now” escape hatch in case permissions clobber input.
 
 ## 0.5.7
 
@@ -229,18 +232,18 @@
 
 ### Patch Changes
 
-- ea42b5b: Move `ToyLocalSettings` + `RecordingAudioBehavior` into ToyLocalCore and add fixtures/tests so we can migrate historic settings blobs safely before shipping new media-ducking options.
+- ea42b5b: Move `TimberVoxSettings` + `RecordingAudioBehavior` into TimberVoxCore and add fixtures/tests so we can migrate historic settings blobs safely before shipping new media-ducking options.
 - e50478d: Adopt Changesets for SemVer + changelog management, wire release.ts to fail without pending fragments, and sync the aggregated release notes into the bundled changelog + GitHub releases.
 - 2fbbe7a: Wait for NSPasteboard changeCount to advance before pasting so panel apps always receive the latest transcript (#69, #42).
 
-All notable changes to ToyLocal are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
+All notable changes to TimberVox are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
 ### Added
 
 - Added NVIDIA Parakeet TDT v3 support with a redesigned model manager so you can swap between Parakeet and curated Whisper variants without juggling files (#71).
-- Added first-run model bootstrap: ToyLocal now automatically downloads the recommended model, shows progress/cancel controls, and prevents transcription from starting until a model is ready (#97).
+- Added first-run model bootstrap: TimberVox now automatically downloads the recommended model, shows progress/cancel controls, and prevents transcription from starting until a model is ready (#97).
 - Added a global hotkey to paste the last transcript plus contextual actions to cancel or delete model downloads directly from Settings, making recovery workflows faster.
 
 ### Improved
@@ -248,13 +251,13 @@ All notable changes to ToyLocal are documented in this file. The format is based
 - Model downloads now surface the failing host/domain in their error message so DNS or network issues are easier to debug (#112).
 - Recording starts ~200–700 ms faster: start sounds play immediately, media pausing runs off the main actor, and transcription errors skip the extra cancel chime for less audio clutter (#113).
 - The transcription overlay tracks the active window so UI hints stay anchored to whichever app currently has focus.
-- ToyLocalSettings now lives inside ToyLocalCore with fixture-based migration tests, giving us a single source of truth for future settings changes.
+- TimberVoxSettings now lives inside TimberVoxCore with fixture-based migration tests, giving us a single source of truth for future settings changes.
 
 ### Fixed
 
 - Printable-key hotkeys (for example `⌘+'`) can now trigger short recordings just like modifier-only chords, so quick phrases aren’t discarded anymore (#113).
 - Fn and other modifier-only hotkeys respect left/right side selection, ignore phantom arrow events, and stop firing when combined with other keys, resolving long-standing regressions (#89, #81, #87).
-- Paste reliability: ToyLocal now waits for the clipboard write to commit before firing ⌘V, so panel apps like Alfred, Raycast, and IntelliBar always receive the latest transcript instead of the previous clipboard contents (#69, #42).
+- Paste reliability: TimberVox now waits for the clipboard write to commit before firing ⌘V, so panel apps like Alfred, Raycast, and IntelliBar always receive the latest transcript instead of the previous clipboard contents (#69, #42).
 
 ## 1.4
 
@@ -272,7 +275,7 @@ All notable changes to ToyLocal are documented in this file. The format is based
 
 ### Fixed
 
-- Fix issue with ToyLocal showing in Mission Control and Cmd+Tab
+- Fix issue with TimberVox showing in Mission Control and Cmd+Tab
 - Improve paste behavior when text input fails
 - Rework audio pausing logic to make it more reliable
 

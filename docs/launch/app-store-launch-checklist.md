@@ -1,4 +1,4 @@
-# Mac App Store launch checklist (ToyLocal, target: August 1)
+# Mac App Store launch checklist (TimberVox listing, TimberVox binary, target: August 1)
 
 Compiled from Apple's Mac submission page (https://developer.apple.com/macos/submit/), App Review Guidelines, and this project's verified state. Owner tags: [Chi] = account/product decisions, [agent] = buildable/verifiable here.
 
@@ -14,10 +14,11 @@ Compiled from Apple's Mac submission page (https://developer.apple.com/macos/sub
 
 ## App Store Connect setup
 
-- [ ] Register the App ID `com.chiejimofor.toylocal` at developer.apple.com → Identifiers (if not already present from signing). [Chi]
-- [ ] Create the app record: App Store Connect → My Apps → "+" → New App → platform macOS, name, primary language, the bundle ID above, SKU (any stable string, e.g. `toylocal-mac`). [Chi]
+- [ ] Register the App ID `com.chiejimofor.timbervox` at developer.apple.com → Identifiers (if not already present from signing). [Chi]
+- [ ] Create the app record: App Store Connect → My Apps → "+" → New App → platform macOS, name `TimberVox`, primary language, bundle ID `com.chiejimofor.timbervox`, and SKU `com.chiejimofor.timbervox` or the already-created immutable SKU. [Chi]
 - [ ] Agreements, Tax, and Banking: accept the Paid Apps agreement and complete banking + tax forms — REQUIRED before any in-app purchase can even be created or sandbox-tested; processing can take days, so this is the long pole. [Chi]
-- [ ] Generate the In-App Purchase Key and an App Store Connect API key (Users and Access → Integrations) — both go to RevenueCat (see the RevenueCat checklist). [Chi]
+- [ ] Generate the In-App Purchase Key and an App Store Connect API key (Users and Access → Integrations) — both go to RevenueCat, and the App Store Connect API key also powers `just app-store-validate` and `just app-store-upload-wait`. [Chi]
+- [x] App Store Connect upload credentials verified locally: app Apple ID `6787965139`, API key id `F0YBUEMFRDLI`, issuer id `d1804d83-f266-43bc-8cda-edb51b2c2354`, and the matching ignored `.p8` under `Config/keys/`. [agent verified 2026-07-06]
 - [ ] Create the IAP/subscription products (pricing decision) once agreements clear. [Chi]
 
 ## Product page
@@ -39,6 +40,7 @@ Compiled from Apple's Mac submission page (https://developer.apple.com/macos/sub
 ## Testing and release
 
 - [ ] TestFlight (Mac): upload a build, install via TestFlight app, run the full sandboxed hands-on pass (hotkeys, dictation, paste, Super Fast Mode, system audio). [Chi + agent]
+- [ ] Upload path: run `just app-store-export`, then `just app-store-validate`, then `just app-store-upload-wait`; do not submit for public App Review until the review metadata, privacy answers, and RevenueCat production key are ready. [agent]
 - [ ] Sandbox IAP purchase + restore verified through TestFlight build (see RevenueCat checklist). [Chi]
 - [ ] Submit for review with manual release; first submission should land mid-July to leave room for a rejection round before August 1. [Chi]
 - [ ] On approval: release manually, wait for propagation, then announce. [Chi]

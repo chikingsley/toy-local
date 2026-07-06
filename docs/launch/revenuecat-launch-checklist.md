@@ -1,4 +1,4 @@
-# RevenueCat launch checklist (ToyLocal Mac App Store build)
+# RevenueCat launch checklist (TimberVox Mac App Store listing, TimberVox binary)
 
 Mirrors the official checklist at https://www.revenuecat.com/docs/test-and-launch/launch-checklist, adapted to this project. Work top to bottom; check items as they are verified, not merely attempted.
 
@@ -11,8 +11,8 @@ CRITICAL PREREQUISITE from RevenueCat: the Test Store API key MUST be replaced w
 
 ## Project and app setup
 
-- [ ] Create the RevenueCat Project for ToyLocal.
-- [ ] Add the Apple App Store app to the project with bundle id `com.chiejimofor.toylocal`.
+- [ ] Create the RevenueCat Project for TimberVox.
+- [ ] Add the Apple App Store app to the project with bundle id `com.chiejimofor.timbervox`.
 - [ ] Upload the In-App Purchase Key (.p8, Key ID, Issuer ID from App Store Connect → Users and Access → Integrations → In-App Purchase).
 - [ ] Connect the App Store Connect API key (.p8, Key ID, Issuer ID from the App Store Connect API tab, App Manager role) so RC can sync products and metadata.
 - [ ] Define the `pro` entitlement (the SAME entitlement id the worker reads for cloud gating).

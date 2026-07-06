@@ -1,4 +1,4 @@
-# SwiftLint configuration for toy-local
+# SwiftLint configuration for TimberVox
 strict: true
 
 disabled_rules:
@@ -46,19 +46,19 @@ implicitly_unwrapped_optional:
 
 excluded:
   - build
-  - ToyLocal/Prototype
+  - TimberVox/Prototype
   - .build
   - .tmp
   - SourcePackages
   - DerivedData
   - .swiftpm
-  - toy-local.xcodeproj
-  - ToyLocalTests
-  - ToyLocalCore/.build
-  - ToyLocalBackendPrototype
-  - ToyLocalLiveDriver/.build
-  - ToyLocalTextTransformDriver/.build
-  - ToyLocalCore/Sources/ToyLocalCore/TextGeneration/Prompting/TextTransformPreset.swift
+  - TimberVox.xcodeproj
+  - TimberVoxTests
+  - TimberVoxCore/.build
+  - TimberVoxBackendPrototype
+  - TimberVoxLiveDriver/.build
+  - TimberVoxTextTransformDriver/.build
+  - TimberVoxCore/Sources/TimberVoxCore/TextGeneration/Prompting/TextTransformPreset.swift
   - _archive
 
 line_length:

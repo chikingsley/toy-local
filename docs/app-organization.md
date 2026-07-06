@@ -1,4 +1,4 @@
-# ToyLocal — App Organization Spec
+# TimberVox — App Organization Spec
 
 The concrete layout: every page, what's on it, and where every existing control moves.
 Status: agreed direction, not yet implemented. Implementation order at the bottom.
@@ -86,8 +86,8 @@ settings.
 - Output: auto-paste vs clipboard-insert (today's two clipboard toggles in
   General move here, per-mode with global default)
 
-**Data model:** a `Mode` struct in ToyLocalCore holding what are currently
-globals; `ToyLocalSettings` keeps `modes: [Mode]` + `defaultModeID`.
+**Data model:** a `Mode` struct in TimberVoxCore holding what are currently
+globals; `TimberVoxSettings` keeps `modes: [Mode]` + `defaultModeID`.
 
 ## Dictionary
 
@@ -185,7 +185,7 @@ Validated against Apple docs + current macOS 26 (Tahoe) field reports, 2026-07.
   Tahoe (`openSettings` needs an existing SwiftUI render tree; workarounds
   involve hidden windows, activation-policy flips, timing delays, and an
   undocumented scene-declaration-order dependency — see steipete's
-  "Showing Settings from macOS Menu Bar Items"). ToyLocal's
+  "Showing Settings from macOS Menu Bar Items"). TimberVox's
   NSWindow + NSHostingView + explicit `NSApp.activate` flow sidesteps all
   of that. Fix it in place:
   - add `.resizable` to the styleMask (this alone is why it can't resize)
@@ -237,7 +237,7 @@ Feature folders mirror the IA (Apple prescribes no structure; this is the
 dominant convention and matches the repo's existing shape). Target layout:
 
 ```
-ToyLocal/
+TimberVox/
   UI/                      ← shared, reused views (promotion target)
     HotKeyView, StarRatingView, AutoDownloadBannerView,
     settingsCaption style, (future: Kbd chip, InfoHint, stat tile)

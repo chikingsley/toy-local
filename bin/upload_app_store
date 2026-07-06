@@ -1,0 +1,79 @@
+#!/bin/zsh
+set -euo pipefail
+
+readonly MODE="${1:-validate}"
+readonly PACKAGE_PATH="${2:-build/app-store/current/export/TimberVox.pkg}"
+readonly DEFAULT_API_KEY_ID="F0YBUEMFRDLI"
+readonly DEFAULT_ISSUER_ID="d1804d83-f266-43bc-8cda-edb51b2c2354"
+readonly DEFAULT_APPLE_ID="6787965139"
+
+case "${MODE}" in
+  help|--help|-h)
+    echo "Usage: $0 [validate|upload|upload-wait|list-apps] [package-path]"
+    echo "Defaults: APP_STORE_CONNECT_API_KEY_ID=${DEFAULT_API_KEY_ID}, APP_STORE_CONNECT_ISSUER_ID=${DEFAULT_ISSUER_ID}, APP_STORE_CONNECT_APPLE_ID=${DEFAULT_APPLE_ID}"
+    echo "Optional env: APP_STORE_CONNECT_P8_PATH, APP_STORE_CONNECT_API_KEY_SUBJECT"
+    exit 0
+    ;;
+esac
+
+readonly API_KEY_ID="${APP_STORE_CONNECT_API_KEY_ID:-${DEFAULT_API_KEY_ID}}"
+readonly ISSUER_ID="${APP_STORE_CONNECT_ISSUER_ID:-${DEFAULT_ISSUER_ID}}"
+readonly APPLE_ID="${APP_STORE_CONNECT_APPLE_ID:-${DEFAULT_APPLE_ID}}"
+readonly P8_PATH="${APP_STORE_CONNECT_P8_PATH:-Config/keys/ApiKey_${API_KEY_ID}.p8}"
+
+if [[ "${MODE}" != "list-apps" && ! -f "${PACKAGE_PATH}" ]]; then
+  echo "Missing package: ${PACKAGE_PATH}" >&2
+  echo "Run: just app-store-export" >&2
+  exit 1
+fi
+
+if [[ ! -f "${P8_PATH}" ]]; then
+  echo "Missing App Store Connect API key file: ${P8_PATH}" >&2
+  echo "Set APP_STORE_CONNECT_P8_PATH to the matching .p8 file." >&2
+  exit 1
+fi
+
+auth_args=(
+  --api-key "${API_KEY_ID}"
+  --api-issuer "${ISSUER_ID}"
+  --p8-file-path "${P8_PATH}"
+)
+
+if [[ -n "${APP_STORE_CONNECT_API_KEY_SUBJECT:-}" ]]; then
+  auth_args+=(--api-key-subject "${APP_STORE_CONNECT_API_KEY_SUBJECT}")
+fi
+
+case "${MODE}" in
+  validate)
+    xcrun altool \
+      --validate-app "${PACKAGE_PATH}" \
+      "${auth_args[@]}" \
+      --output-format json
+    ;;
+  upload)
+    xcrun altool \
+      --upload-package "${PACKAGE_PATH}" \
+      "${auth_args[@]}" \
+      --output-format json \
+      --show-progress
+    ;;
+  upload-wait)
+    xcrun altool \
+      --upload-package "${PACKAGE_PATH}" \
+      "${auth_args[@]}" \
+      --output-format json \
+      --show-progress \
+      --wait
+    ;;
+  list-apps)
+    xcrun altool \
+      --list-apps \
+      --filter-apple-id "${APPLE_ID}" \
+      "${auth_args[@]}" \
+      --output-format json
+    ;;
+  *)
+    echo "Usage: $0 [validate|upload|upload-wait|list-apps] [package-path]" >&2
+    exit 1
+    ;;
+esac

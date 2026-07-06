@@ -11,11 +11,11 @@ updates/
 *.xcuserstate
 buildServer.json
 ExportOptions.plist
-ToyLocalCore/.build
-ToyLocalLiveDriver/.build
-ToyLocalTextTransformDriver/.build
-ToyLocalTextTransformDriver/Runs/
-ToyLocalCore/.swiftpm/xcode/xcuserdata/kit.xcuserdatad/xcschemes
+TimberVoxCore/.build
+TimberVoxLiveDriver/.build
+TimberVoxTextTransformDriver/.build
+TimberVoxTextTransformDriver/Runs/
+TimberVoxCore/.swiftpm/xcode/xcuserdata/kit.xcuserdatad/xcschemes
 FluidAudio/
 node_modules/
 .npm-cache/
