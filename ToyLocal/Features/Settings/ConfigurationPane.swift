@@ -205,28 +205,34 @@ private extension ConfigurationPane {
   private var updatesSection: some View {
     TLSection(title: "Updates") {
       TLSettingsCard {
-        TLSettingsRow(icon: "shippingbox", title: "Version", subtitle: appVersion) {
-          Button("Check for Updates...", action: updates.checkForUpdates)
-            .controlSize(.small)
-        }
-        TLSettingsToggleRow(
-          icon: "arrow.clockwise",
-          title: "Automatically check for updates",
-          hint: "If enabled, ToyLocal will automatically check for updates every three hours.",
-          isOn: Binding(
-            get: { updates.controller?.updater.automaticallyChecksForUpdates ?? false },
-            set: { updates.controller?.updater.automaticallyChecksForUpdates = $0 }
+        #if MAS_BUILD
+          TLSettingsRow(icon: "shippingbox", title: "Version", subtitle: appVersion) {
+            EmptyView()
+          }
+        #else
+          TLSettingsRow(icon: "shippingbox", title: "Version", subtitle: appVersion) {
+            Button("Check for Updates...", action: updates.checkForUpdates)
+              .controlSize(.small)
+          }
+          TLSettingsToggleRow(
+            icon: "arrow.clockwise",
+            title: "Automatically check for updates",
+            hint: "If enabled, ToyLocal will automatically check for updates every three hours.",
+            isOn: Binding(
+              get: { updates.automaticallyChecksForUpdates },
+              set: { updates.automaticallyChecksForUpdates = $0 }
+            )
           )
-        )
-        TLSettingsToggleRow(
-          icon: "arrow.down.circle",
-          title: "Automatically download updates",
-          hint: "Updates install quietly on next launch.",
-          isOn: Binding(
-            get: { updates.controller?.updater.automaticallyDownloadsUpdates ?? false },
-            set: { updates.controller?.updater.automaticallyDownloadsUpdates = $0 }
+          TLSettingsToggleRow(
+            icon: "arrow.down.circle",
+            title: "Automatically download updates",
+            hint: "Updates install quietly on next launch.",
+            isOn: Binding(
+              get: { updates.automaticallyDownloadsUpdates },
+              set: { updates.automaticallyDownloadsUpdates = $0 }
+            )
           )
-        )
+        #endif
 
       }
     }

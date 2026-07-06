@@ -1,48 +1,87 @@
-import Combine
-import Sparkle
-import SwiftUI
+#if MAS_BUILD
+  import SwiftUI
 
-@Observable
-@MainActor
-final class CheckForUpdatesViewModel {
-  init() {
-    guard isUpdaterAvailable else { return }
+  @Observable
+  @MainActor
+  final class CheckForUpdatesViewModel {
+    static let shared = CheckForUpdatesViewModel()
 
-    let controller = SPUStandardUpdaterController(
-      startingUpdater: true,
-      updaterDelegate: nil,
-      userDriverDelegate: nil
-    )
-    self.controller = controller
-    anyCancellable = controller.updater.publisher(for: \.canCheckForUpdates)
-      .receive(on: RunLoop.main)
-      .sink { self.canCheckForUpdates = $0 }
+    let isUpdaterAvailable = false
+    var canCheckForUpdates = false
+    var automaticallyChecksForUpdates = false
+    var automaticallyDownloadsUpdates = false
+
+    func checkForUpdates() {}
   }
 
-  static let shared = CheckForUpdatesViewModel()
+  struct CheckForUpdatesView: View {
+    let viewModel: CheckForUpdatesViewModel
 
-  let isUpdaterAvailable = !ProcessInfo.processInfo.environment.keys.contains("TOYLOCAL_DISABLE_SPARKLE")
+    init(viewModel: CheckForUpdatesViewModel = .shared) {
+      self.viewModel = viewModel
+    }
 
-  var controller: SPUStandardUpdaterController?
-
-  var anyCancellable: AnyCancellable?
-
-  var canCheckForUpdates = false
-
-  func checkForUpdates() {
-    controller?.updater.checkForUpdates()
+    var body: some View {
+      EmptyView()
+    }
   }
-}
+#else
+  import Combine
+  import Sparkle
+  import SwiftUI
 
-struct CheckForUpdatesView: View {
-  let viewModel: CheckForUpdatesViewModel
+  @Observable
+  @MainActor
+  final class CheckForUpdatesViewModel {
+    init() {
+      guard isUpdaterAvailable else { return }
 
-  init(viewModel: CheckForUpdatesViewModel = .shared) {
-    self.viewModel = viewModel
+      let controller = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+      )
+      self.controller = controller
+      anyCancellable = controller.updater.publisher(for: \.canCheckForUpdates)
+        .receive(on: RunLoop.main)
+        .sink { self.canCheckForUpdates = $0 }
+    }
+
+    static let shared = CheckForUpdatesViewModel()
+
+    let isUpdaterAvailable = !ProcessInfo.processInfo.environment.keys.contains("TOYLOCAL_DISABLE_SPARKLE")
+
+    var controller: SPUStandardUpdaterController?
+
+    var anyCancellable: AnyCancellable?
+
+    var canCheckForUpdates = false
+
+    var automaticallyChecksForUpdates: Bool {
+      get { controller?.updater.automaticallyChecksForUpdates ?? false }
+      set { controller?.updater.automaticallyChecksForUpdates = newValue }
+    }
+
+    var automaticallyDownloadsUpdates: Bool {
+      get { controller?.updater.automaticallyDownloadsUpdates ?? false }
+      set { controller?.updater.automaticallyDownloadsUpdates = newValue }
+    }
+
+    func checkForUpdates() {
+      controller?.updater.checkForUpdates()
+    }
   }
 
-  var body: some View {
-    Button("Check for Updates...", action: viewModel.checkForUpdates)
-      .disabled(!viewModel.canCheckForUpdates)
+  struct CheckForUpdatesView: View {
+    let viewModel: CheckForUpdatesViewModel
+
+    init(viewModel: CheckForUpdatesViewModel = .shared) {
+      self.viewModel = viewModel
+    }
+
+    var body: some View {
+      Button("Check for Updates...", action: viewModel.checkForUpdates)
+        .disabled(!viewModel.canCheckForUpdates)
+    }
   }
-}
+#endif

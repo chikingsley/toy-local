@@ -4,6 +4,7 @@
 
 ### Patch Changes
 
+- Added a Mac App Store build target (ToyLocal-AppStore) sharing all sources with the direct build: App Sandbox enabled with MAS entitlements, Sparkle unlinked with a stub updater, the MediaRemote private framework compiled out (binary-verified zero private symbols), and an SU-key-free Info.plist; the direct build is unchanged.
 - Deployed the cloud worker to https://toylocal.peacockery.studio and made it the app's default cloud endpoint (env override retained for local development); realtime streaming verified live against production.
 - Realtime cloud dictation: when the selected model has a realtime route, recordings stream to the cloud session live and the final transcript arrives at stop time, with automatic fallback to batch upload; live partial text is published for the future recording HUD.
 - The realtime worker session now holds the client connection open until the provider flushes its final transcript on close, so utterance endings are no longer lost.

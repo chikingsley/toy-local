@@ -10,61 +10,79 @@ enum MediaRemoteCommand: Int32 {
   case togglePlayPause = 2
 }
 
-@Observable
-class MediaRemoteController {
-  private var mediaRemoteHandle: UnsafeMutableRawPointer?
-  private var mrNowPlayingIsPlaying: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void)?
-  private var mrSendCommand: (@convention(c) (Int32, CFDictionary?) -> Void)?
-
-  init?() {
-    guard let handle = dlopen("/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote", RTLD_NOW) as UnsafeMutableRawPointer? else {
-      mediaLogger.error("Unable to open MediaRemote framework")
+#if MAS_BUILD
+  final class MediaRemoteController {
+    init?() {
       return nil
     }
-    mediaRemoteHandle = handle
 
-    guard let playingPtr = dlsym(handle, "MRMediaRemoteGetNowPlayingApplicationIsPlaying") else {
-      mediaLogger.error("Unable to find MRMediaRemoteGetNowPlayingApplicationIsPlaying symbol")
-      return nil
+    func isMediaPlaying() async -> Bool {
+      false
     }
-    mrNowPlayingIsPlaying = unsafeBitCast(
-      playingPtr,
-      to: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void).self
-    )
 
-    if let commandPtr = dlsym(handle, "MRMediaRemoteSendCommand") {
-      mrSendCommand = unsafeBitCast(
-        commandPtr,
-        to: (@convention(c) (Int32, CFDictionary?) -> Void).self
+    func send(_ command: MediaRemoteCommand) -> Bool {
+      false
+    }
+  }
+
+#else
+  @Observable
+  class MediaRemoteController {
+    private var mediaRemoteHandle: UnsafeMutableRawPointer?
+    private var mrNowPlayingIsPlaying: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void)?
+    private var mrSendCommand: (@convention(c) (Int32, CFDictionary?) -> Void)?
+
+    init?() {
+      guard let handle = dlopen("/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote", RTLD_NOW) as UnsafeMutableRawPointer? else {
+        mediaLogger.error("Unable to open MediaRemote framework")
+        return nil
+      }
+      mediaRemoteHandle = handle
+
+      guard let playingPtr = dlsym(handle, "MRMediaRemoteGetNowPlayingApplicationIsPlaying") else {
+        mediaLogger.error("Unable to find MRMediaRemoteGetNowPlayingApplicationIsPlaying symbol")
+        return nil
+      }
+      mrNowPlayingIsPlaying = unsafeBitCast(
+        playingPtr,
+        to: (@convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void).self
       )
-    } else {
-      mediaLogger.error("Unable to find MRMediaRemoteSendCommand symbol")
-    }
-  }
 
-  deinit {
-    if let handle = mediaRemoteHandle {
-      dlclose(handle)
-    }
-  }
-
-  func isMediaPlaying() async -> Bool {
-    guard let isPlayingFunc = mrNowPlayingIsPlaying else { return false }
-    return await withCheckedContinuation { continuation in
-      isPlayingFunc(DispatchQueue.main) { isPlaying in
-        continuation.resume(returning: isPlaying)
+      if let commandPtr = dlsym(handle, "MRMediaRemoteSendCommand") {
+        mrSendCommand = unsafeBitCast(
+          commandPtr,
+          to: (@convention(c) (Int32, CFDictionary?) -> Void).self
+        )
+      } else {
+        mediaLogger.error("Unable to find MRMediaRemoteSendCommand symbol")
       }
     }
+
+    deinit {
+      if let handle = mediaRemoteHandle {
+        dlclose(handle)
+      }
+    }
+
+    func isMediaPlaying() async -> Bool {
+      guard let isPlayingFunc = mrNowPlayingIsPlaying else { return false }
+      return await withCheckedContinuation { continuation in
+        isPlayingFunc(DispatchQueue.main) { isPlaying in
+          continuation.resume(returning: isPlaying)
+        }
+      }
+    }
+
+    func send(_ command: MediaRemoteCommand) -> Bool {
+      guard let sendCommand = mrSendCommand else {
+        return false
+      }
+      sendCommand(command.rawValue, nil)
+      return true
+    }
   }
 
-  func send(_ command: MediaRemoteCommand) -> Bool {
-    guard let sendCommand = mrSendCommand else {
-      return false
-    }
-    sendCommand(command.rawValue, nil)
-    return true
-  }
-}
+#endif
 
 nonisolated(unsafe) let mediaRemoteController = MediaRemoteController()
 
