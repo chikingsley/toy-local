@@ -1,0 +1,166 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Geist Variable", -apple-system, BlinkMacSystemFont, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-recording: var(--recording);
+  --color-recording-foreground: var(--recording-foreground);
+  --color-success: var(--success);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #0c0f12;
+  --foreground: #f3f2ed;
+  --card: #151a1f;
+  --card-foreground: #f3f2ed;
+  --popover: #191f25;
+  --popover-foreground: #f3f2ed;
+  --primary: #9ba3ff;
+  --primary-foreground: #0b0e12;
+  --secondary: #20272e;
+  --secondary-foreground: #ececf0;
+  --muted: #1b2127;
+  --muted-foreground: #959da6;
+  --accent: #272f37;
+  --accent-foreground: #f3f2ed;
+  --destructive: #ff756b;
+  --border: rgb(255 255 255 / 9%);
+  --input: rgb(255 255 255 / 13%);
+  --ring: #aab0ff;
+  --recording: #ffb567;
+  --recording-foreground: #16100a;
+  --success: #49d17d;
+  --radius: 0.85rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply bg-background font-sans;
+  }
+
+  body {
+    margin: 0;
+    @apply min-h-dvh bg-background text-foreground antialiased;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .iphone-canvas {
+    position: relative;
+    width: min(393px, calc(100vw - 1.5rem));
+    aspect-ratio: 393 / 852;
+    overflow: hidden;
+    background: var(--background);
+    border: 1px solid rgb(255 255 255 / 13%);
+    border-radius: 3rem;
+    box-shadow:
+      0 42px 100px -34px rgb(0 0 0 / 90%),
+      0 0 0 7px #07090b;
+  }
+
+  .voice-field {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 15.25rem;
+    aspect-ratio: 1;
+    overflow: hidden;
+    color: var(--primary);
+    background:
+      radial-gradient(
+        circle at 50% 44%,
+        rgb(155 163 255 / 20%),
+        transparent 48%
+      ),
+      linear-gradient(145deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 1%));
+    border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 43% 57% 48% 52% / 50% 43% 57% 50%;
+    box-shadow:
+      inset 0 1px rgb(255 255 255 / 8%),
+      0 28px 80px -42px var(--primary);
+    transition:
+      color 240ms ease,
+      border-radius 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 320ms ease;
+  }
+
+  .voice-field::before,
+  .voice-field::after {
+    position: absolute;
+    content: "";
+    border: 1px solid rgb(255 255 255 / 8%);
+    border-radius: inherit;
+  }
+
+  .voice-field::before {
+    inset: 1.2rem;
+  }
+
+  .voice-field::after {
+    inset: 2.5rem;
+  }
+
+  .voice-field-recording {
+    color: var(--recording);
+    border-radius: 52% 48% 56% 44% / 45% 55% 45% 55%;
+    box-shadow:
+      inset 0 1px rgb(255 255 255 / 9%),
+      0 30px 90px -38px var(--recording);
+  }
+}
+
+@media (max-width: 639px) {
+  .iphone-canvas {
+    border-radius: 2.35rem;
+    box-shadow: 0 20px 70px -34px rgb(0 0 0 / 90%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
