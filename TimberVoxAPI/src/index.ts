@@ -10,7 +10,7 @@ import { registerJobRoutes } from "./routes/jobs";
 import { registerModelRoutes } from "./routes/models";
 import { HealthResponse, JsonErrorContent } from "./routes/openapi-schemas";
 import { registerRealtimeRoutes } from "./routes/realtime";
-import { registerTextTransformRoutes } from "./routes/text-transforms";
+import { registerTextRoutes } from "./routes/text";
 import { registerTranscriptionRoutes } from "./routes/transcriptions";
 import { registerUploadRoutes } from "./routes/uploads";
 import { registerUsageRoutes } from "./routes/usage";
@@ -59,7 +59,7 @@ registerUploadRoutes(app);
 registerModelRoutes(app);
 registerTranscriptionRoutes(app);
 registerJobRoutes(app);
-registerTextTransformRoutes(app);
+registerTextRoutes(app);
 registerRealtimeRoutes(app);
 registerUsageRoutes(app);
 registerAdminRoutes(app);
@@ -67,7 +67,7 @@ registerAdminRoutes(app);
 app.doc("/openapi.json", {
   info: {
     description:
-      "TimberVox Cloud for upload, transcription jobs, realtime ASR, text transforms, and usage.",
+      "TimberVox Cloud for upload, transcription jobs, realtime ASR, text generation, and usage.",
     title: "TimberVox Cloud",
     version: "0.1.0",
   },

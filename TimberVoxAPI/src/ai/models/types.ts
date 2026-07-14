@@ -19,14 +19,15 @@ export interface LanguageModelEntry {
 }
 
 export interface BatchAsrModelEntry {
+  acceptedOptions: readonly AcceptedAsrOptionName[];
   provider: BatchAsrProviderId;
-  providerModelId: `${BatchAsrProviderId}:${string}`;
   supportedLanguages: readonly string[];
   supportsAutomaticLanguage: boolean;
   upstreamModel: string;
 }
 
 export interface RealtimeAsrModelEntry {
+  acceptedOptions: readonly AcceptedAsrOptionName[];
   provider: RealtimeAsrProviderId;
   supportedLanguages: readonly string[];
   supportsAutomaticLanguage: boolean;

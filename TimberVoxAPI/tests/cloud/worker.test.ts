@@ -48,8 +48,8 @@ describe("deployed Worker and Cloudflare D1", () => {
     expect(UsageResponse.parse(await response.json())).toBeDefined();
   });
 
-  it("returns a caller-schema object from the deployed text transform", async () => {
-    const response = await fetch(`${baseURL}/v1/text-transforms`, {
+  it("returns a caller-schema object from the deployed text endpoint", async () => {
+    const response = await fetch(`${baseURL}/v1/text`, {
       body: JSON.stringify({
         messages: [
           {

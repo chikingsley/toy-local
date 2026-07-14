@@ -8,9 +8,9 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createProviderRegistry, type LanguageModel } from "ai";
 import { createZhipu } from "zhipu-ai-provider";
 
-import type { Env } from "../bindings";
-import { resolveLanguageModel as resolveLanguageModelEntry } from "./models/language-models";
-import type { LanguageModelProviderId } from "./models/types";
+import type { Env } from "../../bindings";
+import { resolveLanguageModelRoute } from "../models/language-models";
+import type { LanguageModelProviderId } from "../models/types";
 
 const languageProviderApiKey = (
   env: Env,
@@ -59,7 +59,7 @@ export const resolveLanguageModel = (
   env: Env,
   modelId: string
 ): LanguageModel => {
-  const route = resolveLanguageModelEntry(modelId);
+  const route = resolveLanguageModelRoute(modelId);
   if (!languageProviderApiKey(env, route.provider)) {
     throw new Error(
       `missing API key for language model provider: ${route.provider}`

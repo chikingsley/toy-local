@@ -88,10 +88,7 @@ struct CloudTextTransformClient: Sendable {
   }
 
   func transform(request: CloudTextTransformRequest) async throws -> CloudTextTransformOutcome {
-    try await api.post(
-      path: "v1/text-transforms",
-      body: request
-    )
+    try await api.post(path: "v1/text", body: request)
   }
 }
 

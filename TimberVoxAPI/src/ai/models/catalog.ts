@@ -1,8 +1,8 @@
-import { BATCH_ASR_MODEL_MAP } from "./batch-asr-models";
-import { BATCH_ASR_OPTION_NAMES_BY_PROVIDER } from "./batch-asr-options";
 import { LANGUAGE_MODEL_MAP } from "./language-models";
-import { REALTIME_ASR_MODEL_MAP } from "./realtime-asr-models";
-import { REALTIME_ASR_OPTION_NAMES_BY_PROVIDER } from "./realtime-asr-options";
+import {
+  BATCH_ASR_MODEL_MAP,
+  REALTIME_ASR_MODEL_MAP,
+} from "./transcription-routes";
 import type {
   AcceptedAsrOptionName,
   AsrTransport,
@@ -68,7 +68,7 @@ export const publicModelCatalog = (): PublicModelSpec[] => {
   }
 
   for (const [id, model] of Object.entries(BATCH_ASR_MODEL_MAP)) {
-    const acceptedOptions = BATCH_ASR_OPTION_NAMES_BY_PROVIDER[model.provider];
+    const { acceptedOptions } = model;
     models.set(id, {
       acceptedOptions: {
         batch: acceptedOptions,
@@ -96,8 +96,7 @@ export const publicModelCatalog = (): PublicModelSpec[] => {
   for (const [id, model] of Object.entries(REALTIME_ASR_MODEL_MAP)) {
     const publicId = publicRealtimeModelId(id);
     const existing = models.get(publicId);
-    const acceptedOptions =
-      REALTIME_ASR_OPTION_NAMES_BY_PROVIDER[model.provider];
+    const { acceptedOptions } = model;
     const realtimeRoute: PublicAsrRouteSpec = {
       acceptedOptions,
       model: id,

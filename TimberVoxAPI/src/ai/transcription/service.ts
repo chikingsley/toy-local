@@ -1,5 +1,5 @@
 import type { Env } from "../../bindings";
-import { resolveBatchAsrModel } from "../models/batch-asr-models";
+import { resolveBatchAsrModel } from "../models/transcription-routes";
 import type { BatchAsrProviderId } from "../models/types";
 import { resolveBatchTranscriptionProvider } from "./registry";
 import {

@@ -41,7 +41,7 @@ const TextMessage = z
   })
   .openapi("TextMessage");
 
-export const TextTransformRequestSchema = z
+export const TextRequestSchema = z
   .object({
     messages: z.array(TextMessage).min(1),
     model: z.string().min(1),
@@ -57,9 +57,9 @@ export const TextTransformRequestSchema = z
     providerOptions: z.record(z.string(), z.unknown()).optional(),
     temperature: z.number().optional(),
   })
-  .openapi("TextTransformRequest");
+  .openapi("TextRequest");
 
-const TextTransformResponseBase = z.object({
+const TextResponseBase = z.object({
   finishReason: z.string(),
   model: z.string(),
   provider: z.string(),
@@ -71,18 +71,18 @@ const TextTransformResponseBase = z.object({
   }),
 });
 
-export const TextTransformResponse = z
+export const TextResponse = z
   .discriminatedUnion("outputType", [
-    TextTransformResponseBase.extend({
+    TextResponseBase.extend({
       output: z.record(z.string(), z.unknown()),
       outputType: z.literal("object"),
     }),
-    TextTransformResponseBase.extend({
+    TextResponseBase.extend({
       outputType: z.literal("text"),
       text: z.string(),
     }),
   ])
-  .openapi("TextTransformResponse");
+  .openapi("TextResponse");
 
 const RealtimeTerminalBase = z.object({
   audio_bytes: z.number().int().nonnegative(),

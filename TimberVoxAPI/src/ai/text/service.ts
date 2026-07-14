@@ -1,22 +1,16 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 
-import { recordUsageEvent } from "../accounting/usage";
-import type { Env } from "../bindings";
-import { resolveLanguageModel as resolveLanguageModelEntry } from "./models/language-models";
-import type { LanguageModelProviderId } from "./models/types";
-import { resolveLanguageModel } from "./registry";
+import { recordUsageEvent } from "../../accounting/usage";
+import type { Env } from "../../bindings";
+import { resolveLanguageModelRoute } from "../models/language-models";
+import type { LanguageModelProviderId } from "../models/types";
+import { resolveLanguageModel } from "./provider-registry";
 
 const TextMessage = z
   .object({
     content: z.string().min(1),
     role: z.enum(["assistant", "system", "user"]),
-  })
-  .strict();
-
-const TextTransformOutput = z
-  .object({
-    text: z.string().min(1),
   })
   .strict();
 
@@ -71,7 +65,7 @@ const ObjectOutputRequest = z
 // stall.
 const providerTimeoutMs = 10_000;
 
-export const TextTransformRequest = z
+export const TextRequest = z
   .object({
     messages: z.array(TextMessage).min(1),
     model: z.string().min(1),
@@ -83,9 +77,9 @@ export const TextTransformRequest = z
   })
   .strict();
 
-export type TextTransformRequest = z.infer<typeof TextTransformRequest>;
+export type TextRequest = z.infer<typeof TextRequest>;
 
-interface TextTransformResultBase {
+interface TextResultBase {
   finishReason: string;
   model: string;
   provider: LanguageModelProviderId;
@@ -98,18 +92,18 @@ interface TextTransformResultBase {
   warnings: unknown[] | undefined;
 }
 
-export type TextTransformResult = TextTransformResultBase &
+export type TextResult = TextResultBase &
   (
     | { outputType: "object"; output: Record<string, unknown> }
     | { outputType: "text"; text: string }
   );
 
-export const runTextTransform = async (
+export const runText = async (
   env: Env,
-  request: TextTransformRequest,
+  request: TextRequest,
   actor?: { credentialId: string; userId: string }
-): Promise<TextTransformResult> => {
-  const route = resolveLanguageModelEntry(request.model);
+): Promise<TextResult> => {
+  const route = resolveLanguageModelRoute(request.model);
   const model = resolveLanguageModel(env, request.model);
   // AI SDK v7 rejects system-role entries in `messages`; system text must go
   // through `instructions`.
@@ -144,14 +138,7 @@ export const runTextTransform = async (
           schema: z.fromJSONSchema(request.output.schema),
         }),
       })
-    : await generateText({
-        ...baseOptions,
-        output: Output.object({
-          description: "The final text to deliver to the user.",
-          name: "timbervox_text_transform",
-          schema: TextTransformOutput,
-        }),
-      });
+    : await generateText(baseOptions);
   const providerLatencyMs = Math.round(performance.now() - providerStart);
 
   if (actor) {
@@ -163,7 +150,7 @@ export const runTextTransform = async (
       outputTokens: result.usage.outputTokens,
       provider: route.provider,
       providerLatencyMs,
-      route: "/v1/text-transforms",
+      route: "/v1/text",
       status: 200,
       totalTokens: result.usage.totalTokens,
       upstreamModel: route.upstreamModel,
@@ -186,13 +173,13 @@ export const runTextTransform = async (
   if (request.output) {
     const parsed = z.fromJSONSchema(request.output.schema).parse(result.output);
     if (!isObjectRecord(parsed)) {
-      throw new Error("text transform object output was not an object");
+      throw new Error("text object output was not an object");
     }
     return { ...common, output: parsed, outputType: "object" };
   }
   return {
     ...common,
     outputType: "text",
-    text: TextTransformOutput.parse(result.output).text.trim(),
+    text: result.text.trim(),
   };
 };

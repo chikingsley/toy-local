@@ -1,5 +1,19 @@
-import { mapLanguageModels } from "./map";
-import type { LanguageModelEntry } from "./types";
+import type { LanguageModelEntry, LanguageModelProviderId } from "./types";
+
+const mapLanguageModels = <TProvider extends LanguageModelProviderId>(
+  provider: TProvider,
+  models: readonly string[]
+): Record<string, LanguageModelEntry> =>
+  Object.fromEntries(
+    models.map((model) => [
+      `${provider}-${model}`,
+      {
+        provider,
+        providerModelId: `${provider}:${model}`,
+        upstreamModel: model,
+      },
+    ])
+  );
 
 const ANTHROPIC_LANGUAGE_MODEL_IDS = [
   "claude-fable-5",
@@ -59,7 +73,9 @@ export const LANGUAGE_MODEL_MAP = {
   ...mapLanguageModels("zai", ZAI_LANGUAGE_MODEL_IDS),
 } as const satisfies Record<string, LanguageModelEntry>;
 
-export const resolveLanguageModel = (modelId: string): LanguageModelEntry => {
+export const resolveLanguageModelRoute = (
+  modelId: string
+): LanguageModelEntry => {
   const model = LANGUAGE_MODEL_MAP[modelId as keyof typeof LANGUAGE_MODEL_MAP];
   if (!model) {
     throw new Error(`unsupported language model: ${modelId}`);

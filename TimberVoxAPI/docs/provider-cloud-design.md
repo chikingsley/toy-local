@@ -12,13 +12,13 @@ TimberVox exposes product routes under the TimberVox domain. Provider selection 
 
 Mistral is the first integration target because it covers all three starting paths:
 
-- Language models: `POST /v1/text-transforms`.
+- Language models: `POST /v1/text`.
 - Batch/offline ASR: request-based audio transcription with Voxtral Mini Transcribe.
 - Realtime ASR: realtime audio transcription with Voxtral Realtime.
 
 TimberVox implementation:
 
-- `POST /v1/text-transforms` routes to a configured language model.
+- `POST /v1/text` routes to a configured language model.
 - `POST /v1/transcriptions` can route batch jobs to Mistral ASR.
 - `GET /v1/realtime` upgrades to a TimberVox WebSocket, then the Durable Object opens the Mistral realtime session.
 
@@ -52,7 +52,7 @@ Request/response means one TimberVox HTTP request returns the result directly.
 Routes:
 
 ```text
-POST /v1/text-transforms
+POST /v1/text
 ```
 
 Use this path for:

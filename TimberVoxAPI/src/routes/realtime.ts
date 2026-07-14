@@ -4,7 +4,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 import {
   resolveRealtimeAsrModel,
   resolveRealtimeLanguage,
-} from "../ai/models/realtime-asr-models";
+} from "../ai/models/transcription-routes";
 import type { RealtimeAsrModelEntry } from "../ai/models/types";
 import { terminalSessionEvent } from "../ai/realtime/protocol";
 import { authenticateCredential } from "../auth/service";

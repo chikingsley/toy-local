@@ -38,8 +38,9 @@ src/
   index.ts
   bindings.ts
   ai/
-    text-transform.ts
-    registry.ts
+    text/
+      provider-registry.ts
+      service.ts
     transcription/
       registry.ts
       service.ts
@@ -48,13 +49,15 @@ src/
       bridge.ts
       normalize.ts
     models/
-      batch-asr-models.ts
-      batch-asr-options.ts
+      asr-languages.ts
       catalog.ts
       language-models.ts
-      map.ts
-      realtime-asr-models.ts
-      realtime-asr-options.ts
+      transcription-routes.ts
+      types.ts
+    model-inventory/
+      adapters.ts
+      compare.ts
+      index.ts
       types.ts
     deepgram/
       realtime/
@@ -79,7 +82,7 @@ src/
     uploads.ts
     transcriptions.ts
     jobs.ts
-    text-transforms.ts
+    text.ts
     realtime.ts
   uploads/
     limits.ts
@@ -91,15 +94,14 @@ File roles:
 
 - `index.ts`: creates the Hono app, mounts routes, and exports the Worker `fetch` and Queue handlers.
 - `bindings.ts`: central TypeScript type for Cloudflare bindings: D1, R2, Queues, provider secrets, and job rows.
+- `ai/text/provider-registry.ts`: creates AI SDK language providers and resolves one curated TimberVox language-model route to an AI SDK model.
+- `ai/text/service.ts`: executes general text or caller-schema object requests through AI SDK `generateText` and records usage.
 - `ai/transcription/`: normalized remote-media batch ASR contract and provider registry.
 - `ai/realtime/`: normalized realtime event contract and provider bridge registry.
-- `ai/text-transform.ts`: language-model transform execution. The app/Core renders prompt messages; the cloud route executes them.
 - `ai/models/language-models.ts`: TimberVox language model IDs mapped to upstream provider model IDs.
-- `ai/models/batch-asr-models.ts`: TimberVox batch ASR model IDs mapped to upstream provider model IDs.
-- `ai/models/realtime-asr-models.ts`: TimberVox realtime ASR model IDs mapped to upstream provider model IDs.
-- `ai/models/batch-asr-options.ts`: accepted batch ASR request option names grouped by provider.
-- `ai/models/realtime-asr-options.ts`: accepted realtime ASR request option names grouped by provider.
+- `ai/models/transcription-routes.ts`: concrete batch and realtime route IDs, upstream model IDs, languages, automatic-language support, and accepted provider options.
 - `ai/models/catalog.ts`: public model catalog for `GET /v1/models`.
+- `ai/model-inventory/`: admin-only provider discovery and catalog drift reporting; it does not select or execute request routes.
 - `ai/*/realtime/`: provider-specific realtime WebSocket clients and event schemas.
 - `ai/*/transcription/`: provider URL request/response adapters.
 - `http/`: shared HTTP response helpers.
@@ -109,9 +111,40 @@ File roles:
 - `uploads/`: D1 reservations, signed R2 single/multipart transfers, completion verification,
   and signed provider reads.
 
+## AI SDK boundary
+
+The `ai/models` directory is TimberVox-owned routing metadata. AI SDK does not
+require or inspect that directory.
+
+- Language-model requests resolve a TimberVox catalog entry and then use AI SDK
+  `generateText` with the resolved provider model.
+- Batch transcription keeps TimberVox's remote-media provider contract so signed
+  R2 URLs can flow directly to providers instead of being downloaded into Worker
+  memory by an AI SDK convenience function.
+- Realtime transcription uses AI SDK `TranscriptionModelV4.doStream` as the
+  provider-neutral execution boundary. Direct Deepgram, Mistral, and
+  Superwhisper models each hide their own WebSocket and native event protocol
+  beneath that method.
+- The Durable Object remains the TimberVox session boundary above `doStream`.
+  It owns the public WebSocket, auth, persistence, recovery, and accounting; it
+  feeds client audio into a `ReadableStream` and maps AI SDK transcript parts to
+  the TimberVox client protocol.
+- The current direct-provider bridge is transitional and should be removed when
+  the Deepgram and Mistral `doStream` adapters replace it. Provider-specific
+  control messages must not leak through the public TimberVox protocol.
+- AI SDK `RealtimeModelV4` is not this contract. It represents bidirectional
+  voice-agent sessions with output audio, conversation items, and tool calls;
+  TimberVox's realtime surface is streaming speech-to-text.
+
+Concrete model IDs currently select concrete routes. A later automatic router
+can choose among direct and Superwhisper route candidates without changing the
+provider adapters or the public realtime protocol.
+
 Local references:
 
-- `cloudflare-sw-compat`: small Hono app factory, Zod parsing, provider request builders, and live request-shape tests.
+- `superwhisper-provider`: reusable AI SDK 7 provider package backed by the
+  promoted Superwhisper contract. It is consumed as a restricted GitHub Package,
+  not deployed as another Worker.
 - `cloudflare-api`: full Cloudflare API reference with OpenAPI, Scalar docs, auth, client metadata, D1, R2, Queues, Durable Objects, jobs, uploads, captions, and deployed live tests.
 
 ## Cloudflare Primitives
@@ -148,7 +181,7 @@ Request/response:
 
 ```text
 GET  /health
-POST /v1/text-transforms
+POST /v1/text
 ```
 
 Uploads and jobs:
@@ -175,4 +208,4 @@ All workload routes use `Authorization: Bearer <api-key>`. Accepted keys come on
 3. Add a Zod/OpenAPI route skeleton.
 4. Add model registries for ASR models and language models.
 5. Add one live Vitest test against the deployed Worker and deployed Cloudflare D1.
-6. Add Mistral-backed text transform as the first real language-model route.
+6. Add Mistral-backed text generation as the first real language-model route.

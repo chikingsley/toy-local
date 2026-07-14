@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { recordUsageEvent } from "../accounting/usage";
-import { resolveBatchAsrModel } from "../ai/models/batch-asr-models";
+import { resolveBatchAsrModel } from "../ai/models/transcription-routes";
 import { transcribeRemoteMedia } from "../ai/transcription/service";
 import type { AuthSession } from "../auth/service";
 import type { Env, JobRow } from "../bindings";
