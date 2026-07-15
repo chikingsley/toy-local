@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The pill itself: near-invisible oval when idle, red level-reactive pill
-/// while recording, blue while transcribing. Display-only — no click targets.
+/// while recording, blue while transcribing — streaming the processed text
+/// into the pill as it arrives. Display-only — no click targets.
 enum IndicatorStyle: String, CaseIterable, Identifiable {
   case mini, large, compact
 
@@ -36,6 +37,7 @@ struct RecordingPillView: View {
       Spacer()
       pill
         .animation(.spring(response: 0.42, dampingFraction: 0.8), value: phase)
+        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: showsProcessingText)
       Spacer().frame(height: 8)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -86,10 +88,15 @@ struct RecordingPillView: View {
     case (.recording, .mini): CGSize(width: 156, height: 36)
     case (.recording, .large): CGSize(width: 246, height: 56)
     case (.recording, .compact): CGSize(width: 53, height: 32)
-    case (.transcribing, .mini): CGSize(width: 132, height: 34)
-    case (.transcribing, .large): CGSize(width: 180, height: 48)
+    case (.transcribing, .mini): CGSize(width: showsProcessingText ? 280 : 132, height: 34)
+    case (.transcribing, .large): CGSize(width: showsProcessingText ? 400 : 180, height: 48)
     case (.transcribing, .compact): CGSize(width: 53, height: 32)
     }
+  }
+
+  /// The transform result streams in while transcribing; compact stays dots-only.
+  private var showsProcessingText: Bool {
+    phase == .transcribing && style != .compact && !dictation.processingText.isEmpty
   }
 
   @ViewBuilder private var recordingContent: some View {
@@ -115,7 +122,16 @@ struct RecordingPillView: View {
       Circle()
         .fill(style == .compact ? Color.white : Self.processingBlue)
         .frame(width: 8, height: 8)
-      PulsingDots(color: style == .compact ? Color.white : Self.processingBlue)
+      if showsProcessingText {
+        Text(dictation.processingText)
+          .font(.system(size: style == .large ? 13 : 12, weight: .medium))
+          .foregroundStyle(Color.white.opacity(0.92))
+          .lineLimit(1)
+          .truncationMode(.head)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      } else {
+        PulsingDots(color: style == .compact ? Color.white : Self.processingBlue)
+      }
     }
     .padding(.horizontal, 14)
   }
