@@ -13,10 +13,16 @@ enum IndicatorStyle: String, CaseIterable, Identifiable {
   var label: String {
     switch self {
     case .mini: "Mini"
-    case .large: "Large"
+    case .large: "Window"
     case .compact: "Compact"
     }
   }
+}
+
+/// What the indicator is showing right now — shared by the pill and the
+/// window surface.
+enum RecordingPillPhase: Equatable {
+  case idle, recording, transcribing
 }
 
 /// Shared by the live pill and the Settings style previews.
@@ -38,19 +44,21 @@ struct RecordingPillView: View {
   var body: some View {
     VStack {
       Spacer()
-      pill
-        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: phase)
-        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: showsProcessingText)
+      Group {
+        if style == .large, phase != .idle {
+          RecordingWindowView(dictation: dictation, phase: phase)
+        } else {
+          pill
+        }
+      }
+      .animation(.spring(response: 0.42, dampingFraction: 0.8), value: phase)
+      .animation(.spring(response: 0.42, dampingFraction: 0.8), value: showsProcessingText)
       Spacer().frame(height: 8)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
-  private enum Phase: Equatable {
-    case idle, recording, transcribing
-  }
-
-  private var phase: Phase {
+  private var phase: RecordingPillPhase {
     switch dictation.state {
     case .idle: .idle
     case .recording: .recording

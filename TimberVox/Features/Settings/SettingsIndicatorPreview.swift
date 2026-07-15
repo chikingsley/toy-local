@@ -74,16 +74,25 @@ struct SettingsIndicatorPreview: View {
         .frame(width: 116, height: 16)
       }
     case .large:
-      pillSurface(width: 246, height: 56, cornerRadius: 28) {
-        SpectrumBars(
-          bars: Self.sampleBars,
-          color: RecordingPillPalette.recordingRed,
-          barWidth: 5,
-          barSpacing: 3.5,
-          maxBarHeight: 38,
-          minBarHeight: 2
-        )
-        .frame(width: 200, height: 40)
+      pillSurface(width: 246, height: 88, cornerRadius: 12) {
+        VStack(alignment: .leading, spacing: 8) {
+          SpectrumBars(
+            bars: Self.sampleBars,
+            color: RecordingPillPalette.recordingRed,
+            barWidth: 4,
+            barSpacing: 3,
+            maxBarHeight: 26,
+            minBarHeight: 2
+          )
+          .frame(width: 190, height: 28)
+          .frame(maxWidth: .infinity)
+
+          VStack(alignment: .leading, spacing: 4) {
+            transcriptLine(width: 180)
+            transcriptLine(width: 122)
+          }
+        }
+        .padding(.horizontal, 14)
       }
     case .compact:
       ZStack {
@@ -95,6 +104,12 @@ struct SettingsIndicatorPreview: View {
       }
       .frame(width: 53, height: 32)
     }
+  }
+
+  private func transcriptLine(width: CGFloat) -> some View {
+    Capsule()
+      .fill(Color.white.opacity(0.35))
+      .frame(width: width, height: 4)
   }
 
   private func pillSurface(

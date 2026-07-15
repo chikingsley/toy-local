@@ -7,7 +7,7 @@ import SwiftUI
 @MainActor
 final class RecordingIndicatorManager {
   private let panel: NSPanel
-  private static let hostSize = CGSize(width: 360, height: 90)
+  private static let hostSize = CGSize(width: 480, height: 220)
   private static let bottomOffset: CGFloat = 24
 
   init(dictation: DictationController) {
