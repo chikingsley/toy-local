@@ -56,6 +56,19 @@ extension TranscriptRecord {
   }
 
   var transcriptViewerComposition: SCTranscriptComposition {
+    if let cacheKey = payloadCacheKey,
+      let cached = TranscriptCompositionCache.shared.composition(forKey: cacheKey)
+    {
+      return cached
+    }
+    let composition = builtTranscriptViewerComposition
+    if let cacheKey = payloadCacheKey {
+      TranscriptCompositionCache.shared.store(composition, forKey: cacheKey)
+    }
+    return composition
+  }
+
+  private var builtTranscriptViewerComposition: SCTranscriptComposition {
     let timedItems = timedWords.isEmpty ? timedSegments : timedWords
     var segments: [SCTranscriptSegment] = []
     var words: [SCTranscriptWord] = []
@@ -112,4 +125,32 @@ extension TranscriptRecord {
 struct HistoryReloadKey: Equatable {
   let query: String
   let pageLimit: Int
+}
+
+/// Building the viewer composition walks every timed word, and view bodies
+/// recompute it on every render — memoize per row alongside the artifact cache.
+private final class TranscriptCompositionCache: @unchecked Sendable {
+  static let shared = TranscriptCompositionCache()
+
+  private final class Entry {
+    let composition: SCTranscriptComposition
+
+    init(_ composition: SCTranscriptComposition) {
+      self.composition = composition
+    }
+  }
+
+  private let cache: NSCache<NSString, Entry> = {
+    let cache = NSCache<NSString, Entry>()
+    cache.countLimit = 16
+    return cache
+  }()
+
+  func composition(forKey key: String) -> SCTranscriptComposition? {
+    cache.object(forKey: key as NSString)?.composition
+  }
+
+  func store(_ composition: SCTranscriptComposition, forKey key: String) {
+    cache.setObject(Entry(composition), forKey: key as NSString)
+  }
 }

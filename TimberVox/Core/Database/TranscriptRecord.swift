@@ -39,14 +39,31 @@ struct TranscriptRecord: Identifiable, Codable, Equatable, Sendable, FetchableRe
       let transcriptionArtifactJSON,
       let data = transcriptionArtifactJSON.data(using: .utf8)
     else { return nil }
+    let cacheKey = payloadCacheKey
+    if let cacheKey, let cached = TranscriptArtifactCache.shared.artifact(forKey: cacheKey) {
+      return cached.artifact
+    }
     do {
-      return try TranscriptionArtifactCoders.decode(data)
+      let artifact = try TranscriptionArtifactCoders.decode(data)
+      if let cacheKey {
+        TranscriptArtifactCache.shared.store(artifact, forKey: cacheKey)
+      }
+      return artifact
     } catch {
       TimberVoxLog.persistence.error(
         "Stored transcription artifact could not be decoded: \(error.localizedDescription)"
       )
+      if let cacheKey {
+        TranscriptArtifactCache.shared.store(nil, forKey: cacheKey)
+      }
       return nil
     }
+  }
+
+  /// Rows are immutable per id, so id plus payload size identifies a decode result.
+  /// Nil for unsaved records, which are never worth caching.
+  var payloadCacheKey: String? {
+    id.map { "\($0):\(transcriptionArtifactJSON?.utf8.count ?? 0)" }
   }
 
   var transformation: TextTransformationCapture? {
@@ -66,5 +83,33 @@ struct TranscriptRecord: Identifiable, Codable, Equatable, Sendable, FetchableRe
 
   mutating func didInsert(_ inserted: InsertionSuccess) {
     id = inserted.rowID
+  }
+}
+
+/// Decoding the stored artifact JSON is expensive and SwiftUI re-reads
+/// `artifact` on every render, so decode once per row and reuse.
+final class TranscriptArtifactCache: @unchecked Sendable {
+  static let shared = TranscriptArtifactCache()
+
+  final class Entry {
+    let artifact: TranscriptionArtifact?
+
+    init(_ artifact: TranscriptionArtifact?) {
+      self.artifact = artifact
+    }
+  }
+
+  private let cache: NSCache<NSString, Entry> = {
+    let cache = NSCache<NSString, Entry>()
+    cache.countLimit = 24
+    return cache
+  }()
+
+  func artifact(forKey key: String) -> Entry? {
+    cache.object(forKey: key as NSString)
+  }
+
+  func store(_ artifact: TranscriptionArtifact?, forKey key: String) {
+    cache.setObject(Entry(artifact), forKey: key as NSString)
   }
 }
