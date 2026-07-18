@@ -1,2 +1,0 @@
--- No-op retained so local databases that already applied migration 0002 keep
--- their migration history. The idempotency schema lives in 0001_init.sql.

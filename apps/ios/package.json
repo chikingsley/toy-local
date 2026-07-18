@@ -62,12 +62,12 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "TIMBERVOX_EMBED_DEV_CREDENTIAL=1 expo start",
+    "start": "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL=1 PEACOCKERY_VOICE_ENVIRONMENT=lab expo start",
     "check": "tsc --noEmit && expo lint",
     "test": "jest --runInBand",
     "prebuild:ios": "expo prebuild -p ios --clean",
     "android": "expo run:android",
-    "ios": "TIMBERVOX_EMBED_DEV_CREDENTIAL=1 expo run:ios",
+    "ios": "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL=1 PEACOCKERY_VOICE_ENVIRONMENT=lab expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },

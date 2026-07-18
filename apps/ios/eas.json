@@ -9,14 +9,16 @@
       "distribution": "internal",
       "environment": "development",
       "env": {
-        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "1"
+        "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL": "1",
+        "PEACOCKERY_VOICE_ENVIRONMENT": "lab"
       }
     },
     "preview": {
       "distribution": "internal",
       "environment": "preview",
       "env": {
-        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "1"
+        "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL": "1",
+        "PEACOCKERY_VOICE_ENVIRONMENT": "lab"
       }
     },
     "testflight-dev": {
@@ -24,7 +26,8 @@
       "environment": "preview",
       "autoIncrement": true,
       "env": {
-        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "1"
+        "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL": "1",
+        "PEACOCKERY_VOICE_ENVIRONMENT": "lab"
       }
     },
     "production": {
@@ -32,7 +35,8 @@
       "environment": "production",
       "autoIncrement": true,
       "env": {
-        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "0"
+        "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL": "0",
+        "PEACOCKERY_VOICE_ENVIRONMENT": "production"
       }
     }
   },

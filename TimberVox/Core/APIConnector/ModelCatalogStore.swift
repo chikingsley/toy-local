@@ -14,7 +14,7 @@ final class ModelCatalogStore {
 
   var hasLoadedSuccessfully: Bool { hasLoaded }
 
-  init(client: ModelCatalogAPIClient = .production) {
+  init(client: ModelCatalogAPIClient = .current) {
     self.client = client
   }
 

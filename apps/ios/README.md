@@ -11,8 +11,8 @@ Expo/React Native host app plus a native SwiftUI custom keyboard extension. The 
 - Local SQLite History with searchable transcripts, retained WAV audio, playback, sharing, and deletion
 - Settings with live keyboard/full-access evidence and background-session status
 - Expo SDK 57 host app with background audio recording
-- Voxtral realtime streaming through `wss://timbervox.peacockery.studio/v1/realtime`
-- App-owned TimberVox API authentication injected at build time
+- Voice Lab realtime streaming for internal builds and official Peacockery Voice routing for production
+- App-owned Peacockery Voice development authentication injected only into internal builds
 - SwiftUI keyboard extension with tap typing, a visible swipe trail, local prototype swipe decoding, three predictions, and a bottom-right dictation control
 - Live partial text in the keyboard and final text insertion into the current field
 - Debug-only direct launch of `timbervox://session` when no session is active
@@ -33,7 +33,7 @@ This requires a development build; Expo Go cannot contain the keyboard extension
 
 Complete setup, or continue into the app-only recorder. The Home microphone records and transcribes directly. A background session may then stay active while the keyboard's microphone button starts and stops realtime dictation. Users never enter an API key.
 
-Local development, internal preview, and the dedicated `testflight-dev` profile may embed a disposable test Worker credential when `TIMBERVOX_EMBED_DEV_CREDENTIAL=1`. The key comes from `TIMBERVOX_API_KEY` or the ignored repository file at `Config/keys/TimberVoxAPI.local.xcconfig`; EAS builds require the key to exist as an EAS environment secret. The `production` profile explicitly omits this credential. Before public release, replace the disposable-key path with a revocable app-to-Worker mobile session stored in iOS secure storage.
+Local development, internal preview, and the dedicated `testflight-dev` profile use Voice Lab and may embed a disposable credential when `PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL=1`. The key comes from `PEACOCKERY_VOICE_API_KEY` or, on this Mac, the `peacockery-voice/lab-api-key` Keychain item; EAS builds require it as an EAS environment secret. The `production` profile selects `voice.peacockery.studio` and explicitly omits this credential. Before public release, exchange trusted app/account proof for a revocable managed client token stored in iOS secure storage.
 
 ## Personal and distribution modes
 

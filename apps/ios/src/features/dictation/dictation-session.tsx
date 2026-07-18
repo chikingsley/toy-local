@@ -4,7 +4,6 @@ import {
   useAudioStream,
   type AudioStreamBuffer,
 } from "expo-audio";
-import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useSQLiteContext } from "expo-sqlite";
 import {
@@ -44,6 +43,7 @@ import {
   recoverRealtimeSession,
 } from "@/features/dictation/websocket-transport";
 import { useHistory } from "@/features/history/history-store";
+import { configuredApiCredential } from "@/lib/api-credential";
 import {
   initializeAppGroupBridge,
   readBridgeBoolean,
@@ -61,7 +61,7 @@ import {
 import { useModes } from "@/features/modes/mode-provider";
 import type { Mode } from "@/features/modes/mode-types";
 
-const buildCredential = readBuildCredential();
+const buildCredential = configuredApiCredential();
 
 type DictationSessionValue = {
   cancelDictation: () => void;
@@ -516,11 +516,6 @@ function createPlan(
 
 function createRequestId() {
   return `request_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function readBuildCredential() {
-  const value = Constants.expoConfig?.extra?.timberVoxApiKey;
-  return typeof value === "string" ? value.trim() : "";
 }
 
 function stageLabel(stage: DictationStage, finalText: string) {

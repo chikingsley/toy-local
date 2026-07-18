@@ -7,9 +7,10 @@ import type {
   RealtimeTransport,
   RealtimeTransportCallbacks,
 } from "@/features/dictation/dictation-workflow";
+import { configuredApiOrigin } from "@/lib/api-credential";
 
-const API_ORIGIN = "https://timbervox.peacockery.studio";
-const REALTIME_ORIGIN = "wss://timbervox.peacockery.studio";
+const API_ORIGIN = configuredApiOrigin();
+const REALTIME_ORIGIN = API_ORIGIN.replace(/^https:/, "wss:");
 
 function createWebSocketTransport(
   plan: DictationPlan,

@@ -4,7 +4,7 @@ import XCTest
 
 @MainActor
 final class TextTransformProviderLiveAcceptanceTests: XCTestCase {
-  func testProductionTransformMatrixReturnsStructuredText() async throws {
+  func testVoiceLabTransformMatrixReturnsStructuredText() async throws {
     try requireLiveTransformAcceptance()
     let artifacts = try makeArtifactsDirectory()
     let modes: [(ModeTextTransformPreset, String)] = [
@@ -20,7 +20,7 @@ final class TextTransformProviderLiveAcceptanceTests: XCTestCase {
       let request = try XCTUnwrap(
         mode.textTransformRequest(rawTranscript: transcript, context: Self.context)
       )
-      let outcome = try await TextTransformAPIClient.production.transform(request: request)
+      let outcome = try await TextTransformAPIClient.current.transform(request: request)
       let text = outcome.text.trimmingCharacters(in: .whitespacesAndNewlines)
 
       XCTAssertFalse(text.isEmpty, "\(preset.label) returned empty structured text")
@@ -73,7 +73,7 @@ final class TextTransformProviderLiveAcceptanceTests: XCTestCase {
       ProcessInfo.processInfo.environment["TIMBERVOX_LIVE_TRANSFORM_ACCEPTANCE"] == "1"
       || FileManager.default.fileExists(atPath: "/tmp/timbervox-live-transform-acceptance")
     if !enabled {
-      throw XCTSkip("Run `just test-transform-live` for the deployed Worker transform matrix.")
+      throw XCTSkip("Run `just test-transform-live` for the Voice Lab transform matrix.")
     }
   }
 

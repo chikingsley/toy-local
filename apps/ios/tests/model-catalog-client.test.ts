@@ -37,7 +37,7 @@ describe("model catalog client", () => {
     });
 
     expect(fetchImplementation).toHaveBeenCalledWith(
-      "https://timbervox.peacockery.studio/v1/models",
+      "https://voice-lab.peacockery.studio/v1/models",
       expect.objectContaining({
         headers: { Authorization: "Bearer mobile-session" },
       }),

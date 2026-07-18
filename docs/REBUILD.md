@@ -4,17 +4,17 @@ This is the product and architecture roadmap. `TODO.md` is the canonical active 
 
 ## Current truth
 
-The rebuild is no longer a skeleton. The Mac target contains a visible shell, onboarding, cloud dictation, auto-paste behavior, GRDB history, settings, a passive recording indicator, modes, text transforms, app-side RevenueCat purchases, and authenticated batch/realtime Worker clients.
+The rebuild is no longer a skeleton. The Mac target contains a visible shell, onboarding, cloud dictation, auto-paste behavior, GRDB history, settings, a passive recording indicator, modes, text transforms, app-side RevenueCat purchases, and authenticated batch/realtime Peacockery Voice clients.
 
-The major runtime boundary refactor is complete. `DictationController` owns observable UI state and commands; `DictationWorkflow` owns record → transcribe → transform → persist → deliver; `TranscriptionRuntime` owns batch/realtime and cloud/local route execution; provider implementations live under `Core/Transcription`; mode persistence and capability interpretation are separated; and the Worker catalog is authoritative for cloud routes, languages, and diarization.
+The major runtime boundary refactor is complete. `DictationController` owns observable UI state and commands; `DictationWorkflow` owns record → transcribe → transform → persist → deliver; `TranscriptionRuntime` owns batch/realtime and cloud/local route execution; provider implementations live under `Core/Transcription`; mode persistence and capability interpretation are separated; and the Peacockery Voice catalog is authoritative for cloud routes, languages, and diarization.
 
-The copied text-transform cleanup is now complete. The obsolete local language-model catalog/provider protocol was removed. The live prompt contract consists of `TextMessage`, presets, prompt assembly, a recording-scoped Dictation context session, and the Worker text-transform route. Context capture now spans record start through stop and includes application/window/focused text, selected-text changes, a three-second pre-recording clipboard window, clipboard changes and attachment metadata, and optional start/end screen OCR.
+The copied text-transform cleanup is now complete. The obsolete local language-model catalog/provider protocol was removed. The live prompt contract consists of `TextMessage`, presets, prompt assembly, a recording-scoped Dictation context session, and the Peacockery Voice text route. Context capture now spans record start through stop and includes application/window/focused text, selected-text changes, a three-second pre-recording clipboard window, clipboard changes and attachment metadata, and optional start/end screen OCR.
 
 Earlier accepted runs covered the real temporary-GRDB persistence integration, unsigned Debug build, Worker checks, deployed-Worker/deployed-D1 integration, mixed microphone/system capture, local and cloud batch/realtime providers, playback policies, endurance, dual speech, local record-to-delivery, and the five production text-transform presets. Later source changes require their own gates and live acceptance; this July 14 backend pass intentionally runs only Apple Swift Format and SwiftLint. It does not prove global shortcuts, macOS focus, paste delivery in third-party apps, permission recovery, production UI interactions, or the undeployed text-stream route.
 
-The production Worker is deployed at `timbervox.peacockery.studio`. Every HTTP endpoint, including health, docs, OpenAPI, the normalized model catalog, workloads, and admin routes, requires a configured static bearer API key; admin routes additionally require the admin token. It uses direct signed R2 single/multipart uploads, verifies exact completed size, sends signed R2 GET URLs to batch providers, supports realtime WebSockets through a Durable Object, records usage/ownership in the deployed Cloudflare D1, and has passed production API-key and upload acceptance. Wrangler development uses remote bindings; no local D1 state or local-D1 test path remains.
+Peacockery Voice is deployed at `voice-lab.peacockery.studio` for internal development and `voice.peacockery.studio` for official-provider production traffic. Both hosts expose one authenticated `/v1` contract and currently share a Worker and Cloudflare bindings; the hostname selects environment-scoped credentials and provider policy. The service uses direct signed R2 audio uploads, keeps exact structured/text evidence in D1, supports realtime WebSockets through a Durable Object, and has passed lab and production text, batch, and realtime acceptance.
 
-RevenueCat is app-side purchase UI only and is not part of Worker authorization. The Worker no longer contains entitlement verification, credential provisioning, installation identity, credential expiration, or license tables. This Mac has one development API key in local preferences; release builds may inject a key through `TIMBERVOX_API_KEY`/`TimberVoxAPIKey` without a Keychain or provisioning round trip.
+RevenueCat is app-side purchase UI only and is not part of service authorization. Debug macOS builds read the environment-scoped lab credential from the local `peacockery-voice/lab-api-key` Keychain item; release builds may inject `PEACOCKERY_VOICE_API_KEY`/`PeacockeryVoiceAPIKey`. Distributed clients must use the managed short-lived client-token flow rather than embedding its trusted parent key.
 
 ## What remains before the cloud-dictation alpha
 
@@ -41,7 +41,6 @@ A meeting is an explicit app workflow, not a third ASR transport. It composes re
 
 ```
 TimberVox/       Mac application
-TimberVoxAPI/    live Cloudflare Worker
 TimberVoxTests/  Mac contract and persistence tests
 old-app/         frozen reference implementation
 docs/            roadmap, active TODO, architecture, and archived audits
@@ -81,9 +80,9 @@ Realtime transcription uses `CloudRealtimeTranscriptionClient` for the authentic
 
 ### TimberVox service API
 
-`Core/APIConnector` is the macOS adapter to the TimberVox service. `APIConnector` owns common JSON requests, static bearer authorization, signed uploads, and response validation. There is no catch-all client bundle; each operation owns the concrete API dependency it uses.
+`Core/APIConnector` is the macOS adapter to Peacockery Voice. `APIConnector` owns common JSON requests, bearer authorization, signed uploads, and response validation. Debug builds select Voice Lab; release builds select Voice production. The generated Swift SDK is Git-importable from the private Peacockery Voice repository, while the specialized realtime WebSocket transport remains app-owned.
 
-`ModelCatalog` contains the decoded Worker contract, `ModelCatalogAPIClient` fetches it, and `ModelCatalogStore` caches service state. `TranscriptionModelCatalogStore` merges those Worker-authoritative routes with the compiled local catalog for Modes and History without sending local audio through the Worker. The Mac never invents a cloud provider route, language list, or diarization capability absent from the Worker catalog.
+`ModelCatalog` contains the decoded service contract, `ModelCatalogAPIClient` fetches it, and `ModelCatalogStore` caches service state. `TranscriptionModelCatalogStore` merges those service-authoritative routes with the compiled local catalog for Modes and History without sending local audio through the Worker. The Mac never invents a cloud provider route, language list, or diarization capability absent from the service catalog.
 
 ### Text transforms and context
 

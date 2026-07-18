@@ -1,25 +1,31 @@
-const fs = require("node:fs");
-const path = require("node:path");
+const { execFileSync } = require("node:child_process");
 
-function localTimberVoxCredential() {
+function localLabCredential() {
   try {
-    const config = fs.readFileSync(
-      path.resolve(__dirname, "../../Config/keys/TimberVoxAPI.local.xcconfig"),
-      "utf8",
-    );
-    return config.match(/^TIMBERVOX_API_KEY\s*=\s*(.+)$/m)?.[1]?.trim() ?? "";
+    return execFileSync(
+      "/usr/bin/security",
+      [
+        "find-generic-password",
+        "-a",
+        "lab-api-key",
+        "-s",
+        "peacockery-voice",
+        "-w",
+      ],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
   } catch {
     return "";
   }
 }
 
 function developmentCredential() {
-  if (process.env.TIMBERVOX_EMBED_DEV_CREDENTIAL !== "1") return "";
+  if (process.env.PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL !== "1") return "";
   const credential =
-    process.env.TIMBERVOX_API_KEY?.trim() || localTimberVoxCredential();
+    process.env.PEACOCKERY_VOICE_API_KEY?.trim() || localLabCredential();
   if (!credential) {
     throw new Error(
-      "TIMBERVOX_EMBED_DEV_CREDENTIAL=1 requires TIMBERVOX_API_KEY or Config/keys/TimberVoxAPI.local.xcconfig",
+      "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL=1 requires PEACOCKERY_VOICE_API_KEY or the local peacockery-voice/lab-api-key Keychain item",
     );
   }
   return credential;
@@ -31,7 +37,11 @@ module.exports = ({ config }) => {
     ...config,
     extra: {
       ...config.extra,
-      ...(credential ? { timberVoxApiKey: credential } : {}),
+      peacockeryVoiceEnvironment:
+        process.env.PEACOCKERY_VOICE_ENVIRONMENT === "production"
+          ? "production"
+          : "lab",
+      ...(credential ? { peacockeryVoiceApiKey: credential } : {}),
     },
   };
 };

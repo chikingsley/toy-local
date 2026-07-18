@@ -93,7 +93,7 @@ final class DictationWorkflow {
   init(
     recorder: DictationAudioRecorder = DictationAudioRecorder(),
     transcription: TranscriptionRuntime = .shared,
-    textTransform: TextTransformAPIClient = .production,
+    textTransform: TextTransformAPIClient = .current,
     textDelivery: TextDeliveryService = TextDeliveryService(),
     transcriptStore: TranscriptStore = .shared,
     modeStore: ModeStore = .shared,

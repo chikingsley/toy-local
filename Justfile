@@ -53,7 +53,7 @@ test-live: generate
     touch /tmp/timbervox-live-audio-capture /tmp/timbervox-live-provider-acceptance
     xcodebuild -project TimberVox.xcodeproj -scheme TimberVox -configuration Debug -derivedDataPath .build/DerivedData test -only-testing:TimberVoxTests/AudioCaptureLiveTests -only-testing:TimberVoxTests/PlaybackControlLiveTests -only-testing:TimberVoxTests/DictationProviderLiveAcceptanceTests; status=$?; rm -f /tmp/timbervox-live-audio-capture /tmp/timbervox-live-provider-acceptance; exit $status
 
-# Text-transform acceptance: real fixed requests through the deployed Worker. Artifacts land in /tmp/timbervox-acceptance.
+# Text-transform acceptance: real fixed requests through Voice Lab. Artifacts land in /tmp/timbervox-acceptance.
 test-transform-live: generate
     touch /tmp/timbervox-live-transform-acceptance
     xcodebuild -project TimberVox.xcodeproj -scheme TimberVox -configuration Debug -derivedDataPath .build/DerivedDataTransform test -only-testing:TimberVoxTests/TextTransformProviderLiveAcceptanceTests; status=$?; rm -f /tmp/timbervox-live-transform-acceptance; exit $status
@@ -101,9 +101,3 @@ run-app: build
 
 open: generate
     open TimberVox.xcodeproj
-
-api-dev:
-    cd TimberVoxAPI && pnpm dev
-
-api-deploy:
-    cd TimberVoxAPI && pnpm exec wrangler deploy

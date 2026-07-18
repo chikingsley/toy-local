@@ -29,7 +29,16 @@ enum APIConnectorKeyEncoding: Sendable {
 }
 
 struct APIConnector: Sendable {
-  static let productionBaseURL = URL(string: "https://timbervox.peacockery.studio")!
+  static let labBaseURL = URL(string: "https://voice-lab.peacockery.studio")!
+  static let productionBaseURL = URL(string: "https://voice.peacockery.studio")!
+
+  static var defaultBaseURL: URL {
+    #if DEBUG
+      labBaseURL
+    #else
+      productionBaseURL
+    #endif
+  }
 
   var authorization: APIConnectorAuthorization = .shared
   var baseURL: URL

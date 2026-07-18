@@ -25,7 +25,7 @@ final class DualSpeechLiveAcceptanceTests: XCTestCase {
     let speechDuration = try LiveAudioTest.writeSpokenPhrase(Self.systemPhrase, to: speechURL)
 
     let session = CloudRealtimeTranscriptionSession {
-      CloudRealtimeTranscriptionClient(baseURL: APIConnector.productionBaseURL)
+      CloudRealtimeTranscriptionClient(baseURL: APIConnector.defaultBaseURL)
     }
     try await session.start(
       model: Self.model,
@@ -103,7 +103,7 @@ final class DualSpeechLiveAcceptanceTests: XCTestCase {
     as name: String,
     in artifacts: URL
   ) async throws -> String {
-    let outcome = try await CloudBatchTranscriber.production.transcribe(
+    let outcome = try await CloudBatchTranscriber.current.transcribe(
       wavAt: url,
       model: Self.model,
       language: "en"

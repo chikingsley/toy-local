@@ -1,7 +1,7 @@
 import Foundation
 
 struct ModelCatalogAPIClient: Sendable {
-  static let production = ModelCatalogAPIClient(baseURL: APIConnector.productionBaseURL)
+  static let current = ModelCatalogAPIClient(baseURL: APIConnector.defaultBaseURL)
 
   var api: APIConnector
 

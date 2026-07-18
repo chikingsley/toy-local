@@ -6,7 +6,7 @@
 
 - Port from `old-app/` deliberately; never bulk-copy its architecture.
 - A feature lands only when its visible behavior and full runtime path work.
-- The Worker catalog is authoritative for cloud models. Every exposed transcription route has an exact supported-language list; models with unknown language support are excluded.
+- The Peacockery Voice catalog is authoritative for cloud models. Every exposed transcription route has an exact supported-language list; models with unknown language support are excluded.
 - Dictation means the whole record-to-delivery workflow. Transcription means only speech-to-text.
 - `DictationController` owns observable UI state and user commands. Workflow, realtime assembly, persistence, and provider code live outside it.
 
@@ -30,5 +30,5 @@
 ## Required gates
 
 - Run `just format-check`, `just lint`, `just test`, and `just check-build` for Swift changes.
-- Run `cd TimberVoxAPI && pnpm run check && pnpm run test:integration` for Worker changes. Mocked contract tests are not accepted as verification.
+- Cloud API changes belong in the private `peacockery-voice` repository and must pass its contract, SDK, and deployed live gates there. Mocked contract tests are not accepted as deployed verification.
 - Report documentation-only work as documentation-only. A green build does not prove live dictation behavior.

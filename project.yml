@@ -52,8 +52,8 @@ targets:
     type: application
     platform: macOS
     configFiles:
-      Debug: Config/TimberVoxAPI.xcconfig
-      Release: Config/TimberVoxAPI.xcconfig
+      Debug: Config/PeacockeryVoice.xcconfig
+      Release: Config/PeacockeryVoice.xcconfig
     sources:
       - path: TimberVox
         excludes:
@@ -76,7 +76,7 @@ targets:
         NSMicrophoneUsageDescription: "TimberVox records your microphone while you dictate."
         NSAudioCaptureUsageDescription: "TimberVox records system audio when you enable it for a dictation mode."
         RevenueCatAPIKey: "$(REVENUECAT_API_KEY)"
-        TimberVoxAPIKey: "$(TIMBERVOX_API_KEY)"
+        PeacockeryVoiceAPIKey: "$(PEACOCKERY_VOICE_API_KEY)"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.chiejimofor.timbervox

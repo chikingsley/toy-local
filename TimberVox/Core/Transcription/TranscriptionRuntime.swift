@@ -14,7 +14,7 @@ final class TranscriptionRuntime {
   private var onRealtimeError: (@Sendable (String) -> Void)?
 
   init(
-    baseURL: URL = APIConnector.productionBaseURL,
+    baseURL: URL = APIConnector.defaultBaseURL,
     session: URLSession = .shared,
     fluidAudioBatch: FluidAudioBatchTranscriber = .shared,
     fluidAudioRealtime: FluidAudioRealtimeTranscriptionSession = .shared

@@ -21,7 +21,7 @@ final class DictationProviderLiveAcceptanceTests: XCTestCase {
     let speechDuration = try LiveAudioTest.writeSpokenPhrase(Self.phrase, to: speechURL)
 
     let session = CloudRealtimeTranscriptionSession {
-      CloudRealtimeTranscriptionClient(baseURL: APIConnector.productionBaseURL)
+      CloudRealtimeTranscriptionClient(baseURL: APIConnector.defaultBaseURL)
     }
     try await session.start(
       model: Self.model,
@@ -46,7 +46,7 @@ final class DictationProviderLiveAcceptanceTests: XCTestCase {
     let realtimeTranscript = try await session.finish().displayText
     try save(realtimeTranscript, as: "realtime-transcript.txt", in: artifacts)
 
-    let batch = try await CloudBatchTranscriber.production.transcribe(
+    let batch = try await CloudBatchTranscriber.current.transcribe(
       wavAt: recording.url,
       model: Self.model,
       language: "en"
@@ -81,7 +81,7 @@ final class DictationProviderLiveAcceptanceTests: XCTestCase {
     XCTAssertGreaterThan(speechDuration, 40, "The soak fixture must be a genuinely long stream.")
 
     let session = CloudRealtimeTranscriptionSession {
-      CloudRealtimeTranscriptionClient(baseURL: APIConnector.productionBaseURL)
+      CloudRealtimeTranscriptionClient(baseURL: APIConnector.defaultBaseURL)
     }
     try await session.start(
       model: Self.model,
@@ -98,7 +98,7 @@ final class DictationProviderLiveAcceptanceTests: XCTestCase {
     let realtimeTranscript = try await session.finish().displayText
     try save(realtimeTranscript, as: "realtime-transcript.txt", in: artifacts)
 
-    let batch = try await CloudBatchTranscriber.production.transcribe(
+    let batch = try await CloudBatchTranscriber.current.transcribe(
       wavAt: recording.url,
       model: Self.model,
       language: "en"

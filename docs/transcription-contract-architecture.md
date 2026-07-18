@@ -1,6 +1,6 @@
 # Transcription contract and product paths
 
-Status: descriptive architecture, updated 2026-07-14. The code and generated OpenAPI
+Status: descriptive architecture, updated 2026-07-18. The code and generated OpenAPI
 document are canonical. This document explains the boundaries and must not duplicate
 provider/model lists that can be read from the Worker.
 
@@ -8,15 +8,15 @@ provider/model lists that can be read from the Worker.
 
 - Public cloud catalog: `GET /v1/models`
 - OpenAPI contract: `GET /openapi.json`
-- Model and route definitions: `TimberVoxAPI/src/ai/models/`
-- Batch execution: `TimberVoxAPI/src/jobs/transcriptions.ts`
-- Realtime execution: `TimberVoxAPI/src/routes/realtime.ts` and
-  `TimberVoxAPI/src/durable-objects/`
+- Service contract and provider routing: private `chikingsley/peacockery-voice` repository
+- Generated clients: `peacockery-voice/clients/typescript` and the root Swift package
+- Batch execution: `peacockery-voice/src/jobs/transcriptions.ts`
+- Realtime execution: `peacockery-voice/src/routes/realtime.ts` and durable objects
 - Mac orchestration: `TimberVox/Core/Dictation/DictationWorkflow.swift`
 - Mac transcription execution: `TimberVox/Core/Transcription/TranscriptionRuntime.swift`
 - Local history: `TimberVox/Core/Database/TranscriptStore.swift`
 
-The Worker owns provider routing, credentials, configured-provider availability,
+Peacockery Voice owns provider routing, credentials, configured-provider availability,
 supported languages, and route capabilities. The Mac consumes the normalized catalog;
 it does not maintain a parallel cloud model list.
 
@@ -82,14 +82,14 @@ unknown to the current adapter schema are not stripped by validation.
 
 ## Workload authentication and ownership
 
-The Worker authenticates a bearer key against the configured `TIMBERVOX_API_KEYS` secret and derives a stable internal identity:
+Peacockery Voice authenticates an environment-scoped bearer credential by its D1 hash and derives a stable internal identity:
 
 - `user_id`: API-key accounting owner
 - `credential_id`: stable API-key record
 - resource ownership for uploads, jobs, and realtime sessions
 - idempotency scope and usage attribution
 
-Client-provided ownership headers are not trusted. Missing or unconfigured keys and cross-owner resource access fail closed. Each configured key is registered automatically in the deployed Cloudflare D1 on first use so workload foreign keys and usage accounting remain intact. RevenueCat, StoreKit, installation identity, credential expiration, and provisioning are not part of the Worker boundary.
+Client-provided ownership headers are observational and are not trusted for authorization. Missing, revoked, expired, wrong-environment, or wrong-scope credentials and cross-owner resource access fail closed. A trusted backend credential may mint short-lived managed client tokens; its parent secret is never embedded in a distributed app. RevenueCat and StoreKit remain outside the service authorization boundary.
 
 ## Provider direction
 

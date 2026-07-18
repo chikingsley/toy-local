@@ -311,7 +311,7 @@ private struct TimberVoxNativeAPIClient {
   init(defaults: UserDefaults) throws {
     let origin =
       defaults.string(forKey: "apiBaseURL")
-      ?? "https://timbervox.peacockery.studio"
+      ?? "https://voice.peacockery.studio"
     guard let baseURL = URL(string: origin),
       let credential = defaults.string(forKey: "apiCredential"),
       !credential.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

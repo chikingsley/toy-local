@@ -329,7 +329,7 @@ Retention is enforced by one storage service used after recording, on app launch
 | Reusable app primitives                                               | React Native Reusables owned in `src/components/ui`           |
 | Modes/history metadata                                                | Expo SQLite repositories                                      |
 | Persistent audio/artifacts                                            | Expo FileSystem document storage                              |
-| Worker catalog and capability truth                                   | TimberVoxAPI                                                  |
+| Voice catalog and capability truth                                    | Peacockery Voice                                              |
 | Keyboard rendering, swipe trace/decoding, predictions, text insertion | Swift keyboard target                                         |
 | Cross-process state                                                   | Versioned App Group bridge                                    |
 | Shortcut/Action button entry                                          | Swift App Intent                                              |
@@ -356,7 +356,7 @@ The Worker model catalog remains authoritative. The mobile app does not hard-cod
 
 Before TestFlight:
 
-- Remove `timberVoxApiKey` from Expo config and delete the build-embedded credential path.
+- Remove `peacockeryVoiceApiKey` from Expo config and delete the build-embedded credential path.
 - Add an app-to-Worker authentication flow that mints a revocable, scoped session for an installation/account.
 - Store the mobile session in iOS secure storage and refresh it through the API client.
 - Authorize realtime, transcription, transforms, catalog, history/usage, and upload routes consistently.

@@ -142,7 +142,7 @@ struct TextTransformRequest: Codable, Equatable, Sendable {
 }
 
 struct TextTransformAPIClient: Sendable {
-  static let production = TextTransformAPIClient(baseURL: APIConnector.productionBaseURL)
+  static let current = TextTransformAPIClient(baseURL: APIConnector.defaultBaseURL)
 
   var api: APIConnector
 

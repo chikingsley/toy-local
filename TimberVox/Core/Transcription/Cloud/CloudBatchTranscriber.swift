@@ -2,8 +2,8 @@ import Foundation
 
 /// Uploads source audio and creates a cloud batch transcription job.
 struct CloudBatchTranscriber: Sendable {
-  static let production = CloudBatchTranscriber(
-    baseURL: APIConnector.productionBaseURL
+  static let current = CloudBatchTranscriber(
+    baseURL: APIConnector.defaultBaseURL
   )
 
   var api: APIConnector

@@ -1,6 +1,7 @@
-import { configuredApiCredential } from "@/lib/api-credential";
-
-const CATALOG_URL = "https://timbervox.peacockery.studio/v1/models";
+import {
+  configuredApiCredential,
+  configuredApiOrigin,
+} from "@/lib/api-credential";
 
 // Hermes does not ship Intl.DisplayNames. Keep the presentation mapping local
 // while the Worker remains authoritative for which codes each route supports.
@@ -293,10 +294,13 @@ async function fetchModelCatalog(
   if (!credential) {
     throw new Error("This build does not have an active TimberVox session.");
   }
-  const response = await fetchImplementation(CATALOG_URL, {
-    headers: { Authorization: `Bearer ${credential}` },
-    signal,
-  });
+  const response = await fetchImplementation(
+    `${configuredApiOrigin()}/v1/models`,
+    {
+      headers: { Authorization: `Bearer ${credential}` },
+      signal,
+    },
+  );
   if (!response.ok) {
     throw new Error(`The model catalog request failed (${response.status}).`);
   }
