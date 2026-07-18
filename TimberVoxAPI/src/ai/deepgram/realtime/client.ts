@@ -40,8 +40,7 @@ export interface DeepgramRealtimeBridgeConfig {
 
 type DeepgramRealtimeClientMessage =
   | { type: "CloseStream" }
-  | { type: "Finalize" }
-  | { type: "KeepAlive" };
+  | { type: "Finalize" };
 
 export const connectDeepgramRealtime = async (
   config: DeepgramRealtimeBridgeConfig
@@ -82,10 +81,6 @@ export const sendDeepgramFinalize = (socket: WebSocket): void => {
 
 export const sendDeepgramCloseStream = (socket: WebSocket): void => {
   sendDeepgramControl(socket, { type: "CloseStream" });
-};
-
-export const sendDeepgramKeepAlive = (socket: WebSocket): void => {
-  sendDeepgramControl(socket, { type: "KeepAlive" });
 };
 
 const sendDeepgramControl = (

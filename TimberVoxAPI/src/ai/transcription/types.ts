@@ -2,14 +2,14 @@ import { z } from "zod";
 
 const TranscriptSpeakerSchema = z.union([z.string(), z.number()]);
 
-export const TranscriptCollectionAvailabilitySchema = z.enum([
+const TranscriptCollectionAvailabilitySchema = z.enum([
   "available",
   "not_requested",
   "provider_omitted",
   "unsupported",
 ]);
 
-export const TranscriptCollectionSourceSchema = z.enum(["derived", "provider"]);
+const TranscriptCollectionSourceSchema = z.enum(["derived", "provider"]);
 
 const TranscriptCollectionInfoSchema = z
   .object({
@@ -114,7 +114,6 @@ export type BatchTranscriptionResult = z.infer<
 >;
 export type TranscriptSpeakerTurn = z.infer<typeof TranscriptSpeakerTurnSchema>;
 export type TranscriptSegment = z.infer<typeof TranscriptSegmentSchema>;
-export type TranscriptToken = z.infer<typeof TranscriptTokenSchema>;
 export type TranscriptWord = z.infer<typeof TranscriptWordSchema>;
 
 export interface RemoteMediaSource {

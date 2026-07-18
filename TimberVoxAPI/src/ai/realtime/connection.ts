@@ -31,7 +31,7 @@ export interface RealtimeProviderConnectionConfig {
   upstreamModel: string;
 }
 
-export interface ParsedRealtimeProviderMessage {
+interface ParsedRealtimeProviderMessage {
   providerError?: string;
   providerEvent?: unknown;
   transcriptEvent?: RealtimeTranscriptEvent;

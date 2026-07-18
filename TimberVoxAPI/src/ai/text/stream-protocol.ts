@@ -1,7 +1,7 @@
 import type { LanguageModelProviderId } from "../models/types";
 import type { ProviderFailureCategory } from "../provider-failure";
 
-export const TEXT_STREAM_PROTOCOL_VERSION = 1 as const;
+const TEXT_STREAM_PROTOCOL_VERSION = 1 as const;
 
 interface TextStreamEventBase {
   protocol_version: typeof TEXT_STREAM_PROTOCOL_VERSION;

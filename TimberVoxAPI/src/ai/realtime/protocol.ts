@@ -6,7 +6,7 @@ import type {
 } from "../transcription/types";
 import type { RealtimeTranscriptEvent } from "./normalize";
 
-export const REALTIME_PROTOCOL_VERSION = 1 as const;
+const REALTIME_PROTOCOL_VERSION = 1 as const;
 
 interface RealtimeEventBase {
   protocol_version: typeof REALTIME_PROTOCOL_VERSION;
@@ -29,13 +29,13 @@ export interface RealtimeTranscriptProtocolEvent extends RealtimeEventBase {
   words: TranscriptWord[];
 }
 
-export interface RealtimeSessionCompletedEvent extends RealtimeEventBase {
+interface RealtimeSessionCompletedEvent extends RealtimeEventBase {
   result: TranscriptionArtifact;
   status: "succeeded";
   type: "session.completed";
 }
 
-export interface RealtimeSessionFailedEvent extends RealtimeEventBase {
+interface RealtimeSessionFailedEvent extends RealtimeEventBase {
   error: {
     code: "provider_error" | "session_error";
     message: string;

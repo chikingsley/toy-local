@@ -39,11 +39,7 @@ export type DirectRealtimeAsrExecutionProviderId = Exclude<
   "superwhisper"
 >;
 
-export type LanguageModelReasoningProfile =
-  | "low"
-  | "medium"
-  | "minimal"
-  | "none";
+type LanguageModelReasoningProfile = "low" | "medium" | "minimal" | "none";
 
 export interface LanguageModelCallPolicy {
   providerOptions?: SharedV4ProviderOptions;
@@ -58,7 +54,7 @@ export interface LanguageModelIntelligence {
   sourceVersion: string;
 }
 
-export type ModelMetricSource =
+type ModelMetricSource =
   | "fluid-audio"
   | "provider-published"
   | "route-capability"
