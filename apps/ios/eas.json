@@ -43,12 +43,18 @@
   "submit": {
     "testflight-dev": {
       "ios": {
-        "ascAppId": "6792378298"
+        "ascAppId": "6792378298",
+        "ascApiKeyPath": ".eas/keys/AuthKey_9WD5ZMT9MY.p8",
+        "ascApiKeyIssuerId": "d1804d83-f266-43bc-8cda-edb51b2c2354",
+        "ascApiKeyId": "9WD5ZMT9MY"
       }
     },
     "production": {
       "ios": {
-        "ascAppId": "6792378298"
+        "ascAppId": "6792378298",
+        "ascApiKeyPath": ".eas/keys/AuthKey_9WD5ZMT9MY.p8",
+        "ascApiKeyIssuerId": "d1804d83-f266-43bc-8cda-edb51b2c2354",
+        "ascApiKeyId": "9WD5ZMT9MY"
       }
     }
   }
