@@ -64,6 +64,25 @@ const configuredAPIKey = (): string => {
 };
 
 describe("deployed Worker and Cloudflare D1", () => {
+  it("rejects an unauthenticated model-catalog request", async () => {
+    const response = await fetch(`${baseURL}/v1/models`);
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "unauthorized" });
+  });
+
+  it("returns the model catalog to an authenticated caller", async () => {
+    const response = await fetch(`${baseURL}/v1/models`, {
+      headers: {
+        Authorization: `Bearer ${configuredAPIKey()}`,
+      },
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      models: expect.any(Array),
+      presentation_schema_version: 1,
+    });
+  });
+
   it("rejects an unauthenticated D1-backed request", async () => {
     const response = await fetch(`${baseURL}/v1/usage/daily`);
     expect(response.status).toBe(401);

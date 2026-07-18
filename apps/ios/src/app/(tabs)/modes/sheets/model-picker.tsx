@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { Fragment } from "react";
-import { ScrollView } from "react-native";
-
+import { AppFormSheetScroll } from "@/components/app/app-form-sheet";
 import { AppSection } from "@/components/app/app-section";
 import { Separator } from "@/components/ui/separator";
 import { Text } from "@/components/ui/text";
@@ -14,10 +13,12 @@ import {
 import { useModes } from "@/features/modes/mode-provider";
 import { PickerOption } from "@/features/modes/picker-option";
 import { ProviderIcon } from "@/features/modes/provider-icon";
+import { useLocalModelPackage } from "@/features/dictation/local-model-package";
 
 export default function ModelPickerScreen() {
   const router = useRouter();
   const editor = useModeEditor();
+  const localPackage = useLocalModelPackage();
   const { catalog } = useModes();
   const groups = [
     {
@@ -36,10 +37,7 @@ export default function ModelPickerScreen() {
     },
   ];
   return (
-    <ScrollView
-      className="bg-background flex-1"
-      contentContainerClassName="gap-5 px-[18px] pt-3 pb-10"
-    >
+    <AppFormSheetScroll contentClassName="gap-5">
       {groups.map((group) => (
         <AppSection
           contentClassName="px-0"
@@ -50,13 +48,31 @@ export default function ModelPickerScreen() {
             <Fragment key={model.id}>
               {index > 0 ? <Separator className="mx-4 w-auto" /> : null}
               <PickerOption
-                detail={transcriptionModelDetail(model)}
+                detail={
+                  model.runtime === "local"
+                    ? localModelDetail(
+                        localPackage.status,
+                        localPackage.progress,
+                      )
+                    : transcriptionModelDetail(model)
+                }
                 grouped
                 label={modelDisplayName(model)}
                 leading={<ProviderIcon provider={model.provider} />}
                 live={Boolean(model.realtime)}
                 onPress={() => {
-                  const route = selectedRoute(model);
+                  if (model.runtime === "local" && !localPackage.ready) {
+                    if (localPackage.status !== "downloading") {
+                      void localPackage.download();
+                    }
+                    return;
+                  }
+                  const realtimeEnabled = Boolean(
+                    model.realtime &&
+                    ((model.batch && editor.draft?.realtimeEnabled) ||
+                      !model.batch),
+                  );
+                  const route = selectedRoute(model, realtimeEnabled);
                   editor.patch({
                     asrModelId: model.id,
                     identifySpeakers: route?.supportsDiarization
@@ -65,7 +81,7 @@ export default function ModelPickerScreen() {
                     language: route?.supportsAutomaticLanguage
                       ? null
                       : (route?.supportedLanguages[0] ?? null),
-                    realtimeEnabled: Boolean(model.realtime),
+                    realtimeEnabled,
                   });
                   router.back();
                 }}
@@ -80,6 +96,21 @@ export default function ModelPickerScreen() {
         Voxtral uses English FLEURS at 240 ms. Local WER uses FluidAudio
         LibriSpeech test-clean. Results are not directly comparable.
       </Text>
-    </ScrollView>
+    </AppFormSheetScroll>
   );
+}
+
+function localModelDetail(status: string, progress: number) {
+  switch (status) {
+    case "ready":
+      return "On device · Ready";
+    case "downloading":
+      return `Downloading · ${Math.round(progress * 100)}%`;
+    case "error":
+      return "Download failed · Tap to retry";
+    case "checking":
+      return "Checking download…";
+    default:
+      return "~452 MB · Tap to download";
+  }
 }

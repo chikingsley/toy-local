@@ -2,22 +2,30 @@ import CoreGraphics
 import Foundation
 
 protocol SwipeDecoding {
-  func predictions(for points: [CGPoint], layout: KeyLayout) -> [String]
+  func predictions(
+    for points: [CGPoint],
+    layout: KeyLayout,
+    vocabulary: [SwipeVocabularyEntry]
+  ) -> [String]
 }
 
 struct GeometricSwipeDecoder: SwipeDecoding {
   private let sampleCount = 24
-  private let vocabulary = CommonWords.values
 
-  func predictions(for points: [CGPoint], layout: KeyLayout) -> [String] {
+  func predictions(
+    for points: [CGPoint],
+    layout: KeyLayout,
+    vocabulary: [SwipeVocabularyEntry]
+  ) -> [String] {
     let observed = resample(points, count: sampleCount)
     guard let firstPoint = observed.first, let lastPoint = observed.last else { return [] }
 
-    return vocabulary.compactMap { word -> (String, CGFloat)? in
+    return vocabulary.enumerated().compactMap { index, entry -> (String, CGFloat)? in
+      let word = entry.word
       guard let first = word.first,
-            let last = word.last,
-            let firstFrame = layout.frames[first],
-            let lastFrame = layout.frames[last]
+        let last = word.last,
+        let firstFrame = layout.frames[first],
+        let lastFrame = layout.frames[last]
       else { return nil }
 
       let startDistance = hypot(firstPoint.x - firstFrame.midX, firstPoint.y - firstFrame.midY)
@@ -29,24 +37,34 @@ struct GeometricSwipeDecoder: SwipeDecoding {
       }
       guard template.count == word.count else { return nil }
       let normalizedTemplate = resample(template, count: sampleCount)
-      let shapeError = zip(observed, normalizedTemplate).reduce(CGFloat.zero) { total, pair in
-        total + hypot(pair.0.x - pair.1.x, pair.0.y - pair.1.y)
-      } / CGFloat(sampleCount)
-      let lengthPenalty = abs(CGFloat(word.count) - estimatedKeyCount(points, layout: layout)) * 2.5
-      return (word, shapeError + (startDistance + endDistance) * 0.55 + lengthPenalty)
+      let shapeError =
+        zip(observed, normalizedTemplate).reduce(CGFloat.zero) { total, pair in
+          total + hypot(pair.0.x - pair.1.x, pair.0.y - pair.1.y)
+        } / CGFloat(sampleCount)
+      let lengthPenalty =
+        abs(
+          CGFloat(word.count - estimatedKeyCount(points, layout: layout))
+        ) * 2.5
+      let frequencyBonus = CGFloat(log10(Double(max(1, entry.frequency)))) * 1.8
+      let contextRankPenalty = CGFloat(index) * 0.002
+      return (
+        word,
+        shapeError + (startDistance + endDistance) * 0.55 + lengthPenalty
+          + contextRankPenalty - frequencyBonus
+      )
     }
     .sorted { $0.1 < $1.1 }
     .prefix(3)
     .map(\.0)
   }
 
-  private func estimatedKeyCount(_ points: [CGPoint], layout: KeyLayout) -> CGFloat {
+  func estimatedKeyCount(_ points: [CGPoint], layout: KeyLayout) -> Int {
     var visited: [Character] = []
     for point in points {
       guard let key = layout.key(at: point), visited.last != key else { continue }
       visited.append(key)
     }
-    return CGFloat(visited.count)
+    return visited.count
   }
 
   private func resample(_ points: [CGPoint], count: Int) -> [CGPoint] {
@@ -63,7 +81,8 @@ struct GeometricSwipeDecoder: SwipeDecoding {
     for sampleIndex in 0..<count {
       let target = total * CGFloat(sampleIndex) / CGFloat(count - 1)
       while segmentIndex < distances.count - 1,
-            segmentStartDistance + distances[segmentIndex] < target {
+        segmentStartDistance + distances[segmentIndex] < target
+      {
         segmentStartDistance += distances[segmentIndex]
         segmentIndex += 1
       }
@@ -71,18 +90,12 @@ struct GeometricSwipeDecoder: SwipeDecoding {
       let fraction = (target - segmentStartDistance) / segmentLength
       let start = points[segmentIndex]
       let end = points[segmentIndex + 1]
-      result.append(CGPoint(
-        x: start.x + (end.x - start.x) * fraction,
-        y: start.y + (end.y - start.y) * fraction
-      ))
+      result.append(
+        CGPoint(
+          x: start.x + (end.x - start.x) * fraction,
+          y: start.y + (end.y - start.y) * fraction
+        ))
     }
     return result
   }
-}
-
-private enum CommonWords {
-  static let values: [String] = """
-  about after again all also always am an and another any are around as ask at away back be because been before being best better between both but by call came can change come could day did different do does down each end even every few find first for from get give go good great had has have he help her here him his home how i if in into is it its just keep know last like little long look made make many may me more most much must my need never new next no not now of off old on once one only or other our out over own people place put right same say see she should show so some something still take tell than that the their them then there these they thing think this those through time to too try two under up us use very want was way we well went were what when where which while who why will with work would year yes you your
-  apple audio background button cloud current dictation expo fast keyboard language microphone mobile model recording realtime session settings shortcut speak speech swipe timber timbervox transcript transcription voice voxtral words write
-  """.split(whereSeparator: { $0.isWhitespace }).map(String.init)
 }

@@ -8,14 +8,15 @@
     "scheme": "timbervox",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/timbervox-icon.png",
       "bundleIdentifier": "com.chiejimofor.timbervox",
-      "buildNumber": "82",
+      "buildNumber": "86",
       "appleTeamId": "XM69J99HWP",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "TimberVox records your voice while a dictation session is active.",
+        "NSSupportsLiveActivities": true,
         "UIBackgroundModes": ["audio"]
       },
       "entitlements": {
@@ -55,6 +56,21 @@
           "enableBackgroundRecording": true
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "18.0",
+            "extraPods": [
+              {
+                "name": "FluidAudio",
+                "git": "https://github.com/FluidInference/FluidAudio.git",
+                "tag": "v0.15.5"
+              }
+            ]
+          }
+        }
+      ],
       "expo-sqlite",
       [
         "react-native-nano-icons",
@@ -84,6 +100,24 @@
                 {
                   "bundleIdentifier": "com.chiejimofor.timbervox.keyboard",
                   "targetName": "TimberVoxKeyboard",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.chiejimofor.timbervox"
+                    ]
+                  }
+                },
+                {
+                  "bundleIdentifier": "com.chiejimofor.timbervox.app-intents",
+                  "targetName": "TimberVoxAppIntents",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.chiejimofor.timbervox"
+                    ]
+                  }
+                },
+                {
+                  "bundleIdentifier": "com.chiejimofor.timbervox.recording-activity",
+                  "targetName": "TimberVoxRecordingActivity",
                   "entitlements": {
                     "com.apple.security.application-groups": [
                       "group.com.chiejimofor.timbervox"

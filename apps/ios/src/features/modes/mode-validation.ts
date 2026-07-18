@@ -23,8 +23,10 @@ function normalizeModeDraft(
 ): ModeDraft {
   const selected = selectedTranscriptionModel(catalog, draft.asrModelId);
   const model = selected ?? defaultTranscriptionModel(catalog);
-  const realtimeEnabled = Boolean(model.realtime);
-  const route = selectedRoute(model);
+  const realtimeEnabled = Boolean(
+    model.realtime && (draft.realtimeEnabled || !model.batch),
+  );
+  const route = selectedRoute(model, realtimeEnabled);
   if (!route) throw new Error("No supported transcription route is available.");
 
   const language =

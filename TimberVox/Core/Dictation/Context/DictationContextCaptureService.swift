@@ -174,6 +174,10 @@ final class DictationContextCaptureSession {
       attachmentDirectory: attachmentDirectory,
       capturedAt: capturedAt
     )
-    builder.appendScreen(text: result.text, attachment: result.attachment)
+    builder.appendScreen(
+      text: result.text,
+      attachment: result.attachment,
+      capturedAt: capturedAt
+    )
   }
 }

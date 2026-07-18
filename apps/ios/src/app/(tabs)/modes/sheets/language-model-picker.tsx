@@ -2,6 +2,10 @@ import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { FlatList } from "react-native";
 
+import {
+  APP_FORM_SHEET_CONTENT_STYLE,
+  APP_FORM_SHEET_INSET_PROPS,
+} from "@/components/app/app-form-sheet";
 import { Text } from "@/components/ui/text";
 import {
   languageModelDetail,
@@ -33,8 +37,9 @@ export default function LanguageModelPickerScreen() {
 
   return (
     <FlatList
+      {...APP_FORM_SHEET_INSET_PROPS}
       className="bg-background flex-1"
-      contentContainerStyle={{ gap: 10, padding: 18, paddingBottom: 40 }}
+      contentContainerStyle={APP_FORM_SHEET_CONTENT_STYLE}
       data={languageModels}
       keyExtractor={(model) => model.id}
       ListFooterComponent={

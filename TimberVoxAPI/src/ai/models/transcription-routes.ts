@@ -68,7 +68,10 @@ const mapBatchRoutes = <
   models: TModels,
   supportedLanguagesByModel: Record<TModels[number], readonly string[]>,
   acceptedOptions: readonly AcceptedAsrOptionName[],
-  executionModelsByModel: Partial<Record<TModels[number], string>> = {}
+  executionModelsByModel: Partial<Record<TModels[number], string>> = {},
+  supportsAutomaticLanguageByModel: Partial<
+    Record<TModels[number], boolean>
+  > = {}
 ): Record<string, BatchAsrModelEntry> =>
   Object.fromEntries(
     models.map((model) => [
@@ -80,7 +83,8 @@ const mapBatchRoutes = <
         executionProvider,
         provider,
         supportedLanguages: supportedLanguagesByModel[model as TModels[number]],
-        supportsAutomaticLanguage: true,
+        supportsAutomaticLanguage:
+          supportsAutomaticLanguageByModel[model as TModels[number]] ?? true,
         upstreamModel: model,
       },
     ])
@@ -95,7 +99,10 @@ const mapRealtimeRoutes = <
   models: TModels,
   supportedLanguagesByModel: Record<TModels[number], readonly string[]>,
   acceptedOptions: readonly AcceptedAsrOptionName[],
-  executionModelsByModel: Partial<Record<TModels[number], string>> = {}
+  executionModelsByModel: Partial<Record<TModels[number], string>> = {},
+  supportsAutomaticLanguageByModel: Partial<
+    Record<TModels[number], boolean>
+  > = {}
 ): Record<string, RealtimeAsrModelEntry> =>
   Object.fromEntries(
     models.map((model) => [
@@ -107,7 +114,8 @@ const mapRealtimeRoutes = <
         executionProvider,
         provider,
         supportedLanguages: supportedLanguagesByModel[model as TModels[number]],
-        supportsAutomaticLanguage: true,
+        supportsAutomaticLanguage:
+          supportsAutomaticLanguageByModel[model as TModels[number]] ?? true,
         upstreamModel: model,
       },
     ])
@@ -128,7 +136,8 @@ export const BATCH_ASR_MODEL_MAP = {
       "nova-2": "sw-deepgram-nova-2",
       "nova-2-medical": "sw-deepgram-nova-2-medical",
       "nova-3": "sw-deepgram-nova-3",
-    }
+    },
+    { "nova-2-medical": false }
   ),
   ...mapBatchRoutes(
     "elevenlabs",
@@ -173,7 +182,8 @@ export const REALTIME_ASR_MODEL_MAP = {
       "nova-2": "sw-deepgram-nova-2",
       "nova-2-medical": "sw-deepgram-nova-2-medical",
       "nova-3": "sw-deepgram-nova-3",
-    }
+    },
+    { "nova-2-medical": false }
   ),
   ...mapRealtimeRoutes(
     "elevenlabs",
@@ -217,5 +227,11 @@ export const resolveRealtimeAsrModel = (
 export const resolveRealtimeLanguage = (
   route: RealtimeAsrModelEntry,
   requestedLanguage: string | undefined
-): string | undefined =>
-  requestedLanguage ?? (route.provider === "deepgram" ? "multi" : undefined);
+): string | undefined => {
+  if (requestedLanguage || route.provider !== "deepgram") {
+    return requestedLanguage;
+  }
+  return route.supportsAutomaticLanguage
+    ? "multi"
+    : route.supportedLanguages[0];
+};

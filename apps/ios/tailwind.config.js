@@ -45,6 +45,14 @@ module.exports = {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
         },
+        connecting: {
+          DEFAULT: 'hsl(var(--connecting))',
+          foreground: 'hsl(var(--connecting-foreground))',
+        },
+        processing: {
+          DEFAULT: 'hsl(var(--processing))',
+          foreground: 'hsl(var(--processing-foreground))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

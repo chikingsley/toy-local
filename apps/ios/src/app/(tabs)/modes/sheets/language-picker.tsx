@@ -1,6 +1,10 @@
 import { useRouter } from "expo-router";
 import { FlatList } from "react-native";
 
+import {
+  APP_FORM_SHEET_CONTENT_STYLE,
+  APP_FORM_SHEET_INSET_PROPS,
+} from "@/components/app/app-form-sheet";
 import { useModeEditor } from "@/features/modes/mode-editor-state";
 import {
   languageDisplayName,
@@ -20,7 +24,7 @@ export default function LanguagePickerScreen() {
     editor.draft && catalog
       ? selectedTranscriptionModel(catalog, editor.draft.asrModelId)
       : undefined;
-  const route = selectedRoute(model);
+  const route = selectedRoute(model, editor.draft?.realtimeEnabled);
   const languageChoices: LanguageChoice[] = (route?.supportedLanguages ?? [])
     .map((code) => ({
       code,
@@ -36,8 +40,9 @@ export default function LanguagePickerScreen() {
 
   return (
     <FlatList
+      {...APP_FORM_SHEET_INSET_PROPS}
       className="bg-background flex-1"
-      contentContainerStyle={{ gap: 10, padding: 18, paddingBottom: 40 }}
+      contentContainerStyle={APP_FORM_SHEET_CONTENT_STYLE}
       data={choices}
       keyExtractor={(item) => item.code ?? "automatic"}
       renderItem={({ item }) => (

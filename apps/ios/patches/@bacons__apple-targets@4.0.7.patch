@@ -1,0 +1,81 @@
+diff --git a/build/configuration-list.js b/build/configuration-list.js
+index 3a2a4c124ca58cae8813640dffe0667a98b69e39..8d7cf60ea6f13d2969dc2b7ee0e0cfa93393c2d5 100644
+--- a/build/configuration-list.js
++++ b/build/configuration-list.js
+@@ -113,7 +113,7 @@ function createActionConfigurationList({ name, displayName, cwd, bundleId, deplo
+         },
+     };
+ }
+-function createAppIntentConfigurationList({ name, displayName, cwd, bundleId, }) {
++function createAppIntentConfigurationList({ name, displayName, cwd, bundleId, deploymentTarget, currentProjectVersion, deviceFamilies, }) {
+     const commonBuildSettings = {
+         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES",
+         CLANG_ANALYZER_NONNULL: "YES",
+@@ -124,7 +124,7 @@ function createAppIntentConfigurationList({ name, displayName, cwd, bundleId, })
+         CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER: "YES",
+         CLANG_WARN_UNGUARDED_AVAILABILITY: "YES_AGGRESSIVE",
+         CODE_SIGN_STYLE: "Automatic",
+-        CURRENT_PROJECT_VERSION: "1",
++        CURRENT_PROJECT_VERSION: currentProjectVersion,
+         DEBUG_INFORMATION_FORMAT: "dwarf",
+         ENABLE_USER_SCRIPT_SANDBOXING: "YES",
+         GCC_C_LANGUAGE_STANDARD: "gnu17",
+@@ -132,7 +132,7 @@ function createAppIntentConfigurationList({ name, displayName, cwd, bundleId, })
+         INFOPLIST_FILE: cwd + "/Info.plist",
+         INFOPLIST_KEY_CFBundleDisplayName: displayName !== null && displayName !== void 0 ? displayName : name,
+         INFOPLIST_KEY_NSHumanReadableCopyright: "",
+-        IPHONEOS_DEPLOYMENT_TARGET: "17.0",
++        IPHONEOS_DEPLOYMENT_TARGET: deploymentTarget,
+         LD_RUNPATH_SEARCH_PATHS: [
+             "$(inherited)",
+             "@executable_path/Frameworks",
+@@ -146,7 +146,7 @@ function createAppIntentConfigurationList({ name, displayName, cwd, bundleId, })
+         SKIP_INSTALL: "YES",
+         SWIFT_EMIT_LOC_STRINGS: "YES",
+         SWIFT_VERSION: "5.0",
+-        TARGETED_DEVICE_FAMILY: "1,2",
++        ...getDeviceFamilyBuildSettings(deviceFamilies),
+     };
+     return {
+         debug: {
+@@ -527,7 +527,7 @@ function getDeviceFamilyBuildSettings(deviceFamilies) {
+         TARGETED_DEVICE_FAMILY: families.join(","),
+     };
+ }
+-function createWidgetConfigurationList({ name, displayName, cwd, bundleId, deploymentTarget, currentProjectVersion, icon, }) {
++function createWidgetConfigurationList({ name, displayName, cwd, bundleId, deploymentTarget, currentProjectVersion, icon, deviceFamilies, }) {
+     return {
+         debug: {
+             ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "$accent",
+@@ -565,7 +565,7 @@ function createWidgetConfigurationList({ name, displayName, cwd, bundleId, deplo
+             SWIFT_EMIT_LOC_STRINGS: "YES",
+             SWIFT_OPTIMIZATION_LEVEL: "-Onone",
+             SWIFT_VERSION: "5.0",
+-            TARGETED_DEVICE_FAMILY: "1,2",
++            ...getDeviceFamilyBuildSettings(deviceFamilies),
+         },
+         release: {
+             ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "$accent",
+@@ -603,11 +603,11 @@ function createWidgetConfigurationList({ name, displayName, cwd, bundleId, deplo
+             SWIFT_COMPILATION_MODE: "wholemodule",
+             SWIFT_OPTIMIZATION_LEVEL: "-O",
+             SWIFT_VERSION: "5.0",
+-            TARGETED_DEVICE_FAMILY: "1,2",
++            ...getDeviceFamilyBuildSettings(deviceFamilies),
+         },
+     };
+ }
+-function createKeyboardConfigurationList({ name, displayName, cwd, bundleId, deploymentTarget, currentProjectVersion, }) {
++function createKeyboardConfigurationList({ name, displayName, cwd, bundleId, deploymentTarget, currentProjectVersion, deviceFamilies, }) {
+     const common = {
+         CODE_SIGN_STYLE: "Automatic",
+         CURRENT_PROJECT_VERSION: currentProjectVersion,
+@@ -632,7 +632,7 @@ function createKeyboardConfigurationList({ name, displayName, cwd, bundleId, dep
+         SWIFT_EMIT_LOC_STRINGS: "YES",
+         SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: "YES",
+         SWIFT_VERSION: "5.0",
+-        TARGETED_DEVICE_FAMILY: "1,2",
++        ...getDeviceFamilyBuildSettings(deviceFamilies),
+     };
+     return {
+         debug: {

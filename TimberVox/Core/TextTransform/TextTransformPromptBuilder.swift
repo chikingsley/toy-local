@@ -153,6 +153,9 @@ public enum TextTransformPromptBuilder {
     if let bundleIdentifier = nonEmpty(application.bundleIdentifier) {
       lines.append("Bundle Identifier: \(bundleIdentifier)")
     }
+    if let documentURL = nonEmpty(application.documentURL) {
+      lines.append("Document URL: \(documentURL)")
+    }
     if let category = nonEmpty(application.category) {
       lines.append("Category: \(category)")
     }

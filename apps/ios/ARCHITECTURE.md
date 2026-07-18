@@ -1,6 +1,6 @@
 # TimberVox mobile architecture and rebuild plan
 
-Status: source of truth for rebuilding `apps/ios`. This document describes the intended product and the verified boundaries. It does not claim that the described native recording, App Intent, authentication, or TestFlight paths are implemented yet.
+Status: source of truth for rebuilding `apps/ios`. This document separates implemented source and simulator builds from physical-device acceptance. The durable Record workflow, normalized History, versioned keyboard bridge, and foreground-opening App Shortcut are implemented in source; non-silent physical recording, the keyboard round trip, Live Activity/two-invocation Shortcut behavior, mobile authentication, and the next TestFlight acceptance remain open.
 
 The target is an iPhone-first Expo application with a native iOS keyboard and native system integrations. Web is a fast UI-development surface and Android remains a later platform; neither is allowed to distort the initial iPhone interaction model. iPad is not a target for this build.
 
@@ -38,17 +38,16 @@ Apple's `AudioRecordingIntent` is the appropriate system contract. On iOS it req
 
 ## Verified current state
 
-The repository already contains working material that must not be erased by a starter reset:
+The repository contains working material that must not be erased by a starter reset:
 
 - Expo Router, Expo Audio, Expo SQLite, Expo FileSystem, and an App Group bridge.
-- A realtime Voxtral WebSocket spike in `src/features/dictation/dictation-session.tsx`.
-- Local SQLite history and WAV persistence in `src/features/history/history-store.tsx`.
-- A Swift keyboard target with tap input, a visible swipe trail, a geometric decoder, predictions, a dictation control, App Group polling, and text insertion.
-- iOS App Group configuration through `@bacons/apple-targets`.
+- A mode-aware realtime `DictationWorkflow` used by app, keyboard, and Shortcut request plans.
+- Migrated SQLite Dictation/Artifact persistence, durable WAV files, searchable History, artifact detail tabs, real playback status/seeking, and retention controls.
+- A Swift keyboard target with tap input, visible swipe trail, geometric decoder, predictions, preference mirroring, a dictation control, and request-owned final insertion.
+- App Group schema v2 and generated keyboard/App Intent targets through `@bacons/apple-targets`.
+- `AudioRecordingIntent`/`AppShortcutsProvider` source that opens the app and starts a Shortcut-owned request. This is not yet the accepted two-invocation background contract.
 
-The current UI is disposable. The native target and runtime experiments are evidence to port deliberately, not architecture to keep wholesale.
-
-The current credential path is not shippable: `app.config.js` embeds a static Worker bearer credential into Expo config. The Worker currently authenticates only configured static API keys. No TestFlight build should contain that secret. A user-facing API-key field is also out of scope.
+The Worker currently authenticates configured static API keys. Local development, internal preview, and the `testflight-dev` profile may embed one disposable, scoped test credential; it is intentionally extractable and must be revocable and rate-limited. The `production` profile explicitly omits it. Public release still requires a revocable mobile-session flow, and a user-facing API-key field remains out of scope.
 
 ## Source tree
 
@@ -141,19 +140,21 @@ Use semantic color and spacing tokens. Do not hand-style every screen with raw h
 
 This is the exact library boundary for the rebuild. A dependency is added only for the responsibility listed here.
 
-| Responsibility | Library and current version | Status and implementation rule |
-| --- | --- | --- |
-| App routes, native bottom tabs, nested stacks, form sheets | [`expo-router`](https://docs.expo.dev/versions/v57.0.0/sdk/router/) `~57.0.4` | Installed. The accepted product choice is `NativeTabs` from `expo-router/unstable-native-tabs` for Record, Modes, History, and Settings, with one nested `Stack` per tab so each tab preserves its own detail navigation. Picker routes use `presentation: 'formSheet'`. The API is explicitly unstable, so Expo Router upgrades require a focused tab-shell regression pass. |
-| Screen component source | [React Native Reusables](https://reactnativereusables.com/docs) CLI-generated source | Configured. RNR is the source-owned component system, not a runtime package. Add a component through the RNR CLI only when a named screen needs it. `text`, `button`, and `icon` are installed now. |
-| Utility styling and semantic theme tokens | [NativeWind](https://www.nativewind.dev/docs/getting-started/installation) `^4.2.6` + Tailwind `^3.4.19` | Installed and verified by RNR doctor. Layout uses `className`; colors come from semantic tokens in `global.css` and `theme.ts`. |
-| RNR primitive internals and overlays | `@rn-primitives/portal` `~1.4.0`, `@rn-primitives/slot` `^1.5.2` | Installed. `PortalHost` is mounted once at the root. |
-| Structured product data | [`expo-sqlite`](https://docs.expo.dev/versions/v57.0.0/sdk/sqlite/) `~57.0.0` | Installed. One migrated database owns modes, dictations, artifacts, and app settings. |
-| Persistent recordings and generated artifacts | [`expo-file-system`](https://docs.expo.dev/versions/v57.0.0/sdk/filesystem/) `~57.0.0` | Installed. Durable files live beneath `Paths.document`; transient upload/export work may use cache. |
-| PCM streaming, recording session, and history playback | [`expo-audio`](https://docs.expo.dev/versions/v57.0.0/sdk/audio/) `~57.0.0` | Installed. `AudioStream` supplies real PCM to the Worker; `useAudioPlayer`/status supplies real playback time. Final native ownership remains gated by the App Intent device experiment. |
-| Keyboard, App Intent, Live Activity, and App Group target generation | [`@bacons/apple-targets`](https://github.com/EvanBacon/expo-apple-targets) `^4.0.7` | Installed. Target source stays in `targets/`; generated `ios/` remains disposable. `ExtensionStorage` bridges only small App Group values. |
-| Mobile session credential | [`expo-secure-store`](https://docs.expo.dev/versions/v57.0.0/sdk/securestore/) `~57.0.0` | Planned, not installed. Add it only with the server-issued mobile-session flow; store the refresh/device secret in the iOS Keychain. |
-| Accepted in-screen motion | [`react-native-reanimated`](https://docs.expo.dev/versions/v57.0.0/sdk/reanimated/) `4.5.0` | Installed. Use for recording-state and small layout transitions with Reduced Motion support. |
-| App icons | `lucide-react-native` `^1.24.0` through the RNR `Icon` adapter | Installed. Swift keyboard icons remain SF Symbols. |
+| Responsibility                                                       | Library and current version                                                                                                   | Status and implementation rule                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App routes, native bottom tabs, nested stacks, form sheets           | [`expo-router`](https://docs.expo.dev/versions/v57.0.0/sdk/router/) `~57.0.4`                                                 | Installed. The accepted product choice is `NativeTabs` from `expo-router/unstable-native-tabs` for Record, Modes, History, and Settings, with one nested `Stack` per tab so each tab preserves its own detail navigation. Picker routes use `presentation: 'formSheet'`. The API is explicitly unstable, so Expo Router upgrades require a focused tab-shell regression pass.                                 |
+| Screen component source                                              | [React Native Reusables](https://reactnativereusables.com/docs) CLI-generated source                                          | Configured. RNR is the source-owned component system, not a runtime package. Add a component only when a named screen needs it. `text`, `button`, `icon`, and the History `tabs` composition are installed now.                                                                                                                                                                                               |
+| Utility styling and semantic theme tokens                            | [NativeWind](https://www.nativewind.dev/docs/getting-started/installation) `^4.2.6` + Tailwind `^3.4.19`                      | Installed and verified by RNR doctor. Layout uses `className`; colors come from semantic tokens in `global.css` and `theme.ts`.                                                                                                                                                                                                                                                                               |
+| RNR primitive internals and overlays                                 | `@rn-primitives/portal` `~1.4.0`, `@rn-primitives/slot` `^1.5.2`                                                              | Installed. `PortalHost` is mounted once at the root.                                                                                                                                                                                                                                                                                                                                                          |
+| Structured product data                                              | [`expo-sqlite`](https://docs.expo.dev/versions/v57.0.0/sdk/sqlite/) `~57.0.0`                                                 | Installed. One migrated database owns modes, dictations, artifacts, and app settings.                                                                                                                                                                                                                                                                                                                         |
+| Persistent recordings and generated artifacts                        | [`expo-file-system`](https://docs.expo.dev/versions/v57.0.0/sdk/filesystem/) `~57.0.0`                                        | Installed. Durable files live beneath `Paths.document`; transient upload/export work may use cache.                                                                                                                                                                                                                                                                                                           |
+| PCM streaming, recording session, and history playback               | [`expo-audio`](https://docs.expo.dev/versions/v57.0.0/sdk/audio/) `~57.0.0`                                                   | Installed. `AudioStream` supplies real PCM to the Worker; `useAudioPlayer`/status supplies real playback time. Final native ownership remains gated by the App Intent device experiment.                                                                                                                                                                                                                      |
+| Local batch and realtime speech recognition                          | [FluidAudio](https://github.com/FluidInference/FluidAudio) `v0.15.5` through the source-owned `TimberVoxLocalAsr` Expo module | Installed and pinned by tag. The module owns the paired Parakeet TDT-CTC 110M batch and Parakeet EOU 120M/320 ms realtime package, download/progress/delete state, model loading, PCM conversion, partial events, and final text. TypeScript selects batch or realtime from the saved mode and adapts both to the shared dictation workflow. Physical-iPhone performance remains an explicit acceptance gate. |
+| Canonical app and Shortcut text delivery                             | [`expo-clipboard`](https://docs.expo.dev/versions/v57.0.0/sdk/clipboard/) `~57.0.0`                                           | Installed. Delivery occurs after durable persistence. App and Shortcut entry points copy the canonical result; the keyboard entry point publishes the request-matched result through the App Group bridge.                                                                                                                                                                                                    |
+| Keyboard, App Intent, Live Activity, and App Group target generation | [`@bacons/apple-targets`](https://github.com/EvanBacon/expo-apple-targets) `^4.0.7`                                           | Installed. Target source stays in `targets/`; generated `ios/` remains disposable. `ExtensionStorage` bridges only small App Group values.                                                                                                                                                                                                                                                                    |
+| Mobile session credential                                            | [`expo-secure-store`](https://docs.expo.dev/versions/v57.0.0/sdk/securestore/) `~57.0.0`                                      | Planned, not installed. Add it only with the server-issued mobile-session flow; store the refresh/device secret in the iOS Keychain.                                                                                                                                                                                                                                                                          |
+| Accepted in-screen motion                                            | [`react-native-reanimated`](https://docs.expo.dev/versions/v57.0.0/sdk/reanimated/) `4.5.0`                                   | Installed. Use for recording-state and small layout transitions with Reduced Motion support.                                                                                                                                                                                                                                                                                                                  |
+| App icons                                                            | `lucide-react-native` `^1.24.0` through the RNR `Icon` adapter                                                                | Installed. Swift keyboard icons remain SF Symbols.                                                                                                                                                                                                                                                                                                                                                            |
 
 Pipecat and ElevenLabs are not part of this dependency map. Both offer React Native conversational-agent SDKs, but their polished UI kits are web React/Tailwind or web shadcn components. TimberVox has a one-way provider-neutral dictation protocol and needs only a single streaming-text state surface. Reconsider either SDK only if a separately accepted two-way conversational-agent product is added.
 
@@ -196,17 +197,17 @@ Each row shows observed state, not an optimistic checkmark. The keyboard and Ful
 
 The state machine and visible contract are:
 
-| State | Meaning | Visible result | Next transitions |
-| --- | --- | --- | --- |
-| `idle` | No background dictation session is running. | Start session/record control and any permission error. | `ready`, `error` |
-| `ready` | Microphone permission and recording session are available; no Worker socket is open. | Active mode plus an empty or last-result text surface. | `connecting`, `idle`, `error` |
-| `connecting` | A request ID exists, the realtime WebSocket is handshaking, and initial PCM may be queued in memory. | “Connecting” and a cancel/stop action. | `listening`, `finalizing`, `error` |
-| `listening` | PCM is streaming to the Worker. | One plain text area. Deltas append to the current partial string; provider interim text may replace the uncommitted partial. | `finalizing`, `error` |
-| `finalizing` | Capture for this request has stopped and the client has sent the realtime close/finalize event. | The last real partial text remains visible with “Finishing”. | `result`, `error` |
-| `result` | The canonical final transcript was received and saved. | Final text replaces the partial text; the history row and keyboard handoff reference the same result ID. | `connecting`, `ready` |
-| `error` | Permission, authentication, transport, provider, or persistence failed. | Keep any recoverable text and show one concrete retry/recovery action. | Prior safe state or `idle` |
+| State        | Meaning                                                                                              | Visible result                                                                                                                       | Next transitions                           |
+| ------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| `idle`       | No background dictation session is running.                                                          | Start session/record control and any permission error.                                                                               | `ready`, `error`                           |
+| `ready`      | Microphone permission and recording session are available; no executor is active.                    | Active mode and an empty live transcript surface.                                                                                    | `connecting`, `listening`, `idle`, `error` |
+| `connecting` | A realtime request ID exists, its transport is handshaking, and initial PCM may be queued in memory. | The shared recording control shows amber `Connecting`; no invented transcript appears.                                               | `listening`, `finalizing`, `error`         |
+| `listening`  | PCM is being captured for the selected batch or realtime executor.                                   | The shared control shows red `Stop`; genuine realtime partials render top-left when the selected route produces them.                | `finalizing`, `error`                      |
+| `finalizing` | Capture has stopped and the selected executor is producing its canonical artifact.                   | The last genuine partial remains visible and the shared control shows purple `Processing`.                                           | `result`, `error`                          |
+| `result`     | The canonical result was persisted and delivered for its entry point.                                | The shared control briefly shows green `Copied`; live text is cleared, History owns the durable text, then state returns to `ready`. | `ready`                                    |
+| `error`      | Permission, authentication, transport, provider, or persistence failed.                              | Keep any recoverable text and show one concrete retry/recovery action.                                                               | Prior safe state or `idle`                 |
 
-Partial text is never represented as chat bubbles and is not a durable artifact. Only the provider's canonical final response creates the Raw artifact. Segmented and Processed artifacts are saved only when those real outputs exist.
+Partial text is never represented as chat bubbles and is not a durable artifact. Batch routes therefore show no simulated live text. Only the selected executor's canonical final response creates the Raw artifact. Segmented and Processed artifacts are saved only when those real outputs exist. Persistence precedes delivery; save and delivery failures retain recoverable state and have independent retry paths.
 
 ### Modes
 
@@ -280,11 +281,11 @@ The account row opens a real detail route with entitlement state, account identi
 
 The current implementation already uses three distinct stores:
 
-| Store | Library and exact location | Data stored today | Current limitation |
-| --- | --- | --- | --- |
-| App database | `expo-sqlite`, `timbervox-mobile.db` | One WAL-mode `dictation_history` table containing creation time, final text, duration, model, entry point, and audio URI. | No migrations table, modes, normalized artifacts, settings, request IDs, or failure records yet. |
-| Persistent files | `expo-file-system`, `Paths.document/recordings/*.wav` | Final 16 kHz mono linear-PCM WAV assembled from captured realtime chunks. Deleting a history item deletes its referenced file. | Audio chunks are held in memory until final text arrives; a crash or failed finalization loses the unsaved recording. |
-| Cross-process bridge | `@bacons/apple-targets` `ExtensionStorage` and Swift `UserDefaults(suiteName: "group.com.chiejimofor.timbervox")` | Keyboard seen, Full Access observed, session/recording flags, request and transcript revisions, partial text, and pending final text. | Keys are unversioned and final text is copied rather than handed off by durable result ID. |
+| Store                | Library and exact location                                                                                        | Data stored today                                                                                                                                                                  | Current limitation                                                                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| App database         | `expo-sqlite`, `timbervox-mobile.db`                                                                              | Versioned WAL-mode `modes`, `app_settings`, `dictations`, and `artifacts` tables. Legacy `dictation_history` rows migrate once into normalized Dictation and Raw Artifact records. | Migration and repository tests pass; a non-silent physical-device recording still needs acceptance.             |
+| Persistent files     | `expo-file-system`, `Paths.document/recordings/*.wav`                                                             | Final 16 kHz mono linear-PCM WAV assembled from captured realtime chunks, plus file size/format on the Dictation. Deleting History or audio retention removes the referenced file. | Audio chunks remain in memory until a terminal outcome; crash-resumable in-progress capture is not implemented. |
+| Cross-process bridge | `@bacons/apple-targets` `ExtensionStorage` and Swift `UserDefaults(suiteName: "group.com.chiejimofor.timbervox")` | Schema v2 keyboard/access facts, active mode and preferences, request ownership, partial text, durable result ID, and consumed result ID.                                          | Source and contract tests pass; a signed physical-device keyboard round trip still needs acceptance.            |
 
 The realtime WebSocket, queued PCM, captured PCM, and partial accumulator are memory-only. The current static Worker credential comes from Expo config and is embedded in the build; it is not protected storage.
 
@@ -322,18 +323,18 @@ Retention is enforced by one storage service used after recording, on app launch
 
 ## Runtime ownership
 
-| Responsibility | Owner |
-| --- | --- |
-| Routes, screen UI, mode editing, history browsing, settings | Expo Router + React Native |
-| Reusable app primitives | React Native Reusables owned in `src/components/ui` |
-| Modes/history metadata | Expo SQLite repositories |
-| Persistent audio/artifacts | Expo FileSystem document storage |
-| Worker catalog and capability truth | TimberVoxAPI |
-| Keyboard rendering, swipe trace/decoding, predictions, text insertion | Swift keyboard target |
-| Cross-process state | Versioned App Group bridge |
-| Shortcut/Action button entry | Swift App Intent |
-| Recording indicator and system lifetime | ActivityKit Live Activity |
-| Credentials | Server-issued session + iOS secure storage; never Expo config |
+| Responsibility                                                        | Owner                                                         |
+| --------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Routes, screen UI, mode editing, history browsing, settings           | Expo Router + React Native                                    |
+| Reusable app primitives                                               | React Native Reusables owned in `src/components/ui`           |
+| Modes/history metadata                                                | Expo SQLite repositories                                      |
+| Persistent audio/artifacts                                            | Expo FileSystem document storage                              |
+| Worker catalog and capability truth                                   | TimberVoxAPI                                                  |
+| Keyboard rendering, swipe trace/decoding, predictions, text insertion | Swift keyboard target                                         |
+| Cross-process state                                                   | Versioned App Group bridge                                    |
+| Shortcut/Action button entry                                          | Swift App Intent                                              |
+| Recording indicator and system lifetime                               | ActivityKit Live Activity                                     |
+| Credentials                                                           | Server-issued session + iOS secure storage; never Expo config |
 
 ### Native recording decision gate
 

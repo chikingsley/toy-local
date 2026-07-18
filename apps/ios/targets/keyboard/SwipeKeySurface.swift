@@ -1,37 +1,121 @@
 import SwiftUI
+import UIKit
+
+enum KeyboardControlKey {
+  case delete
+  case shift
+}
 
 struct KeyLayout {
   let frames: [Character: CGRect]
+  let shiftFrame: CGRect
+  let deleteFrame: CGRect
 
   func key(at point: CGPoint) -> Character? {
     frames.first(where: { $0.value.insetBy(dx: -4, dy: -4).contains(point) })?.key
   }
+
+  func control(at point: CGPoint) -> KeyboardControlKey? {
+    if shiftFrame.insetBy(dx: -3, dy: -3).contains(point) { return .shift }
+    if deleteFrame.insetBy(dx: -3, dy: -3).contains(point) { return .delete }
+    return nil
+  }
+}
+
+enum KeyboardPalette {
+  static let keyUIColor = UIColor { traits in
+    traits.userInterfaceStyle == .dark ? UIColor(white: 0.31, alpha: 1) : .white
+  }
+  static let specialUIColor = UIColor { traits in
+    traits.userInterfaceStyle == .dark
+      ? UIColor(white: 0.18, alpha: 1) : UIColor.systemGray3
+  }
+  static let pressedKeyUIColor = UIColor { traits in
+    traits.userInterfaceStyle == .dark
+      ? UIColor(white: 0.42, alpha: 1) : UIColor.systemGray3
+  }
+  static let pressedSpecialUIColor = UIColor { traits in
+    traits.userInterfaceStyle == .dark
+      ? UIColor(white: 0.28, alpha: 1) : UIColor.systemGray2
+  }
+
+  static let key = Color(uiColor: keyUIColor)
+  static let specialKey = Color(uiColor: specialUIColor)
+  static let pressedKey = Color(uiColor: pressedKeyUIColor)
+  static let pressedSpecialKey = Color(uiColor: pressedSpecialUIColor)
 }
 
 struct SwipeKeySurface: View {
   @ObservedObject var model: KeyboardModel
   @State private var trail: [CGPoint] = []
+  @State private var activeControl: KeyboardControlKey?
 
   private let rows = [Array("qwertyuiop"), Array("asdfghjkl"), Array("zxcvbnm")]
 
   var body: some View {
     GeometryReader { geometry in
       let layout = makeLayout(size: geometry.size)
-      Canvas { context, _ in
-        drawKeys(context: &context, layout: layout)
-        drawTrail(context: &context)
+      ZStack(alignment: .topLeading) {
+        ForEach(layout.frames.keys.sorted(), id: \.self) { key in
+          keyView(key, frame: layout.frames[key] ?? .zero)
+        }
+
+        controlKey(
+          frame: layout.shiftFrame,
+          systemName: model.shifted ? "shift.fill" : "shift"
+        )
+        controlKey(frame: layout.deleteFrame, systemName: "delete.left")
+
+        if model.swipeEnabled, trail.count > 1 {
+          SwipeTrailShape(points: trail)
+            .stroke(
+              LinearGradient(
+                colors: [.cyan.opacity(0.45), .blue.opacity(0.88)],
+                startPoint: .leading,
+                endPoint: .trailing
+              ),
+              style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round)
+            )
+            .allowsHitTesting(false)
+        }
       }
       .contentShape(Rectangle())
       .gesture(
         DragGesture(minimumDistance: 0)
           .onChanged { value in
+            if activeControl == nil,
+              let control = layout.control(at: value.startLocation)
+            {
+              activeControl = control
+              if case .delete = control {
+                model.beginDeleting()
+              }
+            }
             trail.append(value.location)
           }
           .onEnded { value in
             trail.append(value.location)
+            if let activeControl {
+              switch activeControl {
+              case .delete:
+                model.endDeleting()
+              case .shift:
+                model.toggleShift()
+              }
+              self.activeControl = nil
+              trail.removeAll(keepingCapacity: true)
+              return
+            }
             let distance = trailDistance(trail)
-            if distance < 22, let key = layout.key(at: value.location) {
-              model.insert(String(key))
+            if distance < 22 {
+              if let control = layout.control(at: value.location) {
+                switch control {
+                case .delete: model.deleteBackward()
+                case .shift: model.toggleShift()
+                }
+              } else if let key = layout.key(at: value.location) {
+                model.insert(String(key))
+              }
             } else {
               model.handleSwipe(points: trail, layout: layout)
             }
@@ -40,14 +124,50 @@ struct SwipeKeySurface: View {
             }
           }
       )
+      .onDisappear {
+        model.endDeleting()
+      }
     }
+  }
+
+  private func keyView(_ key: Character, frame: CGRect) -> some View {
+    RoundedRectangle(cornerRadius: 6, style: .continuous)
+      .fill(KeyboardPalette.key)
+      .overlay {
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
+          .stroke(.black.opacity(0.16), lineWidth: 0.75)
+      }
+      .overlay {
+        Text(model.shifted ? String(key).uppercased() : String(key))
+          .font(.system(size: 21))
+          .foregroundStyle(Color(uiColor: .label))
+      }
+      .shadow(color: .black.opacity(0.18), radius: 0.5, y: 1)
+      .frame(width: frame.width, height: frame.height)
+      .position(x: frame.midX, y: frame.midY)
+  }
+
+  private func controlKey(frame: CGRect, systemName: String) -> some View {
+    RoundedRectangle(cornerRadius: 6, style: .continuous)
+      .fill(KeyboardPalette.specialKey)
+      .overlay {
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
+          .stroke(.black.opacity(0.12), lineWidth: 0.75)
+      }
+      .overlay {
+        Image(systemName: systemName)
+          .foregroundStyle(Color(uiColor: .label))
+      }
+      .shadow(color: .black.opacity(0.12), radius: 0.5, y: 1)
+      .frame(width: frame.width, height: frame.height)
+      .position(x: frame.midX, y: frame.midY)
   }
 
   private func makeLayout(size: CGSize) -> KeyLayout {
     let rowHeight = size.height / 3
     var frames: [Character: CGRect] = [:]
-    for (rowIndex, row) in rows.enumerated() {
-      let sideInset: CGFloat = rowIndex == 0 ? 0 : (rowIndex == 1 ? size.width * 0.045 : size.width * 0.14)
+    for (rowIndex, row) in rows.prefix(2).enumerated() {
+      let sideInset: CGFloat = rowIndex == 0 ? 0 : size.width * 0.045
       let available = size.width - sideInset * 2
       let keyWidth = available / CGFloat(row.count)
       for (column, key) in row.enumerated() {
@@ -59,44 +179,123 @@ struct SwipeKeySurface: View {
         )
       }
     }
-    return KeyLayout(frames: frames)
-  }
 
-  private func drawKeys(context: inout GraphicsContext, layout: KeyLayout) {
-    for (key, frame) in layout.frames {
-      let rect = RoundedRectangle(cornerRadius: 6, style: .continuous).path(in: frame)
-      context.fill(rect, with: .color(Color(uiColor: .systemBackground)))
-      context.addFilter(.shadow(color: .black.opacity(0.16), radius: 0.5, y: 1))
-      context.stroke(rect, with: .color(.black.opacity(0.04)), lineWidth: 0.5)
-      context.draw(
-        Text(model.shifted ? String(key).uppercased() : String(key))
-          .font(.system(size: 21)),
-        at: CGPoint(x: frame.midX, y: frame.midY)
+    let controlWidth = min(46, max(40, size.width * 0.13))
+    let controlGap: CGFloat = 7
+    let thirdRow = rows[2]
+    let lettersStart = controlWidth + controlGap
+    let lettersWidth = size.width - (lettersStart * 2)
+    let letterWidth = lettersWidth / CGFloat(thirdRow.count)
+    for (column, key) in thirdRow.enumerated() {
+      frames[key] = CGRect(
+        x: lettersStart + CGFloat(column) * letterWidth + 2.5,
+        y: rowHeight * 2 + 2.5,
+        width: letterWidth - 5,
+        height: rowHeight - 5
       )
     }
-  }
 
-  private func drawTrail(context: inout GraphicsContext) {
-    guard trail.count > 1 else { return }
-    var path = Path()
-    path.move(to: trail[0])
-    for point in trail.dropFirst() {
-      path.addLine(to: point)
-    }
-    context.stroke(
-      path,
-      with: .linearGradient(
-        Gradient(colors: [.cyan.opacity(0.45), .blue.opacity(0.88)]),
-        startPoint: trail[0],
-        endPoint: trail.last ?? trail[0]
-      ),
-      style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round)
+    return KeyLayout(
+      frames: frames,
+      shiftFrame: CGRect(x: 2.5, y: rowHeight * 2 + 2.5, width: controlWidth - 5, height: rowHeight - 5),
+      deleteFrame: CGRect(
+        x: size.width - controlWidth + 2.5,
+        y: rowHeight * 2 + 2.5,
+        width: controlWidth - 5,
+        height: rowHeight - 5
+      )
     )
   }
 
   private func trailDistance(_ points: [CGPoint]) -> CGFloat {
     zip(points, points.dropFirst()).reduce(0) { result, pair in
       result + hypot(pair.1.x - pair.0.x, pair.1.y - pair.0.y)
+    }
+  }
+}
+
+private struct SwipeTrailShape: Shape {
+  let points: [CGPoint]
+
+  func path(in rect: CGRect) -> Path {
+    var path = Path()
+    guard let first = points.first else { return path }
+    path.move(to: first)
+    for point in points.dropFirst() {
+      path.addLine(to: point)
+    }
+    return path
+  }
+}
+
+struct AlternateKeySurface: View {
+  @ObservedObject var model: KeyboardModel
+
+  private var firstRow: [String] {
+    if model.page == .symbols {
+      return ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="]
+    }
+    return Array("1234567890").map(String.init)
+  }
+
+  private var secondRow: [String] {
+    if model.page == .symbols {
+      return ["_", "\\", "|", "~", "<", ">", "€", "£", "¥", "•"]
+    }
+    return ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""]
+  }
+
+  private let punctuationRow = [".", ",", "?", "!", "'"]
+
+  var body: some View {
+    VStack(spacing: 5) {
+      keyRow(firstRow)
+      keyRow(secondRow)
+      HStack(spacing: 5) {
+        Button {
+          model.toggleSymbols()
+        } label: {
+          Text(model.page == .symbols ? "123" : "#+=")
+            .font(.system(size: 13, weight: .medium))
+            .frame(width: 48)
+            .frame(maxHeight: .infinity)
+        }
+        .buttonStyle(KeyboardSpecialKeyStyle())
+
+        ForEach(punctuationRow, id: \.self) { key in
+          Button {
+            model.insert(key)
+          } label: {
+            Text(key)
+              .font(.system(size: 20))
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+          }
+          .buttonStyle(KeyboardKeyStyle())
+        }
+
+        Button(action: model.deleteBackward) {
+          Image(systemName: "delete.left")
+            .font(.system(size: 17, weight: .medium))
+            .frame(width: 48)
+            .frame(maxHeight: .infinity)
+        }
+        .buttonStyle(KeyboardSpecialKeyStyle())
+      }
+    }
+  }
+
+  private func keyRow(_ keys: [String]) -> some View {
+    HStack(spacing: 5) {
+      ForEach(keys, id: \.self) { key in
+        Button {
+          model.insert(key)
+        } label: {
+          Text(key)
+            .font(.system(size: 20))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .buttonStyle(KeyboardKeyStyle())
+      }
     }
   }
 }

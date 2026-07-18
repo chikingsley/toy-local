@@ -82,6 +82,9 @@ struct DictationContextCaptureLimits: Equatable, Sendable {
   var maxSelectedTextItems = 8
   var maxSelectedTextCharacters = 12_000
   var maxSelectedTextItemCharacters = 6_000
+  var maxScreenTextItems = 2
+  var maxScreenTextCharacters = 24_000
+  var maxScreenTextItemCharacters = 12_000
   var maxAttachments = 32
 
   func includesPreRecordingItem(capturedAt: Date, recordingStartedAt: Date) -> Bool {
@@ -99,6 +102,7 @@ struct DictationContextCaptureBuilder: Sendable {
   private(set) var context: DictationContext
   private(set) var clipboardItems: [ClipboardTextItem] = []
   private(set) var selectedTextItems: [SelectedTextItem] = []
+  private(set) var screenTextItems: [(capturedAt: Date, text: String)] = []
   private(set) var attachments: [DictationContextAttachment] = []
   let limits: DictationContextCaptureLimits
 
@@ -169,12 +173,20 @@ struct DictationContextCaptureBuilder: Sendable {
     renderClipboardContext()
   }
 
-  mutating func appendScreen(text: String?, attachment: DictationContextAttachment?) {
+  mutating func appendScreen(
+    text: String?,
+    attachment: DictationContextAttachment?,
+    capturedAt: Date
+  ) {
     if let text = normalized(text) {
-      if context.application == nil {
-        context.application = ApplicationContext(name: "Unknown Application")
+      let clipped = String(text.prefix(limits.maxScreenTextItemCharacters))
+      if !screenTextItems.contains(where: { $0.text == clipped }) {
+        screenTextItems.append((capturedAt: capturedAt, text: clipped))
+        if screenTextItems.count > limits.maxScreenTextItems {
+          screenTextItems.removeFirst(screenTextItems.count - limits.maxScreenTextItems)
+        }
+        renderScreenContext()
       }
-      context.application?.screenText = text
     }
     if let attachment {
       appendAttachment(attachment)
@@ -238,6 +250,21 @@ struct DictationContextCaptureBuilder: Sendable {
       rendered = candidate
     }
     context.selectedText = rendered.isEmpty ? nil : rendered
+  }
+
+  private mutating func renderScreenContext() {
+    var rendered = ""
+    for item in screenTextItems.sorted(by: { $0.capturedAt < $1.capturedAt }) {
+      let label = item.capturedAt <= startedAt ? "Screen at recording start" : "Screen at recording end"
+      let section = screenTextItems.count == 1 ? item.text : "\(label):\n\(item.text)"
+      let candidate = rendered.isEmpty ? section : "\(rendered)\n\n\(section)"
+      guard candidate.count <= limits.maxScreenTextCharacters else { break }
+      rendered = candidate
+    }
+    if context.application == nil {
+      context.application = ApplicationContext(name: "Unknown Application")
+    }
+    context.application?.screenText = rendered.isEmpty ? nil : rendered
   }
 
   private func normalized(_ text: String?) -> String? {

@@ -1,2 +1,4 @@
 allowBuilds:
   unrs-resolver: true
+patchedDependencies:
+  '@bacons/apple-targets@4.0.7': patches/@bacons__apple-targets@4.0.7.patch

@@ -12,6 +12,7 @@ import { LANGUAGE_MODEL_MAP } from "../../src/ai/models/language-models";
 import {
   BATCH_ASR_MODEL_MAP,
   REALTIME_ASR_MODEL_MAP,
+  resolveRealtimeLanguage,
 } from "../../src/ai/models/transcription-routes";
 
 const sorted = (values: Iterable<string>): string[] => [...values].sort();
@@ -91,6 +92,17 @@ describe("Superwhisper provider contract", () => {
       realtimeRequestModel: "nova-2",
       requestModel: "nova-3",
     });
+  });
+
+  it("defaults Nova Medical realtime to the observed English handshake", () => {
+    const route = REALTIME_ASR_MODEL_MAP["deepgram-nova-2-medical"];
+
+    expect(route).toMatchObject({
+      supportedLanguages: ["en"],
+      supportsAutomaticLanguage: false,
+    });
+    expect(resolveRealtimeLanguage(route, undefined)).toBe("en");
+    expect(resolveRealtimeLanguage(route, "en")).toBe("en");
   });
 
   it("feeds execution routes into the TimberVox drift runner", async () => {

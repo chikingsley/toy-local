@@ -23,6 +23,7 @@ enum SystemDictationContextProvider {
     return ApplicationContext(
       name: app.localizedName ?? app.bundleIdentifier ?? "Unknown Application",
       bundleIdentifier: app.bundleIdentifier,
+      documentURL: window.flatMap { stringAttribute(kAXDocumentAttribute, element: $0) },
       windowTitle: window.flatMap { stringAttribute(kAXTitleAttribute, element: $0) },
       visibleText: window.flatMap { visibleText(from: $0) }
     )

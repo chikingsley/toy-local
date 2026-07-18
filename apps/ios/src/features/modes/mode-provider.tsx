@@ -11,6 +11,7 @@ import {
 
 import {
   fetchModelCatalog,
+  selectedTranscriptionModel,
   type ModelCatalog,
 } from "@/features/modes/model-catalog";
 import {
@@ -22,6 +23,7 @@ import {
   updateMode,
 } from "@/features/modes/mode-repository";
 import type { Mode, ModeDraft } from "@/features/modes/mode-types";
+import { writeBridgeString } from "@/features/keyboard/app-group-bridge";
 import {
   draftsEqual,
   modeToDraft,
@@ -126,6 +128,44 @@ function ModeProvider({ children }: PropsWithChildren) {
 
   const read = useCallback((id: string) => getMode(database, id), [database]);
   const activeMode = modes.find((mode) => mode.isActive) ?? null;
+  useEffect(() => {
+    if (!activeMode || !catalog) return;
+    writeBridgeString("activeModeId", activeMode.id);
+    const selected = selectedTranscriptionModel(catalog, activeMode.asrModelId);
+    const batchFallback = catalog.transcriptionModels.find(
+      (model) => model.runtime === "cloud" && model.batch,
+    );
+    const batchModel =
+      selected?.runtime === "cloud" && selected.batch
+        ? selected.batch
+        : batchFallback?.batch;
+    if (!batchModel) return;
+    writeBridgeString(
+      "activeModeSnapshot",
+      JSON.stringify({
+        asrModelId: activeMode.asrModelId,
+        batchModelId: batchModel.model,
+        description: activeMode.description,
+        iconKey: activeMode.iconKey,
+        id: activeMode.id,
+        identifySpeakers:
+          batchModel.supportsDiarization && activeMode.identifySpeakers,
+        language: batchModel.supportedLanguages.includes(
+          activeMode.language ?? "",
+        )
+          ? activeMode.language
+          : batchModel.supportsAutomaticLanguage
+            ? null
+            : batchModel.supportedLanguages[0],
+        name: activeMode.name,
+        presetKind: activeMode.presetKind,
+        processingInstructions: activeMode.processingInstructions,
+        processingModelId: activeMode.processingModelId,
+        realtimeModel:
+          selected?.realtime?.model ?? batchFallback?.realtime?.model ?? "",
+      }),
+    );
+  }, [activeMode, catalog]);
   const value = useMemo<ModeContextValue>(
     () => ({
       activateMode: activate,

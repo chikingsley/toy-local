@@ -3,6 +3,7 @@ import { act, renderRouter, waitFor } from "expo-router/testing-library";
 
 const FOUNDATION_ROUTES = [
   "(onboarding)/welcome",
+  "(onboarding)/shortcut",
   "(tabs)/record/index",
   "(tabs)/modes/index",
   "(tabs)/history/index",
@@ -16,6 +17,9 @@ describe("foundation routes", () => {
     await waitFor(() =>
       expect(result.getSegments()).toEqual(["(onboarding)", "welcome"]),
     );
+
+    await act(async () => router.navigate("/shortcut"));
+    await waitFor(() => expect(result.getPathname()).toBe("/shortcut"));
 
     for (const pathname of [
       "/record",

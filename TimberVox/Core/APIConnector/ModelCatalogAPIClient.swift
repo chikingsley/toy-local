@@ -11,8 +11,7 @@ struct ModelCatalogAPIClient: Sendable {
 
   func models() async throws -> [CatalogModel] {
     let response: ModelCatalogResponse = try await api.get(
-      path: "v1/models",
-      authorized: false
+      path: "v1/models"
     )
     if response.presentationSchemaVersion != 1 {
       throw APIConnectorError.invalidResponse

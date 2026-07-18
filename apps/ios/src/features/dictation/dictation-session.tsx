@@ -1,4 +1,3 @@
-import { ExtensionStorage } from "@bacons/apple-targets";
 import {
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
@@ -7,6 +6,7 @@ import {
 } from "expo-audio";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
+import { useSQLiteContext } from "expo-sqlite";
 import {
   createContext,
   type PropsWithChildren,
@@ -17,28 +17,79 @@ import {
   useRef,
   useState,
 } from "react";
+import { AppState } from "react-native";
 
+import { persistDictationOutcome } from "@/features/dictation/dictation-repository";
+import { transcribeCloudBatch } from "@/features/dictation/cloud-batch-client";
+import {
+  createLocalRealtimeTransport,
+  transcribeLocalBatch,
+} from "@/features/dictation/local-asr";
+import { useLocalModelPackage } from "@/features/dictation/local-model-package";
+import { consumeNativeResult } from "@/features/dictation/native-result-bridge";
+import { deliverDictationResult } from "@/features/dictation/result-delivery";
+import { processDictationText } from "@/features/dictation/text-processing-client";
+import type {
+  DictationEntryPoint,
+  DictationFailure,
+  DictationModeSnapshot,
+  DictationPlan,
+  DictationStage,
+  DictationWorkflowSnapshot,
+} from "@/features/dictation/dictation-types";
+import { DictationWorkflow } from "@/features/dictation/dictation-workflow";
+import {
+  API_ORIGIN,
+  createWebSocketTransport,
+  recoverRealtimeSession,
+} from "@/features/dictation/websocket-transport";
 import { useHistory } from "@/features/history/history-store";
+import {
+  initializeAppGroupBridge,
+  readBridgeBoolean,
+  readBridgeNumber,
+  readBridgeString,
+  writeBridgeBoolean,
+  writeBridgeNumber,
+  writeBridgeString,
+} from "@/features/keyboard/app-group-bridge";
+import {
+  selectedRoute,
+  selectedTranscriptionModel,
+  type ModelCatalog,
+} from "@/features/modes/model-catalog";
+import { useModes } from "@/features/modes/mode-provider";
+import type { Mode } from "@/features/modes/mode-types";
 
-const APP_GROUP = "group.com.chiejimofor.timbervox";
-const REALTIME_MODEL = "mistral-voxtral-mini-transcribe-realtime-2602";
-const storage = new ExtensionStorage(APP_GROUP);
 const buildCredential = readBuildCredential();
 
-type SessionStage =
-  "idle" | "ready" | "connecting" | "recording" | "processing";
-
 type DictationSessionValue = {
+  cancelDictation: () => void;
   endSession: () => Promise<void>;
   error: string | null;
+  errorCode: string | null;
+  finalizing: boolean;
   lastTranscript: string;
   partialTranscript: string;
   recording: boolean;
+  recover: () => Promise<void>;
+  recoveryLabel: string | null;
   sessionActive: boolean;
+  stage: DictationStage;
   startDictation: () => Promise<void>;
-  startSession: () => Promise<void>;
+  startSession: () => Promise<boolean>;
   stateLabel: string;
   stopDictation: () => void;
+};
+
+const INITIAL_SNAPSHOT: DictationWorkflowSnapshot = {
+  error: null,
+  finalText: "",
+  requestId: null,
+  resultId: null,
+  sessionId: null,
+  stage: "idle",
+  visibleText: "",
 };
 
 const DictationSessionContext = createContext<DictationSessionValue | null>(
@@ -46,263 +97,308 @@ const DictationSessionContext = createContext<DictationSessionValue | null>(
 );
 
 export function DictationSessionProvider({ children }: PropsWithChildren) {
+  initializeAppGroupBridge();
+  const database = useSQLiteContext();
   const history = useHistory();
-  const [stage, setStage] = useState<SessionStage>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [partialTranscript, setPartialTranscript] = useState("");
-  const [lastTranscript, setLastTranscript] = useState("");
-  const socketRef = useRef<WebSocket | null>(null);
-  const queuedAudioRef = useRef<ArrayBuffer[]>([]);
-  const capturedAudioRef = useRef<ArrayBuffer[]>([]);
-  const partialAccumulatorRef = useRef("");
-  const recordingOriginRef = useRef<"app" | "keyboard">("keyboard");
-  const recordingStartedAtRef = useRef(0);
+  const historyReload = history.reload;
+  const modes = useModes();
+  const localPackage = useLocalModelPackage();
+  const [snapshot, setSnapshot] =
+    useState<DictationWorkflowSnapshot>(INITIAL_SNAPSHOT);
   const sessionActiveRef = useRef(false);
-  const lastRequestRevisionRef = useRef(readNumber("requestRevision"));
-  const closingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastEntryPointRef = useRef<DictationEntryPoint>("app");
+  const lastRequestRevisionRef = useRef(readBridgeNumber("requestRevision"));
+  const activeModeRef = useRef<Mode | null>(modes.activeMode);
+  const catalogRef = useRef<ModelCatalog | null>(modes.catalog);
+  const consumingNativeResultRef = useRef(false);
 
-  const publishTranscript = useCallback(
-    async (text: string) => {
-      const clean = text.trim();
-      if (!clean) return;
-      storage.set("pendingTranscript", clean);
-      storage.set("partialTranscript", "");
-      storage.set("transcriptRevision", readNumber("transcriptRevision") + 1);
-      storage.set("recordingRequested", 0);
-      setPartialTranscript("");
-      setLastTranscript(clean);
-      await history.add({
-        audioChunks: capturedAudioRef.current,
-        durationMs: Math.max(0, Date.now() - recordingStartedAtRef.current),
-        model: REALTIME_MODEL,
-        source: recordingOriginRef.current,
-        text: clean,
-      });
-      capturedAudioRef.current = [];
-      setStage("ready");
-    },
-    [history],
+  const workflow = useMemo(
+    () =>
+      new DictationWorkflow({
+        createTransport: (plan, callbacks) =>
+          plan.executor.kind === "local-realtime"
+            ? createLocalRealtimeTransport(plan, callbacks)
+            : createWebSocketTransport(plan, callbacks),
+        deliver: deliverDictationResult,
+        onChange: setSnapshot,
+        persist: async (outcome) => {
+          await persistDictationOutcome(database, outcome);
+          await historyReload();
+        },
+        process: processDictationText,
+        recover: (plan, sessionId, credential) => {
+          if (plan.executor.kind !== "cloud-realtime") {
+            throw new Error("Local realtime recovery is unavailable.");
+          }
+          return recoverRealtimeSession(sessionId, credential);
+        },
+        transcribeBatch: (plan, audioChunks) =>
+          plan.executor.kind === "local-batch"
+            ? transcribeLocalBatch(plan, audioChunks)
+            : transcribeCloudBatch(plan, audioChunks),
+      }),
+    [database, historyReload],
   );
+  const workflowRef = useRef(workflow);
 
-  const finishSocket = useCallback(() => {
-    const socket = socketRef.current;
-    if (!socket) return;
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: "close" }));
-      setStage("processing");
-      if (closingTimerRef.current) clearTimeout(closingTimerRef.current);
-      closingTimerRef.current = setTimeout(() => {
-        socket.close();
-        socketRef.current = null;
-        storage.set("recordingRequested", 0);
-        setStage("ready");
-      }, 5_000);
-    } else if (socket.readyState === WebSocket.CONNECTING) {
-      socket.close();
-      socketRef.current = null;
-      queuedAudioRef.current = [];
-      storage.set("recordingRequested", 0);
-      setStage("ready");
-    }
+  useEffect(() => {
+    workflowRef.current = workflow;
+  }, [workflow]);
+
+  useEffect(() => {
+    activeModeRef.current = modes.activeMode;
+    catalogRef.current = modes.catalog;
+  }, [modes.activeMode, modes.catalog]);
+
+  useEffect(() => {
+    writeBridgeString("apiBaseURL", API_ORIGIN);
+    writeBridgeString("apiCredential", buildCredential);
   }, []);
 
-  const beginRealtime = useCallback(
-    async (origin: "app" | "keyboard" = "keyboard") => {
-      if (socketRef.current) return;
-      if (!buildCredential) {
-        setError("This build is missing its TimberVox API credential.");
-        queuedAudioRef.current = [];
-        storage.set("recordingRequested", 0);
-        return;
+  const importNativeResult = useCallback(async () => {
+    if (consumingNativeResultRef.current) return;
+    consumingNativeResultRef.current = true;
+    try {
+      if (await consumeNativeResult(database)) await historyReload();
+    } finally {
+      consumingNativeResultRef.current = false;
+    }
+  }, [database, historyReload]);
+
+  useEffect(() => {
+    void importNativeResult();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void importNativeResult();
+    });
+    return () => subscription.remove();
+  }, [importNativeResult]);
+
+  const beginDictation = useCallback(
+    (entryPoint: DictationEntryPoint, requestedId?: string) => {
+      const plan = createPlan(
+        activeModeRef.current,
+        catalogRef.current,
+        entryPoint,
+        buildCredential,
+        localPackage.ready,
+        requestedId,
+      );
+      if (!plan.ok) {
+        workflowRef.current.failBeforeStart(plan.error);
+        writeBridgeBoolean("recordingRequested", false);
+        return false;
       }
-
-      setError(null);
-      setPartialTranscript("");
-      partialAccumulatorRef.current = "";
-      capturedAudioRef.current = [];
-      recordingOriginRef.current = origin;
-      recordingStartedAtRef.current = Date.now();
-      storage.set("partialTranscript", "");
-      setStage("connecting");
-      const params = new URLSearchParams({
-        model: REALTIME_MODEL,
-        encoding: "linear16",
-        sample_rate: "16000",
-        channels: "1",
-        interim_results: "true",
-        punctuate: "true",
-        dictation: "true",
-        target_streaming_delay_ms: "200",
-      });
-      const url = `wss://timbervox.peacockery.studio/v1/realtime?${params.toString()}`;
-      const WebSocketWithHeaders = WebSocket as unknown as new (
-        url: string,
-        protocols: string[],
-        options: { headers: Record<string, string> },
-      ) => WebSocket;
-      const socket = new WebSocketWithHeaders(url, [], {
-        headers: { Authorization: `Bearer ${buildCredential}` },
-      });
-      socket.binaryType = "arraybuffer";
-      socketRef.current = socket;
-
-      socket.onopen = () => {
-        setStage("recording");
-        for (const chunk of queuedAudioRef.current) socket.send(chunk);
-        queuedAudioRef.current = [];
-      };
-      socket.onmessage = (event) => {
-        if (typeof event.data !== "string") return;
-        const message = parseEvent(event.data);
-        if (!message) return;
-        if (message.error) {
-          setError(message.error);
-          return;
-        }
-        if (message.delta !== undefined) {
-          partialAccumulatorRef.current += message.delta;
-          setPartialTranscript(partialAccumulatorRef.current);
-          storage.set("partialTranscript", partialAccumulatorRef.current);
-        } else if (
-          message.partial !== undefined &&
-          !partialAccumulatorRef.current
-        ) {
-          partialAccumulatorRef.current = message.partial;
-          setPartialTranscript(message.partial);
-          storage.set("partialTranscript", message.partial);
-        }
-        if (message.final !== undefined) void publishTranscript(message.final);
-      };
-      socket.onerror = () => {
-        setError("The realtime transcription connection failed.");
-        storage.set("recordingRequested", 0);
-        setStage("ready");
-      };
-      socket.onclose = () => {
-        socketRef.current = null;
-        if (closingTimerRef.current) clearTimeout(closingTimerRef.current);
-        closingTimerRef.current = null;
-        storage.set("recordingRequested", 0);
-        setStage((current) => (current === "idle" ? current : "ready"));
-      };
+      const started = workflowRef.current.start(plan.value);
+      if (started) {
+        lastEntryPointRef.current = entryPoint;
+        writeBridgeString("partialTranscript", "");
+        writeBridgeString("activeRequestId", plan.value.requestId);
+      }
+      return started;
     },
-    [publishTranscript],
+    [localPackage.ready],
   );
 
   const handleAudioBuffer = useCallback(
     (buffer: AudioStreamBuffer) => {
-      const revision = readNumber("requestRevision");
+      if (!sessionActiveRef.current) return;
+      const revision = readBridgeNumber("requestRevision");
       if (revision !== lastRequestRevisionRef.current) {
         lastRequestRevisionRef.current = revision;
-        if (readBoolean("recordingRequested")) {
-          void beginRealtime("keyboard");
-        } else {
-          finishSocket();
+        if (
+          readBridgeBoolean("recordingRequested") &&
+          readBridgeString("requestedEntryPoint") === "keyboard"
+        ) {
+          beginDictation("keyboard", readBridgeString("keyboardRequestId"));
+        } else if (!readBridgeBoolean("recordingRequested")) {
+          workflowRef.current.stop();
         }
       }
-
-      if (!readBoolean("recordingRequested")) return;
-      capturedAudioRef.current.push(buffer.data.slice(0));
-      const socket = socketRef.current;
-      if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(buffer.data);
-      } else if (queuedAudioRef.current.length < 20) {
-        queuedAudioRef.current.push(buffer.data);
-      }
+      if (!readBridgeBoolean("recordingRequested")) return;
+      workflowRef.current.receiveAudio(buffer.data);
     },
-    [beginRealtime, finishSocket],
+    [beginDictation],
   );
 
   const { stream } = useAudioStream({
-    sampleRate: 16_000,
     channels: 1,
     encoding: "int16",
     onBuffer: handleAudioBuffer,
+    sampleRate: 16_000,
   });
 
   const startSession = useCallback(async () => {
+    if (sessionActiveRef.current) {
+      workflowRef.current.ready();
+      return true;
+    }
+    const pendingKeyboardRequestId =
+      readBridgeBoolean("recordingRequested") &&
+      readBridgeString("requestedEntryPoint") === "keyboard"
+        ? readBridgeString("keyboardRequestId")
+        : undefined;
     const permission = await requestRecordingPermissionsAsync();
     if (!permission.granted) {
-      setError("Microphone access is required.");
-      return;
+      workflowRef.current.failBeforeStart({
+        action: "open-settings",
+        code: "microphone_denied",
+        message: "Microphone access is required to dictate.",
+        retryable: true,
+      });
+      return false;
     }
-    await setAudioModeAsync({
-      allowsRecording: true,
-      allowsBackgroundRecording: true,
-      playsInSilentMode: true,
-    });
-    await stream.start();
-    storage.set("sessionActive", 1);
-    storage.set("recordingRequested", 0);
-    setError(null);
-    sessionActiveRef.current = true;
-    setStage("ready");
-  }, [stream]);
+    try {
+      await setAudioModeAsync({
+        allowsBackgroundRecording: true,
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+      await stream.start();
+      writeBridgeBoolean("sessionActive", true);
+      sessionActiveRef.current = true;
+      workflowRef.current.ready();
+      if (pendingKeyboardRequestId) {
+        lastRequestRevisionRef.current = readBridgeNumber("requestRevision");
+        writeBridgeBoolean("recordingRequested", true);
+        if (!beginDictation("keyboard", pendingKeyboardRequestId)) {
+          writeBridgeBoolean("recordingRequested", false);
+        }
+      } else {
+        writeBridgeBoolean("recordingRequested", false);
+      }
+      return true;
+    } catch {
+      workflowRef.current.failBeforeStart({
+        action: "retry-session",
+        code: "interrupted_input",
+        message: "TimberVox could not start the microphone session.",
+        retryable: true,
+      });
+      return false;
+    }
+  }, [beginDictation, stream]);
 
   const startDictation = useCallback(async () => {
-    if (!sessionActiveRef.current) await startSession();
-    if (!sessionActiveRef.current) return;
-    storage.set("recordingRequested", 1);
-    storage.set("requestRevision", readNumber("requestRevision") + 1);
-    await beginRealtime("app");
-  }, [beginRealtime, startSession]);
+    if (!sessionActiveRef.current && !(await startSession())) return;
+    writeBridgeString("requestedEntryPoint", "app");
+    writeBridgeBoolean("recordingRequested", true);
+    writeBridgeNumber(
+      "requestRevision",
+      readBridgeNumber("requestRevision") + 1,
+    );
+    if (!beginDictation("app")) writeBridgeBoolean("recordingRequested", false);
+  }, [beginDictation, startSession]);
 
   const stopDictation = useCallback(() => {
-    storage.set("recordingRequested", 0);
-    storage.set("requestRevision", readNumber("requestRevision") + 1);
-    finishSocket();
-  }, [finishSocket]);
+    writeBridgeBoolean("recordingRequested", false);
+    writeBridgeNumber(
+      "requestRevision",
+      readBridgeNumber("requestRevision") + 1,
+    );
+    workflowRef.current.stop();
+  }, []);
+
+  const cancelDictation = useCallback(() => {
+    writeBridgeBoolean("recordingRequested", false);
+    writeBridgeNumber(
+      "requestRevision",
+      readBridgeNumber("requestRevision") + 1,
+    );
+    writeBridgeString("partialTranscript", "");
+    workflowRef.current.cancel();
+  }, []);
 
   const endSession = useCallback(async () => {
-    finishSocket();
+    workflowRef.current.cancel();
     stream.stop();
-    storage.set("sessionActive", 0);
-    storage.set("recordingRequested", 0);
-    storage.set("partialTranscript", "");
+    writeBridgeBoolean("sessionActive", false);
+    writeBridgeBoolean("recordingRequested", false);
+    writeBridgeString("partialTranscript", "");
     sessionActiveRef.current = false;
-    setPartialTranscript("");
-    setStage("idle");
-  }, [finishSocket, stream]);
+    workflowRef.current.idle();
+  }, [stream]);
+
+  const recover = useCallback(async () => {
+    const action = workflowRef.current.current.error?.action;
+    if (action === "open-settings") {
+      await Linking.openSettings();
+      return;
+    }
+    if (action === "retry-save") {
+      await workflowRef.current.retrySave();
+      return;
+    }
+    if (action === "retry-delivery") {
+      await workflowRef.current.retryDelivery();
+      return;
+    }
+    if (action === "retry-session") {
+      if (!(await startSession())) return;
+    }
+    writeBridgeBoolean("recordingRequested", true);
+    writeBridgeString("requestedEntryPoint", lastEntryPointRef.current);
+    writeBridgeNumber(
+      "requestRevision",
+      readBridgeNumber("requestRevision") + 1,
+    );
+    beginDictation(lastEntryPointRef.current);
+  }, [beginDictation, startSession]);
+
+  useEffect(() => {
+    if (lastEntryPointRef.current === "keyboard") {
+      writeBridgeString("partialTranscript", snapshot.visibleText);
+    }
+    if (snapshot.stage === "result") {
+      writeBridgeBoolean("recordingRequested", false);
+      writeBridgeString("activeRequestId", "");
+      const timer = setTimeout(
+        () => workflowRef.current.acknowledgeResult(),
+        1_100,
+      );
+      return () => clearTimeout(timer);
+    } else if (snapshot.stage === "error") {
+      writeBridgeBoolean("recordingRequested", false);
+    }
+    return undefined;
+  }, [snapshot]);
 
   useEffect(() => {
     const handleURL = ({ url }: { url: string }) => {
       const parsed = Linking.parse(url);
-      if (parsed.hostname === "session" || parsed.path === "session")
+      if (parsed.hostname === "session" || parsed.path === "session") {
         void startSession();
+      }
     };
     const subscription = Linking.addEventListener("url", handleURL);
     void Linking.getInitialURL().then((url) => url && handleURL({ url }));
     return () => subscription.remove();
   }, [startSession]);
 
-  useEffect(() => {
-    storage.set("sessionActive", 0);
-    storage.set("recordingRequested", 0);
-    return () => {
-      storage.set("sessionActive", 0);
-      storage.set("recordingRequested", 0);
-    };
-  }, []);
-
   const value = useMemo<DictationSessionValue>(
     () => ({
+      cancelDictation,
       endSession,
-      error,
-      lastTranscript,
-      partialTranscript,
-      recording: stage === "recording" || stage === "connecting",
-      sessionActive: stage !== "idle",
+      error: snapshot.error?.message ?? null,
+      errorCode: snapshot.error?.code ?? null,
+      finalizing: snapshot.stage === "finalizing",
+      lastTranscript: snapshot.finalText,
+      partialTranscript: snapshot.visibleText,
+      recording:
+        snapshot.stage === "connecting" || snapshot.stage === "listening",
+      recover,
+      recoveryLabel: recoveryLabel(snapshot.error),
+      sessionActive: snapshot.stage !== "idle",
+      stage: snapshot.stage,
       startDictation,
       startSession,
-      stateLabel: stageLabel(stage),
+      stateLabel: stageLabel(snapshot.stage, snapshot.finalText),
       stopDictation,
     }),
     [
+      cancelDictation,
       endSession,
-      error,
-      lastTranscript,
-      partialTranscript,
-      stage,
+      recover,
+      snapshot,
       startDictation,
       startSession,
       stopDictation,
@@ -318,19 +414,108 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
 
 export function useDictationSession() {
   const value = useContext(DictationSessionContext);
-  if (!value)
+  if (!value) {
     throw new Error(
       "useDictationSession must be used inside DictationSessionProvider",
     );
+  }
   return value;
 }
 
-function readNumber(key: string) {
-  return Number(storage.get(key) ?? 0);
+function createPlan(
+  mode: Mode | null,
+  catalog: ModelCatalog | null,
+  entryPoint: DictationEntryPoint,
+  credential: string,
+  localPackageReady: boolean,
+  requestedId?: string,
+): { ok: true; value: DictationPlan } | { error: DictationFailure; ok: false } {
+  if (!mode || !catalog) {
+    return {
+      error: {
+        action: "retry-session",
+        code: "unsupported_model",
+        message: "The active mode is not ready yet.",
+        retryable: true,
+      },
+      ok: false,
+    };
+  }
+  const model = selectedTranscriptionModel(catalog, mode.asrModelId);
+  const route = selectedRoute(model, mode.realtimeEnabled);
+  if (!model || !route) {
+    return {
+      error: {
+        action: "reconnect",
+        code: "unsupported_model",
+        message:
+          "This mode does not have a supported iPhone transcription route.",
+        retryable: false,
+      },
+      ok: false,
+    };
+  }
+  if (model.runtime === "local" && !localPackageReady) {
+    return {
+      error: {
+        action: "reconnect",
+        code: "unsupported_model",
+        message: "Download Parakeet Local before using this mode.",
+        retryable: false,
+      },
+      ok: false,
+    };
+  }
+  if (model.runtime === "cloud" && !credential) {
+    return {
+      error: {
+        action: "retry-session",
+        code: "missing_mobile_session",
+        message: "This build does not have an active TimberVox session.",
+        retryable: true,
+      },
+      ok: false,
+    };
+  }
+  const realtime = route === model.realtime;
+  const snapshot: DictationModeSnapshot = {
+    asrModelId: mode.asrModelId,
+    description: mode.description,
+    iconKey: mode.iconKey,
+    id: mode.id,
+    identifySpeakers: mode.identifySpeakers,
+    language: mode.language,
+    name: mode.name,
+    presetKind: mode.presetKind,
+    processingInstructions: mode.processingInstructions,
+    processingModelId: mode.processingModelId,
+    realtimeModel: model.realtime?.model ?? "",
+  };
+  return {
+    ok: true,
+    value: {
+      credential,
+      entryPoint,
+      executor: {
+        kind:
+          model.runtime === "local"
+            ? realtime
+              ? "local-realtime"
+              : "local-batch"
+            : realtime
+              ? "cloud-realtime"
+              : "cloud-batch",
+        model: route.model,
+        provider: route.provider,
+      },
+      mode: snapshot,
+      requestId: requestedId || createRequestId(),
+    },
+  };
 }
 
-function readBoolean(key: string) {
-  return readNumber(key) > 0;
+function createRequestId() {
+  return `request_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function readBuildCredential() {
@@ -338,50 +523,37 @@ function readBuildCredential() {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function stageLabel(stage: SessionStage) {
+function stageLabel(stage: DictationStage, finalText: string) {
   switch (stage) {
     case "idle":
       return "Session off";
     case "ready":
-      return "Ready in background";
+      return "Ready";
     case "connecting":
-      return "Connecting to Voxtral…";
-    case "recording":
+      return "Connecting…";
+    case "listening":
       return "Listening…";
-    case "processing":
-      return "Finishing transcript…";
+    case "finalizing":
+      return "Finishing…";
+    case "result":
+      return finalText.trim() ? "Saved" : "No speech detected";
+    case "error":
+      return "Needs attention";
   }
 }
 
-function parseEvent(
-  raw: string,
-): { delta?: string; error?: string; final?: string; partial?: string } | null {
-  try {
-    const event = JSON.parse(raw) as Record<string, unknown>;
-    if (event.error) {
-      const providerError = event.error as Record<string, unknown>;
-      return {
-        error:
-          typeof event.error === "string"
-            ? event.error
-            : typeof providerError.message === "string"
-              ? providerError.message
-              : JSON.stringify(event.error),
-      };
-    }
-    const type = typeof event.type === "string" ? event.type : "";
-    const text = typeof event.text === "string" ? event.text : "";
-    if (type === "session.completed") {
-      return {
-        final: typeof event.transcript === "string" ? event.transcript : text,
-      };
-    }
-    if (type === "transcript.delta") return { delta: text };
-    if (type === "transcript.interim" || type === "transcript.committed") {
-      return { partial: text };
-    }
-    return null;
-  } catch {
-    return null;
+function recoveryLabel(error: DictationFailure | null) {
+  if (!error) return null;
+  switch (error.action) {
+    case "open-settings":
+      return "Open Settings";
+    case "retry-session":
+      return "Retry Session";
+    case "reconnect":
+      return "Retry";
+    case "retry-save":
+      return "Retry Save";
+    case "retry-delivery":
+      return "Retry Delivery";
   }
 }

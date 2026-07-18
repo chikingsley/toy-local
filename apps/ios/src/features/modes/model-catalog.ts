@@ -1,3 +1,5 @@
+import { configuredApiCredential } from "@/lib/api-credential";
+
 const CATALOG_URL = "https://timbervox.peacockery.studio/v1/models";
 
 // Hermes does not ship Intl.DisplayNames. Keep the presentation mapping local
@@ -111,8 +113,15 @@ type JsonRecord = Record<string, unknown>;
 
 const LOCAL_TRANSCRIPTION_MODELS: TranscriptionModel[] = [
   {
-    id: "local-parakeet-eou-320ms",
-    performance: { accuracy: "4.9% WER", speed: "Realtime" },
+    batch: {
+      model: "parakeet-tdt-ctc-110m-coreml",
+      provider: "fluid-audio",
+      supportedLanguages: ["en"],
+      supportsAutomaticLanguage: false,
+      supportsDiarization: false,
+    },
+    id: "local-parakeet-110m",
+    performance: { accuracy: "3.0% WER", speed: "Local · ~452 MB" },
     provider: "nvidia",
     realtime: {
       model: "parakeet-realtime-eou-120m-coreml/320ms",
@@ -121,19 +130,6 @@ const LOCAL_TRANSCRIPTION_MODELS: TranscriptionModel[] = [
       supportsAutomaticLanguage: false,
       supportsDiarization: false,
     },
-    runtime: "local",
-  },
-  {
-    batch: {
-      model: "parakeet-tdt-ctc-110m-coreml",
-      provider: "fluid-audio",
-      supportedLanguages: ["en"],
-      supportsAutomaticLanguage: false,
-      supportsDiarization: false,
-    },
-    id: "local-parakeet-tdt-ctc-110m",
-    performance: { accuracy: "3.0% WER", speed: "96.5× realtime" },
-    provider: "nvidia",
     runtime: "local",
   },
 ];
@@ -289,8 +285,18 @@ function parseModelCatalog(value: unknown): ModelCatalog {
   };
 }
 
-async function fetchModelCatalog(signal?: AbortSignal) {
-  const response = await fetch(CATALOG_URL, { signal });
+async function fetchModelCatalog(
+  signal?: AbortSignal,
+  credential = configuredApiCredential(),
+  fetchImplementation: typeof fetch = fetch,
+) {
+  if (!credential) {
+    throw new Error("This build does not have an active TimberVox session.");
+  }
+  const response = await fetchImplementation(CATALOG_URL, {
+    headers: { Authorization: `Bearer ${credential}` },
+    signal,
+  });
   if (!response.ok) {
     throw new Error(`The model catalog request failed (${response.status}).`);
   }
@@ -311,18 +317,17 @@ function selectedTranscriptionModel(catalog: ModelCatalog, modelId: string) {
   return catalog.transcriptionModels.find((model) => model.id === modelId);
 }
 
-function selectedRoute(model: TranscriptionModel | undefined) {
+function selectedRoute(
+  model: TranscriptionModel | undefined,
+  realtimeEnabled = Boolean(model?.realtime),
+) {
   if (!model) return undefined;
-  return model.realtime ?? model.batch;
+  if (realtimeEnabled && model.realtime) return model.realtime;
+  return model.batch ?? model.realtime;
 }
 
 function modelDisplayName(model: TranscriptionModel) {
-  if (model.id === "local-parakeet-eou-320ms") {
-    return "Parakeet EOU 120M (320 ms)";
-  }
-  if (model.id === "local-parakeet-tdt-ctc-110m") {
-    return "Parakeet TDT-CTC 110M";
-  }
+  if (model.id === "local-parakeet-110m") return "Parakeet Local";
   if (model.id.includes("voxtral")) return "Voxtral Mini";
   if (model.id.includes("nova-3")) return "Nova 3";
   if (model.id.includes("nova-2")) return "Nova 2";

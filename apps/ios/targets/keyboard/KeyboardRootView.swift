@@ -1,60 +1,95 @@
 import SwiftUI
 
+enum KeyboardMetrics {
+  static let suggestionHeight: CGFloat = 40
+  static let keySurfaceHeight: CGFloat = 148
+  static let bottomRowHeight: CGFloat = 44
+  static let sectionSpacing: CGFloat = 5
+  static let horizontalPadding: CGFloat = 5
+  static let verticalPadding: CGFloat = 4
+  static let totalHeight =
+    suggestionHeight + keySurfaceHeight + bottomRowHeight + sectionSpacing * 2
+    + verticalPadding * 2
+}
+
 struct KeyboardRootView: View {
   @ObservedObject var model: KeyboardModel
 
   var body: some View {
-    VStack(spacing: 7) {
-      predictionBar
-      SwipeKeySurface(model: model)
-        .frame(height: 142)
-      bottomRow
-    }
-    .padding(.horizontal, 5)
-    .padding(.top, 6)
-    .padding(.bottom, 4)
-    .background(Color(uiColor: .systemGray5))
-  }
-
-  private var predictionBar: some View {
-    HStack(spacing: 0) {
-      ForEach(Array(model.predictions.prefix(3).enumerated()), id: \.offset) { index, word in
-        Button(word) { model.acceptPrediction(word) }
-          .font(.system(size: 14, weight: index == 0 ? .semibold : .regular))
-          .lineLimit(1)
-          .frame(maxWidth: .infinity, minHeight: 31)
-        if index < 2 {
-          Divider().frame(height: 20)
+    VStack(spacing: KeyboardMetrics.sectionSpacing) {
+      KeyboardSuggestionBar(
+        suggestions: model.predictions,
+        partialTranscript: model.partialTranscript,
+        isEnabled: model.predictionsEnabled,
+        onSelect: model.acceptPrediction
+      )
+      Group {
+        if model.page == .letters {
+          SwipeKeySurface(model: model)
+        } else {
+          AlternateKeySurface(model: model)
         }
       }
+      .frame(height: KeyboardMetrics.keySurfaceHeight)
+      bottomRow
+        .frame(height: KeyboardMetrics.bottomRowHeight)
     }
-    .overlay(alignment: .bottom) {
-      if !model.partialTranscript.isEmpty {
-        Text(model.partialTranscript)
-          .font(.system(size: 12, weight: .medium))
-          .lineLimit(1)
-          .padding(.horizontal, 10)
-          .frame(maxWidth: .infinity, minHeight: 31)
-          .background(.thinMaterial)
-      }
-    }
+    .padding(.horizontal, KeyboardMetrics.horizontalPadding)
+    .padding(.vertical, KeyboardMetrics.verticalPadding)
+    .frame(maxWidth: .infinity)
+    .frame(height: KeyboardMetrics.totalHeight)
+    .background(Color.clear)
   }
 
   private var bottomRow: some View {
-    HStack(spacing: 6) {
+    HStack(spacing: 5) {
+      Button {
+        if model.page == .letters {
+          model.showNumbers()
+        } else {
+          model.showLetters()
+        }
+      } label: {
+        Text(model.page == .letters ? "123" : "ABC")
+          .font(.system(size: 13, weight: .medium))
+          .frame(width: 43, height: 44)
+      }
+      .buttonStyle(KeyboardSpecialKeyStyle())
+
       if model.needsGlobe {
         KeyboardModeSwitchButton(controller: model.controller)
-          .frame(width: 42, height: 44)
+          .frame(width: 40, height: 44)
       }
-      keyButton(systemName: model.shifted ? "shift.fill" : "shift", width: 42, action: model.toggleShift)
-      keyButton(systemName: "delete.left", width: 46, action: model.deleteBackward)
+
+      if let contextualKey {
+        Button(contextualKey) { model.insert(contextualKey) }
+          .font(.system(size: 17))
+          .frame(width: 38, height: 44)
+          .buttonStyle(KeyboardKeyStyle())
+      }
+
       Button(action: model.insertSpace) {
         Text("space")
           .font(.system(size: 14))
           .frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(KeyboardKeyStyle())
-      keyButton(systemName: "return", width: 48, action: model.insertReturn)
+
+      Button(action: model.insertReturn) {
+        Group {
+          if model.returnKeyLabel == "return" {
+            Image(systemName: "return")
+              .font(.system(size: 17, weight: .medium))
+          } else {
+            Text(model.returnKeyLabel)
+              .font(.system(size: 12, weight: .semibold))
+              .minimumScaleFactor(0.7)
+          }
+        }
+        .frame(width: 48, height: 44)
+      }
+      .buttonStyle(KeyboardSpecialKeyStyle())
+
       Button(action: model.toggleDictation) {
         Image(systemName: model.recordingRequested ? "stop.fill" : "mic.fill")
           .font(.system(size: 17, weight: .semibold))
@@ -70,16 +105,18 @@ struct KeyboardRootView: View {
           }
       }
       .accessibilityLabel(model.recordingRequested ? "Stop dictation" : "Start dictation")
+      .accessibilityIdentifier("timbervox-dictation")
     }
   }
 
-  private func keyButton(systemName: String, width: CGFloat, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-      Image(systemName: systemName)
-        .font(.system(size: 17, weight: .medium))
-        .frame(width: width, height: 44)
+  private var contextualKey: String? {
+    switch model.keyboardType {
+    case .emailAddress: "@"
+    case .URL: "/"
+    case .twitter: "#"
+    case .webSearch: "."
+    default: nil
     }
-    .buttonStyle(KeyboardKeyStyle())
   }
 }
 
@@ -90,7 +127,7 @@ private struct KeyboardModeSwitchButton: UIViewRepresentable {
     let button = UIButton(type: .system)
     button.setImage(UIImage(systemName: "globe"), for: .normal)
     button.tintColor = .label
-    button.backgroundColor = .systemBackground
+    button.backgroundColor = KeyboardPalette.specialUIColor
     button.layer.cornerRadius = 7
     button.layer.shadowColor = UIColor.black.cgColor
     button.layer.shadowOpacity = 0.18
@@ -109,12 +146,24 @@ private struct KeyboardModeSwitchButton: UIViewRepresentable {
   func updateUIView(_ button: UIButton, context: Context) {}
 }
 
-private struct KeyboardKeyStyle: ButtonStyle {
+struct KeyboardKeyStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .foregroundStyle(.primary)
-      .background(configuration.isPressed ? Color(uiColor: .systemGray3) : Color(uiColor: .systemBackground))
+      .background(configuration.isPressed ? KeyboardPalette.pressedKey : KeyboardPalette.key)
       .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
       .shadow(color: .black.opacity(0.18), radius: 0.5, y: 1)
+  }
+}
+
+struct KeyboardSpecialKeyStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .foregroundStyle(.primary)
+      .background(
+        configuration.isPressed ? KeyboardPalette.pressedSpecialKey : KeyboardPalette.specialKey
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+      .shadow(color: .black.opacity(0.12), radius: 0.5, y: 1)
   }
 }

@@ -33,7 +33,7 @@ This requires a development build; Expo Go cannot contain the keyboard extension
 
 Complete setup, or continue into the app-only recorder. The Home microphone records and transcribes directly. A background session may then stay active while the keyboard's microphone button starts and stops realtime dictation. Users never enter an API key.
 
-The current local experiment reads `TIMBERVOX_API_KEY` from the environment or the ignored repository file at `Config/keys/TimberVoxAPI.local.xcconfig`. This embeds the credential in Expo config and is not TestFlight-safe. Before upload, it must be replaced with a revocable app-to-Worker mobile session stored in iOS secure storage; the static credential may remain only as a local-development bridge.
+Local development, internal preview, and the dedicated `testflight-dev` profile may embed a disposable test Worker credential when `TIMBERVOX_EMBED_DEV_CREDENTIAL=1`. The key comes from `TIMBERVOX_API_KEY` or the ignored repository file at `Config/keys/TimberVoxAPI.local.xcconfig`; EAS builds require the key to exist as an EAS environment secret. The `production` profile explicitly omits this credential. Before public release, replace the disposable-key path with a revocable app-to-Worker mobile session stored in iOS secure storage.
 
 ## Personal and distribution modes
 

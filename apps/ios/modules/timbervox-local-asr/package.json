@@ -1,0 +1,12 @@
+{
+  "name": "timbervox-local-asr",
+  "version": "1.0.0",
+  "description": "TimberVox on-device FluidAudio transcription",
+  "main": "src/index.ts",
+  "private": true,
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

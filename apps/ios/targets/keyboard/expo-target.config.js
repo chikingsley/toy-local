@@ -5,7 +5,7 @@ module.exports = config => ({
   displayName: "TimberVox",
   bundleIdentifier: ".keyboard",
   deploymentTarget: "18.0",
-  frameworks: ["SwiftUI"],
+  frameworks: ["ActivityKit", "SwiftUI"],
   entitlements: {
     "com.apple.security.application-groups":
       config.ios.entitlements["com.apple.security.application-groups"],

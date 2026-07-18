@@ -1,173 +1,171 @@
+import { requestRecordingPermissionsAsync } from "expo-audio";
 import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  AppState,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useDictationSession } from "@/features/dictation/dictation-session";
+import { AppBottomActionBar } from "@/components/app/app-bottom-action-bar";
+import { AppSection } from "@/components/app/app-section";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Text } from "@/components/ui/text";
 import { useSetupState } from "@/features/setup/setup-state";
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const setup = useSetupState();
-  const session = useDictationSession();
-  const finish = () => {
-    setup.complete();
-    router.replace("/record");
+  const verificationInput = useRef<TextInput>(null);
+  const [awaitingKeyboardVerification, setAwaitingKeyboardVerification] =
+    useState(false);
+
+  const requestMicrophone = async () => {
+    await requestRecordingPermissionsAsync();
+    await setup.refresh();
   };
 
+  const openKeyboardSettings = async () => {
+    setAwaitingKeyboardVerification(true);
+    await setup.openKeyboardSettings();
+  };
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active" || !awaitingKeyboardVerification) return;
+      setAwaitingKeyboardVerification(false);
+      setTimeout(() => verificationInput.current?.focus(), 250);
+    });
+    return () => subscription.remove();
+  }, [awaitingKeyboardVerification]);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.welcomeMark}>
-          <SymbolView name="waveform" size={34} tintColor="#ffffff" />
-        </View>
-        <Text style={styles.title}>Set up TimberVox</Text>
-        <Text style={styles.subtitle}>
-          Enable the microphone and keyboard, then complete one real dictation.
-        </Text>
-
-        <SetupCard
-          action={session.sessionActive ? undefined : session.startSession}
-          actionLabel="Allow Microphone"
-          complete={session.sessionActive}
-          detail="TimberVox records only while a dictation session is active."
-          number="1"
-          title="Microphone"
-        />
-        <SetupCard
-          action={setup.openSettings}
-          actionLabel="Open iPhone Settings"
-          complete={setup.keyboardVerified}
-          detail="Open Keyboards, add TimberVox, and enable Full Access. Then activate it once in any text field."
-          number="2"
-          title="Keyboard and Full Access"
-        />
-
-        <Pressable
-          disabled={!session.sessionActive || !setup.keyboardVerified}
-          onPress={finish}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            (!session.sessionActive || !setup.keyboardVerified) &&
-              styles.disabledButton,
-            pressed && styles.pressed,
-          ]}
+    <SafeAreaView
+      className="bg-background flex-1"
+      edges={["top", "left", "right"]}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
+      >
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-4 px-[18px] pt-5 pb-4"
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.primaryButtonText}>Finish setup</Text>
-        </Pressable>
-        <Pressable onPress={finish} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>
-            Continue with the app recorder
-          </Text>
-        </Pressable>
-      </ScrollView>
+          <View className="gap-3">
+            <View className="bg-primary h-14 w-14 items-center justify-center rounded-2xl">
+              <SymbolView name="waveform" size={27} tintColor="#ffffff" />
+            </View>
+            <View className="gap-2">
+              <Text className="text-[32px] font-extrabold">Allow access</Text>
+              <Text className="text-muted-foreground text-base leading-6">
+                TimberVox needs the microphone to record and Full Access so its
+                keyboard can reach the transcription service.
+              </Text>
+            </View>
+          </View>
+
+          <AppSection>
+            <SetupRow
+              action={requestMicrophone}
+              actionLabel="Allow"
+              complete={setup.microphoneGranted}
+              label="Microphone"
+            />
+            <Separator />
+            <SetupRow
+              action={openKeyboardSettings}
+              actionLabel="Open Settings"
+              complete={setup.keyboardEnabled}
+              label="TimberVox keyboard"
+            />
+            <Separator />
+            <SetupRow
+              action={openKeyboardSettings}
+              actionLabel="Open Settings"
+              complete={setup.fullAccessVerified}
+              label="Full Access"
+            />
+            <Text className="text-muted-foreground pb-3 text-sm leading-5">
+              In Settings, open Apps → TimberVox → Keyboards. Turn on TimberVox
+              and Full Access, then return here and choose TimberVox below to
+              verify both.
+            </Text>
+          </AppSection>
+        </ScrollView>
+
+        <AppBottomActionBar className="gap-3">
+          <View className="gap-1.5">
+            <Text className="text-sm font-semibold">Verify keyboard</Text>
+            <Input
+              ref={verificationInput}
+              accessibilityLabel="Keyboard verification field"
+              autoCapitalize="sentences"
+              className="h-12 rounded-xl px-4"
+              placeholder="Tap, then choose TimberVox"
+              testID="keyboard-verification-field"
+            />
+          </View>
+          <Button
+            className="h-14 rounded-2xl"
+            disabled={!setup.microphoneGranted || !setup.keyboardVerified}
+            onPress={() => router.push("/shortcut")}
+          >
+            <Text className="text-base font-bold">Continue</Text>
+          </Button>
+        </AppBottomActionBar>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-function SetupCard({
+function SetupRow({
   action,
   actionLabel,
   complete,
-  detail,
-  number,
-  title,
+  label,
 }: {
-  action?: () => void | Promise<void>;
+  action: () => void | Promise<void>;
   actionLabel: string;
   complete: boolean;
-  detail: string;
-  number: string;
-  title: string;
+  label: string;
 }) {
   return (
-    <View style={styles.setupCard}>
-      <View style={styles.setupCardHeader}>
-        <View style={[styles.stepBadge, complete && styles.stepBadgeComplete]}>
-          <Text style={styles.stepBadgeText}>{complete ? "✓" : number}</Text>
+    <Pressable
+      accessibilityRole="button"
+      className="min-h-14 flex-row items-center justify-between gap-3"
+      onPress={action}
+    >
+      <View className="min-w-0 flex-1 flex-row items-center gap-3">
+        <View
+          className={
+            complete
+              ? "bg-success size-7 items-center justify-center rounded-full"
+              : "bg-muted size-7 items-center justify-center rounded-full"
+          }
+        >
+          <SymbolView
+            name={complete ? "checkmark" : "circle"}
+            size={13}
+            tintColor={complete ? "#ffffff" : "#7f8796"}
+          />
         </View>
-        <Text style={styles.setupTitle}>{title}</Text>
+        <Text className="font-semibold">{label}</Text>
       </View>
-      <Text style={styles.setupDetail}>{detail}</Text>
-      {action ? (
-        <Pressable onPress={action} style={styles.setupAction}>
-          <Text style={styles.setupActionText}>
-            {complete ? "Verified" : actionLabel}
-          </Text>
-          {!complete ? (
-            <SymbolView name="arrow.up.right" size={13} tintColor="#8ea8ff" />
-          ) : null}
-        </Pressable>
-      ) : null}
-    </View>
+      <Text
+        className={complete ? "text-success text-sm" : "text-primary text-sm"}
+      >
+        {complete ? "Verified" : actionLabel}
+      </Text>
+    </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#0b0d12", paddingHorizontal: 20 },
-  content: { paddingTop: 32, paddingBottom: 40, gap: 14 },
-  welcomeMark: {
-    width: 62,
-    height: 62,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#4f7cff",
-    marginBottom: 8,
-  },
-  title: { color: "#ffffff", fontSize: 32, fontWeight: "800" },
-  subtitle: {
-    color: "#8f96a4",
-    fontSize: 16,
-    lineHeight: 23,
-    marginBottom: 16,
-  },
-  setupCard: {
-    borderRadius: 20,
-    padding: 18,
-    backgroundColor: "#151820",
-    borderWidth: 1,
-    borderColor: "#242937",
-    gap: 12,
-  },
-  setupCardHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
-  stepBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#293043",
-  },
-  stepBadgeComplete: { backgroundColor: "#19865c" },
-  stepBadgeText: { color: "#ffffff", fontSize: 13, fontWeight: "800" },
-  setupTitle: { color: "#ffffff", fontSize: 18, fontWeight: "700" },
-  setupDetail: { color: "#9da4b2", fontSize: 14, lineHeight: 20 },
-  setupAction: {
-    minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: "#202638",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  setupActionText: { color: "#a9bbff", fontSize: 14, fontWeight: "700" },
-  primaryButton: {
-    minHeight: 52,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#4f7cff",
-    marginTop: 10,
-  },
-  disabledButton: { opacity: 0.35 },
-  primaryButtonText: { color: "#ffffff", fontSize: 16, fontWeight: "800" },
-  secondaryButton: {
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryButtonText: { color: "#858d9c", fontSize: 14, fontWeight: "600" },
-  pressed: { opacity: 0.72 },
-});

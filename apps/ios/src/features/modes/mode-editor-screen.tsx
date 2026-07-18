@@ -45,7 +45,7 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
         : undefined,
     [draft, modes.catalog],
   );
-  const route = selectedRoute(model);
+  const route = selectedRoute(model, draft?.realtimeEnabled);
   const processingModel = useMemo(
     () =>
       modes.catalog?.languageModels.find(
@@ -221,6 +221,18 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
               onPress={() => router.push("/modes/sheets/model-picker")}
               value={model ? modelDisplayName(model) : "Loading…"}
             />
+            {model?.batch && model.realtime ? (
+              <>
+                <Separator />
+                <SwitchRow
+                  checked={draft.realtimeEnabled}
+                  label="Realtime"
+                  onCheckedChange={(realtimeEnabled) =>
+                    editor.patch({ realtimeEnabled })
+                  }
+                />
+              </>
+            ) : null}
           </AppSection>
 
           {settingFields.length > 0 ? (

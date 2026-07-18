@@ -1,17 +1,17 @@
 import SwiftUI
 
-/// A grouped settings card — the ui-prototype's `SettingsCard`: a title,
-/// an optional one-line description, then rows separated by hairlines.
-/// Modes' `ModeSettingsPanel`/`ModeSettingsRow` predate this and should fold
-/// into it once that surface settles.
+/// A grouped settings card — the ui-prototype's `SettingsCard`: an optional
+/// title and one-line description followed by composed content.
 struct AppSettingsCard<Content: View>: View {
-  let title: String
+  let title: String?
   let description: String?
   private let content: Content
 
-  @Environment(\.theme) private var theme
-
-  init(_ title: String, description: String? = nil, @ViewBuilder content: () -> Content) {
+  init(
+    _ title: String? = nil,
+    description: String? = nil,
+    @ViewBuilder content: () -> Content
+  ) {
     self.title = title
     self.description = description
     self.content = content()
@@ -20,10 +20,14 @@ struct AppSettingsCard<Content: View>: View {
   var body: some View {
     SCCard(size: .sm) {
       VStack(alignment: .leading, spacing: AppSpacing.sm) {
-        SCCardHeader {
-          SCCardTitle(title)
-          if let description {
-            SCCardDescription(description)
+        if title != nil || description != nil {
+          SCCardHeader {
+            if let title {
+              SCCardTitle(title)
+            }
+            if let description {
+              SCCardDescription(description)
+            }
           }
         }
         SCCardContent {
@@ -36,35 +40,76 @@ struct AppSettingsCard<Content: View>: View {
   }
 }
 
+enum AppSettingsRowSize {
+  case compact
+  case regular
+
+  var labelFont: Font {
+    switch self {
+    case .compact: .system(size: 13, weight: .medium)
+    case .regular: .system(size: 14, weight: .semibold)
+    }
+  }
+
+  var detailFont: Font {
+    switch self {
+    case .compact: .system(size: 11)
+    case .regular: .caption
+    }
+  }
+
+  var minimumHeight: CGFloat {
+    switch self {
+    case .compact: 28
+    case .regular: 32
+    }
+  }
+}
+
 /// One settings row: label with an optional caption underneath, and whatever
 /// control lives at the trailing edge (switch, select, shortcut recorder,
 /// plain value text).
 struct AppSettingsRow<Trailing: View>: View {
   let label: String
+  let hint: String?
   let detail: String?
+  let size: AppSettingsRowSize
   private let trailing: Trailing
 
   @Environment(\.theme) private var theme
 
   init(
     _ label: String,
+    hint: String? = nil,
     detail: String? = nil,
+    size: AppSettingsRowSize = .compact,
     @ViewBuilder trailing: () -> Trailing
   ) {
     self.label = label
+    self.hint = hint
     self.detail = detail
+    self.size = size
     self.trailing = trailing()
   }
 
   var body: some View {
-    HStack(alignment: .center, spacing: AppSpacing.lg) {
+    HStack(alignment: detail == nil ? .center : .top, spacing: AppSpacing.lg) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(label)
-          .font(.system(size: 13, weight: .medium))
+        HStack(spacing: AppSpacing.xs) {
+          Text(label)
+            .font(size.labelFont)
+
+          if let hint {
+            Image(systemName: "questionmark.circle")
+              .font(.caption)
+              .foregroundStyle(theme.mutedForeground)
+              .help(hint)
+          }
+        }
 
         if let detail {
           Text(detail)
-            .font(.system(size: 11))
+            .font(size.detailFont)
             .foregroundStyle(theme.mutedForeground)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -73,7 +118,7 @@ struct AppSettingsRow<Trailing: View>: View {
       Spacer(minLength: AppSpacing.lg)
       trailing
     }
-    .frame(minHeight: 28)
+    .frame(minHeight: size.minimumHeight)
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 }

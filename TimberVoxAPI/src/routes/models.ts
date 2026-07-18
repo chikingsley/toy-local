@@ -4,7 +4,9 @@ import { createRoute, z } from "@hono/zod-openapi";
 import { publicModelCatalog } from "../ai/models/catalog";
 import type { PublicAsrRouteSpec, PublicModelSpec } from "../ai/models/types";
 import { superwhisperIsConfigured } from "../ai/superwhisper/config";
+import { authenticateCredential } from "../auth/service";
 import type { Env } from "../bindings";
+import { JsonErrorContent } from "./openapi-schemas";
 
 type App = OpenAPIHono<{ Bindings: Env }>;
 
@@ -94,6 +96,7 @@ const modelsRoute = createRoute({
       content: { "application/json": { schema: ModelsResponse } },
       description: "Supported TimberVox model catalog.",
     },
+    401: { content: JsonErrorContent, description: "Unauthorized." },
   },
   summary: "List supported models",
   tags: ["Models"],
@@ -192,7 +195,14 @@ const providerIsConfigured = (env: Env, provider: string): boolean => {
 };
 
 export const registerModelRoutes = (app: App): void => {
-  app.openapi(modelsRoute, (c) => {
+  app.openapi(modelsRoute, async (c) => {
+    const auth = await authenticateCredential(
+      c.env,
+      c.req.header("authorization")
+    );
+    if (!auth) {
+      return c.json({ error: "unauthorized" }, 401);
+    }
     const models = publicModelCatalog().filter((model) =>
       providerIsConfigured(c.env, model.executionProvider)
     );

@@ -76,6 +76,16 @@
         }
       ]
     },
+    "checkbox" : {
+      "files" : [
+        {
+          "installedHash" : "3db77132146d84ae30f4fcfd7da2b8fe52576cd7de35321a0b92d9b6e26007ba",
+          "source" : "Sources/Swiftcn/Components/Checkbox.swift",
+          "sourceHash" : "3db77132146d84ae30f4fcfd7da2b8fe52576cd7de35321a0b92d9b6e26007ba",
+          "target" : "Checkbox.swift"
+        }
+      ]
+    },
     "combobox" : {
       "files" : [
         {
@@ -270,6 +280,28 @@
         }
       ]
     },
+    "popover" : {
+      "files" : [
+        {
+          "installedHash" : "6b8cc23863639f217181529d557e5ba78ca91845e90464e09b02a12e3f854099",
+          "source" : "Sources/Swiftcn/Components/Popover.swift",
+          "sourceHash" : "6b8cc23863639f217181529d557e5ba78ca91845e90464e09b02a12e3f854099",
+          "target" : "Popover.swift"
+        },
+        {
+          "installedHash" : "97dc4a20ec417b29ba2ab6346528f4e5f1a7f851a066b5442fb795d81dbc5dd2",
+          "source" : "Sources/Swiftcn/Components/PopoverParts.swift",
+          "sourceHash" : "97dc4a20ec417b29ba2ab6346528f4e5f1a7f851a066b5442fb795d81dbc5dd2",
+          "target" : "PopoverParts.swift"
+        },
+        {
+          "installedHash" : "dfc61da78c433687b40cbb3427ea79ccca25c1584bcf52674ecab80e85402b6f",
+          "source" : "Sources/Swiftcn/Components/PopoverPresentation.swift",
+          "sourceHash" : "dfc61da78c433687b40cbb3427ea79ccca25c1584bcf52674ecab80e85402b6f",
+          "target" : "PopoverPresentation.swift"
+        }
+      ]
+    },
     "progress" : {
       "files" : [
         {
@@ -389,9 +421,9 @@
           "target" : "SidebarSections.swift"
         },
         {
-          "installedHash" : "ea97fd56ecdf9a836e7c4dc5785fa515da1af5328649e1c45af41bcf163f0c63",
+          "installedHash" : "b27b6ab6938cdadac0c92094f67d6d5d9333f198a8a0a589d9c0a806cd150e92",
           "source" : "Sources/Swiftcn/Components/SidebarState.swift",
-          "sourceHash" : "ea97fd56ecdf9a836e7c4dc5785fa515da1af5328649e1c45af41bcf163f0c63",
+          "sourceHash" : "b27b6ab6938cdadac0c92094f67d6d5d9333f198a8a0a589d9c0a806cd150e92",
           "target" : "SidebarState.swift"
         }
       ]

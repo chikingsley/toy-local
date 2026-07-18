@@ -30,9 +30,6 @@ struct ModeDetailForm: View {
       ScrollView {
         VStack(spacing: AppSpacing.md) {
           presetPanel(mode).zIndex(3)
-          if mode.textTransformPreset.allowsContextSelection {
-            contextPanel(mode)
-          }
           transcriptionPanel(mode).zIndex(2)
           activationPanel(mode).zIndex(1)
           advancedAudioPanel(mode)
@@ -50,32 +47,12 @@ struct ModeDetailForm: View {
     }
   }
 
-  private func contextPanel(_ mode: DictationMode) -> some View {
-    ModeContextCard(
-      includeApplication: bindings.contextOptionBinding(
-        \.includeApplicationContext,
-        mode: mode
-      ),
-      includeSelection: bindings.contextOptionBinding(
-        \.includeSelectionContext,
-        mode: mode
-      ),
-      includeClipboard: bindings.contextOptionBinding(
-        \.includeClipboardContext,
-        mode: mode
-      ),
-      includeScreen: bindings.contextOptionBinding(
-        \.includeScreenContext,
-        mode: mode
-      )
-    )
-  }
-
   private func presetPanel(_ mode: DictationMode) -> some View {
-    ModeSettingsPanel {
-      ModeSettingsRow(
+    AppSettingsCard {
+      AppSettingsRow(
         "Preset",
-        hint: "Choose how TimberVox should process the transcript after speech recognition."
+        hint: "Choose how TimberVox should process the transcript after speech recognition.",
+        size: .regular
       ) {
         ModePresetPicker(selection: bindings.optionalPreset(mode))
           .frame(width: ModeLayout.controlWidth)
@@ -83,25 +60,35 @@ struct ModeDetailForm: View {
       .zIndex(10)
 
       if mode.textTransformPreset == .custom {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-          Text("Custom instructions")
-            .font(.system(size: 14, weight: .semibold))
-          SCTextarea(
-            "Describe how TimberVox should transform the transcript.",
-            text: bindings.modeBinding(
-              \.customTextTransformInstructions,
-              fallback: mode.customTextTransformInstructions
-            ),
-            minHeight: 112
+        ModeCustomPromptSettings(
+          instructions: bindings.modeBinding(
+            \.customTextTransformInstructions,
+            fallback: mode.customTextTransformInstructions
+          ),
+          includeApplication: bindings.contextOptionBinding(
+            \.includeApplicationContext,
+            mode: mode
+          ),
+          includeSelection: bindings.contextOptionBinding(
+            \.includeSelectionContext,
+            mode: mode
+          ),
+          includeClipboard: bindings.contextOptionBinding(
+            \.includeClipboardContext,
+            mode: mode
+          ),
+          includeScreen: bindings.contextOptionBinding(
+            \.includeScreenContext,
+            mode: mode
           )
-        }
+        )
       }
     }
   }
 
   private func transcriptionPanel(_ mode: DictationMode) -> some View {
-    ModeSettingsPanel {
-      ModeSettingsRow("Language") {
+    AppSettingsCard {
+      AppSettingsRow("Language", size: .regular) {
         ModeLanguageComboboxPicker(
           selection: bindings.optionalLanguage(mode),
           options: languageOptions
@@ -109,9 +96,10 @@ struct ModeDetailForm: View {
         .frame(width: ModeLayout.controlWidth)
       }
 
-      ModeSettingsRow(
+      AppSettingsRow(
         "Voice Model",
-        hint: "The speech recognition model used by this mode."
+        hint: "The speech recognition model used by this mode.",
+        size: .regular
       ) {
         ModeVoiceModelPicker(
           selection: bindings.optionalAudioModelID(mode),
@@ -122,9 +110,10 @@ struct ModeDetailForm: View {
       .zIndex(10)
 
       if capabilities?.supportsDiarization ?? false {
-        ModeSettingsRow(
+        AppSettingsRow(
           "Speaker Identification",
-          hint: "Identify and separate speakers with the selected voice model."
+          hint: "Identify and separate speakers with the selected voice model.",
+          size: .regular
         ) {
           Toggle(isOn: bindings.modeBinding(\.diarizationEnabled, fallback: mode.diarizationEnabled)) {
             EmptyView()
@@ -137,7 +126,7 @@ struct ModeDetailForm: View {
       if capabilities?.supportsRealtime ?? false,
         capabilities?.supportsBatch ?? false
       {
-        ModeSettingsRow("Realtime") {
+        AppSettingsRow("Realtime", size: .regular) {
           Toggle(isOn: bindings.modeBinding(\.realtimeEnabled, fallback: mode.realtimeEnabled)) {
             EmptyView()
           }
@@ -147,7 +136,7 @@ struct ModeDetailForm: View {
       }
 
       if mode.usesTextTransform {
-        ModeSettingsRow("Language Model") {
+        AppSettingsRow("Language Model", size: .regular) {
           ModeLanguageModelPicker(
             selection: bindings.optionalLanguageModelID(mode),
             models: transcriptionCatalog.languageModels
@@ -160,10 +149,11 @@ struct ModeDetailForm: View {
   }
 
   private func activationPanel(_ mode: DictationMode) -> some View {
-    ModeSettingsPanel {
-      ModeSettingsRow(
+    AppSettingsCard {
+      AppSettingsRow(
         "Activate for apps",
-        hint: "Automatically use this mode when recording from selected applications."
+        hint: "Automatically use this mode when recording from selected applications.",
+        size: .regular
       ) {
         Button(activationButtonLabel(mode)) {
           showsActivationSheet = true
@@ -171,9 +161,10 @@ struct ModeDetailForm: View {
         .buttonStyle(.sc(.secondary, size: .sm))
       }
 
-      ModeSettingsRow(
+      AppSettingsRow(
         "Keyboard shortcut",
-        detail: "Start a recording using the active mode"
+        detail: "Start a recording using the active mode",
+        size: .regular
       ) {
         KeyboardShortcuts.Recorder(for: .toggleDictation)
       }
@@ -181,10 +172,11 @@ struct ModeDetailForm: View {
   }
 
   private func advancedAudioPanel(_ mode: DictationMode) -> some View {
-    ModeSettingsPanel {
-      ModeSettingsRow(
+    AppSettingsCard {
+      AppSettingsRow(
         "Playback when recording",
-        hint: "Controls other applications' audio while TimberVox records."
+        hint: "Controls other applications' audio while TimberVox records.",
+        size: .regular
       ) {
         SCSelect(
           selection: bindings.optionalPlaybackPolicy(mode),
@@ -195,9 +187,10 @@ struct ModeDetailForm: View {
         .frame(width: ModeLayout.controlWidth)
       }
 
-      ModeSettingsRow(
+      AppSettingsRow(
         "Record from system audio",
-        hint: "Capture application audio together with the microphone."
+        hint: "Capture application audio together with the microphone.",
+        size: .regular
       ) {
         Toggle(isOn: bindings.modeBinding(\.includesSystemAudio, fallback: mode.includesSystemAudio)) {
           EmptyView()

@@ -111,7 +111,157 @@ const migrations: Migration[] = [
       );
     },
   },
+  {
+    version: 3,
+    migrate: async (database) => {
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS dictations (
+          id TEXT PRIMARY KEY NOT NULL,
+          request_id TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL,
+          started_at TEXT NOT NULL,
+          ended_at TEXT NOT NULL,
+          duration_ms INTEGER NOT NULL CHECK (duration_ms >= 0),
+          word_count INTEGER NOT NULL CHECK (word_count >= 0),
+          mode_id TEXT NOT NULL,
+          mode_snapshot_json TEXT NOT NULL,
+          entry_point TEXT NOT NULL CHECK (
+            entry_point IN ('app', 'keyboard', 'shortcut')
+          ),
+          status TEXT NOT NULL CHECK (
+            status IN ('succeeded', 'no_speech', 'failed')
+          ),
+          asr_model_id TEXT NOT NULL,
+          language TEXT,
+          audio_uri TEXT,
+          audio_size_bytes INTEGER CHECK (
+            audio_size_bytes IS NULL OR audio_size_bytes >= 0
+          ),
+          audio_format TEXT,
+          error_code TEXT,
+          error_message TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS dictations_created_at
+          ON dictations (created_at DESC);
+        CREATE INDEX IF NOT EXISTS dictations_status
+          ON dictations (status);
+
+        CREATE TABLE IF NOT EXISTS artifacts (
+          id TEXT PRIMARY KEY NOT NULL,
+          dictation_id TEXT NOT NULL REFERENCES dictations(id) ON DELETE CASCADE,
+          kind TEXT NOT NULL CHECK (kind IN ('raw', 'segmented', 'processed')),
+          text TEXT NOT NULL,
+          timing_json TEXT,
+          model_id TEXT,
+          payload_json TEXT,
+          created_at TEXT NOT NULL,
+          UNIQUE (dictation_id, kind)
+        );
+
+        CREATE INDEX IF NOT EXISTS artifacts_dictation_id
+          ON artifacts (dictation_id);
+      `);
+    },
+  },
+  {
+    version: 4,
+    migrate: async (database) => {
+      const legacyRows = await database.getAllAsync<{
+        audio_uri: string | null;
+        created_at: string;
+        duration_ms: number;
+        id: number;
+        model: string;
+        source: "app" | "keyboard";
+        text: string;
+      }>("SELECT * FROM dictation_history ORDER BY id");
+
+      for (const row of legacyRows) {
+        const resultId = `legacy:${row.id}`;
+        const requestId = `legacy_request_${row.id}`;
+        const modelId = row.model || "legacy";
+        const createdAt = normalizeLegacyDate(row.created_at);
+        const endedAt = new Date(
+          new Date(createdAt).getTime() + Math.max(0, row.duration_ms),
+        ).toISOString();
+        const modeSnapshot = {
+          asrModelId: modelId,
+          description: "Imported from an earlier TimberVox build.",
+          iconKey: "person.wave.2.fill",
+          id: "mode_legacy_import",
+          identifySpeakers: false,
+          language: null,
+          name: "Imported",
+          presetKind: "voice",
+          processingInstructions: null,
+          processingModelId: null,
+          realtimeModel: modelId,
+        };
+        const status = row.text.trim() ? "succeeded" : "no_speech";
+
+        await database.runAsync(
+          `INSERT OR IGNORE INTO dictations (
+             id, request_id, created_at, started_at, ended_at, duration_ms,
+             word_count, mode_id, mode_snapshot_json, entry_point, status,
+             asr_model_id, language, audio_uri, audio_size_bytes, audio_format,
+             error_code, error_message
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          resultId,
+          requestId,
+          createdAt,
+          createdAt,
+          endedAt,
+          Math.max(0, row.duration_ms),
+          countWords(row.text),
+          modeSnapshot.id,
+          JSON.stringify(modeSnapshot),
+          row.source,
+          status,
+          modelId,
+          null,
+          row.audio_uri,
+          null,
+          row.audio_uri ? "audio/unknown" : null,
+          null,
+          null,
+        );
+        await database.runAsync(
+          `INSERT OR IGNORE INTO artifacts (
+             id, dictation_id, kind, text, timing_json, model_id,
+             payload_json, created_at
+           ) VALUES (?, ?, 'raw', ?, NULL, ?, ?, ?)`,
+          `${resultId}_raw`,
+          resultId,
+          row.text,
+          modelId,
+          JSON.stringify({
+            provenance: "legacy_dictation_history",
+            schema_version: 2,
+            text: row.text,
+          }),
+          endedAt,
+        );
+      }
+
+      if (legacyRows.length > 0) {
+        await database.runAsync("DELETE FROM dictation_history");
+      }
+    },
+  },
 ];
+
+function countWords(text: string) {
+  const clean = text.trim();
+  return clean ? clean.split(/\s+/).length : 0;
+}
+
+function normalizeLegacyDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? new Date(0).toISOString()
+    : date.toISOString();
+}
 
 async function migrateDatabase(database: SQLiteDatabase) {
   await database.execAsync("PRAGMA journal_mode = WAL");

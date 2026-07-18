@@ -70,6 +70,24 @@ struct HistoryDetailsSheet: View {
             }
             .buttonStyle(.sc())
           }
+
+          ShareLink(
+            item: TimberVoxHistoryDiagnosticTransfer(
+              file: TimberVoxHistoryDiagnosticFile(record: record)
+            ),
+            subject: Text("TimberVox History diagnostic"),
+            message: Text("Diagnostic data exported from TimberVox History."),
+            preview: SharePreview("TimberVox History diagnostic")
+          ) {
+            Label("Export diagnostic JSON", systemImage: "square.and.arrow.up")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.sc(.secondary))
+
+          Text("Includes the transcript, captured context, transcription artifact, and AI processing details.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.bottom, AppSpacing.md)
       }

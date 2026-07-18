@@ -22,6 +22,10 @@
     --destructive-foreground: 0 0% 100%;
     --success: 153 52% 43%;
     --success-foreground: 0 0% 100%;
+    --connecting: 35 91% 51%;
+    --connecting-foreground: 35 45% 10%;
+    --processing: 271 81% 56%;
+    --processing-foreground: 0 0% 100%;
     --border: 220 16% 86%;
     --input: 220 16% 88%;
     --ring: 214 88% 54%;
@@ -52,6 +56,10 @@
     --destructive-foreground: 0 0% 100%;
     --success: 151 55% 52%;
     --success-foreground: 222 28% 8%;
+    --connecting: 42 96% 58%;
+    --connecting-foreground: 38 60% 9%;
+    --processing: 270 90% 70%;
+    --processing-foreground: 270 35% 10%;
     --border: 220 14% 20%;
     --input: 220 14% 18%;
     --ring: 214 92% 62%;

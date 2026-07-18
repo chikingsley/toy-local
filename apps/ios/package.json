@@ -8,10 +8,13 @@
     "@rn-primitives/separator": "^1.5.2",
     "@rn-primitives/slot": "^1.5.2",
     "@rn-primitives/switch": "^1.5.2",
+    "@rn-primitives/tabs": "^1.5.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "~57.0.4",
     "expo-audio": "~57.0.0",
+    "expo-build-properties": "~57.0.3",
+    "expo-clipboard": "~57.0.1",
     "expo-constants": "~57.0.3",
     "expo-dev-client": "~57.0.5",
     "expo-file-system": "~57.0.0",
@@ -38,7 +41,8 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.10.0",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "timbervox-local-asr": "link:modules/timbervox-local-asr"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
@@ -46,6 +50,7 @@
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
+    "@unrs/resolver-binding-wasm32-wasi": "1.12.2",
     "babel-preset-expo": "^57.0.2",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~57.0.0",
@@ -57,12 +62,12 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "TIMBERVOX_EMBED_DEV_CREDENTIAL=1 expo start",
     "check": "tsc --noEmit && expo lint",
     "test": "jest --runInBand",
     "prebuild:ios": "expo prebuild -p ios --clean",
     "android": "expo run:android",
-    "ios": "expo run:ios",
+    "ios": "TIMBERVOX_EMBED_DEV_CREDENTIAL=1 expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },

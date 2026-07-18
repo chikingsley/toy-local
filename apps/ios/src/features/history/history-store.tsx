@@ -1,4 +1,3 @@
-import { Directory, File, Paths } from "expo-file-system";
 import { useSQLiteContext } from "expo-sqlite";
 import {
   createContext,
@@ -10,28 +9,26 @@ import {
   useState,
 } from "react";
 
-const recordingsDirectory = new Directory(Paths.document, "recordings");
+import {
+  deleteStoredDictation,
+  loadStoredDictations,
+} from "@/features/dictation/dictation-repository";
+import { applyAudioRetention } from "@/features/history/history-storage";
 
 export type DictationHistoryItem = {
   audioUri: string | null;
   createdAt: string;
   durationMs: number;
-  id: number;
+  entryPoint: "app" | "keyboard" | "shortcut";
+  id: string;
+  language: string | null;
   model: string;
-  source: "app" | "keyboard";
+  status: "failed" | "no_speech" | "succeeded";
   text: string;
-};
-
-type NewDictationHistoryItem = {
-  audioChunks: ArrayBuffer[];
-  durationMs: number;
-  model: string;
-  source: "app" | "keyboard";
-  text: string;
+  wordCount: number;
 };
 
 type HistoryValue = {
-  add: (item: NewDictationHistoryItem) => Promise<DictationHistoryItem>;
   items: DictationHistoryItem[];
   reload: () => Promise<void>;
   remove: (item: DictationHistoryItem) => Promise<void>;
@@ -49,54 +46,19 @@ export function HistoryProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let mounted = true;
-    void loadHistory(database).then((stored) => {
-      if (mounted) setItems(stored);
-    });
+    void applyAudioRetention(database)
+      .then(() => loadHistory(database))
+      .then((stored) => {
+        if (mounted) setItems(stored);
+      });
     return () => {
       mounted = false;
     };
   }, [database]);
 
-  const add = useCallback(
-    async (item: NewDictationHistoryItem) => {
-      const createdAt = new Date().toISOString();
-      const audioUri = writeRecording(item.audioChunks, createdAt);
-      const result = await database.runAsync(
-        `INSERT INTO dictation_history
-          (created_at, text, duration_ms, model, source, audio_uri)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        createdAt,
-        item.text,
-        item.durationMs,
-        item.model,
-        item.source,
-        audioUri,
-      );
-      const saved: DictationHistoryItem = {
-        audioUri,
-        createdAt,
-        durationMs: item.durationMs,
-        id: Number(result.lastInsertRowId),
-        model: item.model,
-        source: item.source,
-        text: item.text,
-      };
-      setItems((current) => [saved, ...current]);
-      return saved;
-    },
-    [database],
-  );
-
   const remove = useCallback(
     async (item: DictationHistoryItem) => {
-      await database.runAsync(
-        "DELETE FROM dictation_history WHERE id = ?",
-        item.id,
-      );
-      if (item.audioUri) {
-        const file = new File(item.audioUri);
-        if (file.exists) file.delete();
-      }
+      await deleteStoredDictation(database, item.id);
       setItems((current) =>
         current.filter((candidate) => candidate.id !== item.id),
       );
@@ -105,8 +67,8 @@ export function HistoryProvider({ children }: PropsWithChildren) {
   );
 
   const value = useMemo(
-    () => ({ add, items, reload, remove }),
-    [add, items, reload, remove],
+    () => ({ items, reload, remove }),
+    [items, reload, remove],
   );
   return (
     <HistoryContext.Provider value={value}>{children}</HistoryContext.Provider>
@@ -120,66 +82,17 @@ export function useHistory() {
 }
 
 async function loadHistory(database: ReturnType<typeof useSQLiteContext>) {
-  const rows = await database.getAllAsync<{
-    audio_uri: string | null;
-    created_at: string;
-    duration_ms: number;
-    id: number;
-    model: string;
-    source: "app" | "keyboard";
-    text: string;
-  }>("SELECT * FROM dictation_history ORDER BY created_at DESC");
-  return rows.map((row) => ({
-    audioUri: row.audio_uri,
-    createdAt: row.created_at,
-    durationMs: row.duration_ms,
+  const normalized = await loadStoredDictations(database);
+  return normalized.map((row): DictationHistoryItem => ({
+    audioUri: row.audioUri,
+    createdAt: row.createdAt,
+    durationMs: row.durationMs,
+    entryPoint: row.entryPoint,
     id: row.id,
-    model: row.model,
-    source: row.source,
+    language: row.language,
+    model: row.modelId,
+    status: row.status,
     text: row.text,
+    wordCount: row.wordCount,
   }));
-}
-
-function writeRecording(chunks: ArrayBuffer[], createdAt: string) {
-  if (chunks.length === 0) return null;
-  recordingsDirectory.create({ idempotent: true, intermediates: true });
-  const filename = `${createdAt.replaceAll(":", "-")}.wav`;
-  const file = new File(recordingsDirectory, filename);
-  file.create({ overwrite: true, intermediates: true });
-  file.write(makeWaveFile(chunks));
-  return file.uri;
-}
-
-function makeWaveFile(chunks: ArrayBuffer[]) {
-  const dataLength = chunks.reduce(
-    (total, chunk) => total + chunk.byteLength,
-    0,
-  );
-  const output = new Uint8Array(44 + dataLength);
-  const view = new DataView(output.buffer);
-  writeAscii(view, 0, "RIFF");
-  view.setUint32(4, 36 + dataLength, true);
-  writeAscii(view, 8, "WAVE");
-  writeAscii(view, 12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, 16_000, true);
-  view.setUint32(28, 32_000, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeAscii(view, 36, "data");
-  view.setUint32(40, dataLength, true);
-  let offset = 44;
-  for (const chunk of chunks) {
-    output.set(new Uint8Array(chunk), offset);
-    offset += chunk.byteLength;
-  }
-  return output;
-}
-
-function writeAscii(view: DataView, offset: number, value: string) {
-  for (let index = 0; index < value.length; index += 1) {
-    view.setUint8(offset + index, value.charCodeAt(index));
-  }
 }

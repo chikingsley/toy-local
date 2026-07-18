@@ -344,22 +344,20 @@ describe("mode contracts", () => {
     );
   });
 
-  it("adds the two bounded local evaluation models outside the Worker catalog", () => {
-    const eou = catalog.transcriptionModels.find(
-      (model) => model.id === "local-parakeet-eou-320ms",
-    );
-    const compact = catalog.transcriptionModels.find(
-      (model) => model.id === "local-parakeet-tdt-ctc-110m",
+  it("presents the paired local batch and realtime package as one model", () => {
+    const local = catalog.transcriptionModels.find(
+      (model) => model.id === "local-parakeet-110m",
     );
 
-    expect(eou && transcriptionModelDetail(eou)).toBe("Realtime · 4.9% WER");
-    expect(eou && modelDisplayName(eou)).toBe("Parakeet EOU 120M (320 ms)");
-    expect(selectedRoute(eou)?.model).toBe(
+    expect(local && transcriptionModelDetail(local)).toBe(
+      "Local · ~452 MB · 3.0% WER",
+    );
+    expect(local && modelDisplayName(local)).toBe("Parakeet Local");
+    expect(selectedRoute(local, true)?.model).toBe(
       "parakeet-realtime-eou-120m-coreml/320ms",
     );
-    expect(compact && transcriptionModelDetail(compact)).toBe(
-      "96.5× realtime · 3.0% WER",
+    expect(selectedRoute(local, false)?.model).toBe(
+      "parakeet-tdt-ctc-110m-coreml",
     );
-    expect(compact && modelDisplayName(compact)).toBe("Parakeet TDT-CTC 110M");
   });
 });

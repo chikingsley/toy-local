@@ -6,16 +6,38 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "environment": "development",
+      "env": {
+        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "1"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "1"
+      }
+    },
+    "testflight-dev": {
+      "distribution": "store",
+      "environment": "preview",
+      "autoIncrement": true,
+      "env": {
+        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "1"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "distribution": "store",
+      "environment": "production",
+      "autoIncrement": true,
+      "env": {
+        "TIMBERVOX_EMBED_DEV_CREDENTIAL": "0"
+      }
     }
   },
   "submit": {
+    "testflight-dev": {},
     "production": {}
   }
 }

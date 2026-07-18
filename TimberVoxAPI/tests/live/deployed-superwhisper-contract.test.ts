@@ -36,7 +36,9 @@ describe.sequential("deployed Superwhisper-backed API contract", () => {
       skip("live tests disabled or TIMBERVOX_API_KEY unavailable");
     }
 
-    const response = await fetch(`${baseUrl}/v1/models`);
+    const response = await fetch(`${baseUrl}/v1/models`, {
+      headers: authorizationHeaders(apiKey),
+    });
     expect(response.status).toBe(200);
     const payload = (await response.json()) as {
       models: Record<string, unknown>[];

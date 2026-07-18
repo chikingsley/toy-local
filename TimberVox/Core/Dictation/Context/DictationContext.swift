@@ -102,6 +102,7 @@ public struct ApplicationContext: Codable, Equatable, Sendable {
   public var description: String?
   public var textInputFormat: String?
   public var bundleIdentifier: String?
+  public var documentURL: String?
   public var windowTitle: String?
   public var visibleText: String?
   public var screenText: String?
@@ -112,6 +113,7 @@ public struct ApplicationContext: Codable, Equatable, Sendable {
     description: String? = nil,
     textInputFormat: String? = nil,
     bundleIdentifier: String? = nil,
+    documentURL: String? = nil,
     windowTitle: String? = nil,
     visibleText: String? = nil,
     screenText: String? = nil
@@ -121,6 +123,7 @@ public struct ApplicationContext: Codable, Equatable, Sendable {
     self.description = description
     self.textInputFormat = textInputFormat
     self.bundleIdentifier = bundleIdentifier
+    self.documentURL = documentURL
     self.windowTitle = windowTitle
     self.visibleText = visibleText
     self.screenText = screenText

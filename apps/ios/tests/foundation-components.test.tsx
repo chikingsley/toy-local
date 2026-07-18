@@ -24,15 +24,27 @@ describe("foundation components", () => {
   });
 
   it.each([
-    { label: "Start dictation", recording: false, text: "Dictate" },
-    { label: "Stop dictation", recording: true, text: "Stop" },
-  ])(
-    "renders the $text recording control state",
-    ({ label, recording, text }) => {
-      render(<RecordingControl onPress={jest.fn()} recording={recording} />);
-
-      expect(screen.getByLabelText(label)).toBeTruthy();
-      expect(screen.getByText(text)).toBeTruthy();
+    { label: "Start dictation", stage: "ready" as const, text: "Record" },
+    {
+      label: "Connecting dictation",
+      stage: "connecting" as const,
+      text: "Connecting…",
     },
-  );
+    { label: "Stop dictation", stage: "listening" as const, text: "Stop" },
+    {
+      label: "Processing dictation",
+      stage: "finalizing" as const,
+      text: "Processing…",
+    },
+    {
+      label: "Dictation copied",
+      stage: "result" as const,
+      text: "Copied",
+    },
+  ])("renders the $text recording control state", ({ label, stage, text }) => {
+    render(<RecordingControl onPress={jest.fn()} stage={stage} />);
+
+    expect(screen.getByLabelText(label)).toBeTruthy();
+    expect(screen.getByText(text)).toBeTruthy();
+  });
 });

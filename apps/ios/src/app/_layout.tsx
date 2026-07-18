@@ -6,6 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 
 import { DictationSessionProvider } from "@/features/dictation/dictation-session";
+import { LocalModelPackageProvider } from "@/features/dictation/local-model-package";
 import { HistoryProvider } from "@/features/history/history-store";
 import { ModeProvider } from "@/features/modes/mode-provider";
 import { AppDatabaseProvider } from "@/lib/db/database";
@@ -19,34 +20,39 @@ export default function RootLayout() {
     <AppDatabaseProvider>
       <ModeProvider>
         <HistoryProvider>
-          <DictationSessionProvider>
-            <ThemeProvider value={NAV_THEME[colorScheme ?? "light"]}>
-              <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-              <Stack
-                screenOptions={{
-                  headerBackButtonDisplayMode: "minimal",
-                  headerTitleStyle: { fontWeight: "700" },
-                }}
-              >
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="(onboarding)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="mode-picker"
-                  options={{
-                    presentation: "formSheet",
-                    sheetAllowedDetents: [0.5, 0.85],
-                    sheetGrabberVisible: true,
-                    title: "Choose Mode",
+          <LocalModelPackageProvider>
+            <DictationSessionProvider>
+              <ThemeProvider value={NAV_THEME[colorScheme ?? "light"]}>
+                <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+                <Stack
+                  screenOptions={{
+                    headerBackButtonDisplayMode: "minimal",
+                    headerTitleStyle: { fontWeight: "700" },
                   }}
-                />
-              </Stack>
-              <PortalHost />
-            </ThemeProvider>
-          </DictationSessionProvider>
+                >
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(onboarding)"
+                    options={{ animation: "none", headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ animation: "none", headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="mode-picker"
+                    options={{
+                      presentation: "formSheet",
+                      sheetAllowedDetents: [0.5, 0.85],
+                      sheetGrabberVisible: true,
+                      title: "Choose Mode",
+                    }}
+                  />
+                </Stack>
+                <PortalHost />
+              </ThemeProvider>
+            </DictationSessionProvider>
+          </LocalModelPackageProvider>
         </HistoryProvider>
       </ModeProvider>
     </AppDatabaseProvider>

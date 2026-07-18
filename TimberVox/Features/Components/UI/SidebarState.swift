@@ -106,7 +106,7 @@ public final class SCSidebarState {
 
 // MARK: - Environment
 
-private struct SCSidebarStateKey: @MainActor EnvironmentKey {
+private struct SCSidebarStateKey: @preconcurrency EnvironmentKey {
   @MainActor static let defaultValue = SCSidebarState()
 }
 

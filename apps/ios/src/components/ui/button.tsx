@@ -23,6 +23,8 @@ const buttonVariants = cva(
             web: "hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
           }),
         ),
+        success: "bg-success active:bg-success/90",
+        connecting: "bg-connecting active:bg-connecting/90",
         outline: cn(
           "border-border bg-background active:bg-accent dark:bg-input/30 dark:border-input dark:active:bg-input/50 border shadow-sm shadow-black/5",
           Platform.select({
@@ -38,6 +40,7 @@ const buttonVariants = cva(
           Platform.select({ web: "hover:bg-accent dark:hover:bg-accent/50" }),
         ),
         link: "",
+        processing: "bg-processing active:bg-processing/90",
       },
       size: {
         default: cn(
@@ -73,6 +76,8 @@ const buttonTextVariants = cva(
       variant: {
         default: "text-primary-foreground",
         destructive: "text-white",
+        success: "text-success-foreground",
+        connecting: "text-connecting-foreground",
         outline: cn(
           "group-active:text-accent-foreground",
           Platform.select({ web: "group-hover:text-accent-foreground" }),
@@ -85,6 +90,7 @@ const buttonTextVariants = cva(
             web: "underline-offset-4 hover:underline group-hover:underline",
           }),
         ),
+        processing: "text-processing-foreground",
       },
       size: {
         default: "",

@@ -17,6 +17,8 @@ struct ModesPane: View {
           modeID: selectedModeID,
           modeStore: modeStore,
           canDelete: modeStore.modes.count > 1,
+          onUse: { modeStore.activeModeID = selectedModeID },
+          onDuplicate: { duplicateMode(selectedModeID) },
           onDelete: { requestDelete(selectedModeID) },
           onBack: { self.selectedModeID = nil }
         )
@@ -115,6 +117,12 @@ struct ModesPane: View {
     showsDeleteConfirmation = true
   }
 
+  private func duplicateMode(_ id: String) {
+    let duplicateID = modeStore.duplicateMode(id: id)
+    normalizeMode(id: duplicateID)
+    selectedModeID = duplicateID
+  }
+
   private func confirmDelete() {
     guard let pendingDeleteID else { return }
     modeStore.deleteMode(id: pendingDeleteID)
@@ -175,6 +183,8 @@ private struct ModeDetailHeader: View {
   let modeID: String
   @Bindable var modeStore: ModeStore
   let canDelete: Bool
+  let onUse: () -> Void
+  let onDuplicate: () -> Void
   let onDelete: () -> Void
   let onBack: () -> Void
 
@@ -201,6 +211,21 @@ private struct ModeDetailHeader: View {
         .accessibilityLabel("Back")
 
         Spacer(minLength: AppSpacing.md)
+
+        if modeStore.activeModeID == modeID {
+          SCBadge {
+            Label("Active", systemImage: "checkmark.circle.fill")
+          }
+        } else {
+          Button("Use Mode", systemImage: "checkmark.circle", action: onUse)
+            .buttonStyle(.sc(.secondary, size: .sm))
+        }
+
+        Button(action: onDuplicate) {
+          Image(systemName: "plus.square.on.square")
+        }
+        .buttonStyle(.sc(.ghost, size: .iconSM))
+        .accessibilityLabel("Duplicate mode")
 
         if let mode {
           ShareLink(

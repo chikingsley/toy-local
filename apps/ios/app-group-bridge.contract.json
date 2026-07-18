@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 3,
+  "appGroup": "group.com.chiejimofor.timbervox",
+  "keys": {
+    "capabilities": [
+      "keyboardSeen",
+      "keyboardHasFullAccess",
+      "shortcutAvailable"
+    ],
+    "preferences": [
+      "activeModeId",
+      "keyboardHapticsEnabled",
+      "keyboardSoundEnabled",
+      "keyboardPredictionsEnabled",
+      "keyboardAutocorrectEnabled",
+      "keyboardSwipeEnabled",
+      "onboardingComplete",
+      "apiBaseURL",
+      "apiCredential",
+      "activeModeSnapshot"
+    ],
+    "session": [
+      "sessionActive",
+      "recordingRequested",
+      "requestRevision",
+      "requestedEntryPoint",
+      "activeRequestId",
+      "keyboardRequestId",
+      "partialTranscript"
+    ],
+    "result": [
+      "finalResultId",
+      "finalRequestId",
+      "finalTranscript",
+      "transcriptRevision",
+      "consumedResultId",
+      "nativeResultEnvelope",
+      "nativeResultRevision",
+      "nativeResultConsumedRevision"
+    ]
+  }
+}

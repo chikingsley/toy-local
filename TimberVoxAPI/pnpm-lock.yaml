@@ -33,8 +33,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       '@chikingsley/superwhisper-provider':
-        specifier: github:chikingsley/superwhisper-api#292a7892edfc47c7633747bc69eef6192f9502bf&path:/superwhisper-provider
-        version: git+https://github.com/chikingsley/superwhisper-api.git#292a7892edfc47c7633747bc69eef6192f9502bf&path:/superwhisper-provider
+        specifier: github:chikingsley/superwhisper-api#3807c9d5419ebf063993a5dfc44b6b6422f3110c&path:/superwhisper-provider
+        version: git+https://github.com/chikingsley/superwhisper-api.git#3807c9d5419ebf063993a5dfc44b6b6422f3110c&path:/superwhisper-provider
       '@hono/zod-openapi':
         specifier: ^1.5.1
         version: 1.5.1(hono@4.12.30)(zod@4.4.3)
@@ -226,8 +226,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@chikingsley/superwhisper-provider@git+https://github.com/chikingsley/superwhisper-api.git#292a7892edfc47c7633747bc69eef6192f9502bf&path:/superwhisper-provider':
-    resolution: {commit: 292a7892edfc47c7633747bc69eef6192f9502bf, path: /superwhisper-provider, repo: https://github.com/chikingsley/superwhisper-api.git, type: git}
+  '@chikingsley/superwhisper-provider@git+https://github.com/chikingsley/superwhisper-api.git#3807c9d5419ebf063993a5dfc44b6b6422f3110c&path:/superwhisper-provider':
+    resolution: {commit: 3807c9d5419ebf063993a5dfc44b6b6422f3110c, path: /superwhisper-provider, repo: https://github.com/chikingsley/superwhisper-api.git, type: git}
     version: 0.2.0
 
   '@clack/core@1.4.3':
@@ -2152,7 +2152,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.5.4':
     optional: true
 
-  '@chikingsley/superwhisper-provider@git+https://github.com/chikingsley/superwhisper-api.git#292a7892edfc47c7633747bc69eef6192f9502bf&path:/superwhisper-provider':
+  '@chikingsley/superwhisper-provider@git+https://github.com/chikingsley/superwhisper-api.git#3807c9d5419ebf063993a5dfc44b6b6422f3110c&path:/superwhisper-provider':
     dependencies:
       '@ai-sdk/provider': 4.0.3
       zod: 4.4.3

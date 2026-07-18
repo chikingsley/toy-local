@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { Fragment } from "react";
-import { ScrollView } from "react-native";
-
+import { AppFormSheetScroll } from "@/components/app/app-form-sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useModeEditor } from "@/features/modes/mode-editor-state";
@@ -15,10 +14,7 @@ export default function PresetPickerScreen() {
   const router = useRouter();
   const editor = useModeEditor();
   return (
-    <ScrollView
-      className="bg-background flex-1"
-      contentContainerClassName="px-[18px] pt-3 pb-10"
-    >
+    <AppFormSheetScroll contentClassName="gap-0">
       <Card className="gap-0 rounded-[20px] border-0 py-0 shadow-none">
         <CardContent className="px-0">
           {AVAILABLE_PRESETS.map((presetKind, index) => {
@@ -51,6 +47,6 @@ export default function PresetPickerScreen() {
           />
         </CardContent>
       </Card>
-    </ScrollView>
+    </AppFormSheetScroll>
   );
 }
