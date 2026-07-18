@@ -76,10 +76,6 @@ struct ModeDetailForm: View {
           includeClipboard: bindings.contextOptionBinding(
             \.includeClipboardContext,
             mode: mode
-          ),
-          includeScreen: bindings.contextOptionBinding(
-            \.includeScreenContext,
-            mode: mode
           )
         )
       }

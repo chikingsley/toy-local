@@ -47,12 +47,31 @@ final class TextTransformPromptBuilderTests: XCTestCase {
     XCTAssertTrue(prompt.contains("Document URL: https://example.com/context-fixture"))
     XCTAssertTrue(prompt.contains("Focused element content: FOCUSED_MARKER"))
     XCTAssertTrue(prompt.contains("Visible text: VISIBLE_MARKER"))
-    XCTAssertTrue(prompt.contains("SCREEN_START_MARKER"))
-    XCTAssertTrue(prompt.contains("SCREEN_END_MARKER"))
+    XCTAssertFalse(prompt.contains("SCREEN_START_MARKER"))
+    XCTAssertFalse(prompt.contains("SCREEN_END_MARKER"))
     XCTAssertTrue(prompt.contains("Selected Text Context: SELECTION_MARKER"))
     XCTAssertTrue(prompt.contains("CLIPBOARD_MARKER"))
     XCTAssertTrue(prompt.contains("Names and Usernames: TimberVox"))
     XCTAssertTrue(prompt.contains("USER MESSAGE:\nTRANSCRIPT_MARKER"))
+  }
+
+  func testLegacyScreenContextStillRendersWhenExplicitlyEnabled() {
+    let context = DictationContext(
+      application: ApplicationContext(
+        name: "Historical app",
+        screenText: "HISTORICAL_SCREEN_MARKER"
+      )
+    )
+    let options = DictationContextOptions(includeScreenContext: true)
+
+    let prompt = TextTransformPromptBuilder.userMessage(
+      preset: .custom("Return the transcript."),
+      transcript: "TRANSCRIPT_MARKER",
+      context: context,
+      contextOptions: options
+    )
+
+    XCTAssertTrue(prompt.contains("HISTORICAL_SCREEN_MARKER"))
   }
 
   func testCustomSourceFlagsDoNotLeakDisabledContextSections() throws {

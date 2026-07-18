@@ -1,6 +1,5 @@
 import AVFoundation
 import AppKit
-import CoreGraphics
 import Observation
 
 enum AppPermissionStatus: Equatable {
@@ -18,15 +17,12 @@ enum AppPermissionStatus: Equatable {
 protocol PermissionClient {
   var microphoneStatus: AppPermissionStatus { get }
   var accessibilityStatus: AppPermissionStatus { get }
-  var screenCaptureStatus: AppPermissionStatus { get }
   var systemAudioStatus: AppPermissionStatus { get }
 
   func requestMicrophone() async
   func openMicrophoneSettings()
   func requestAccessibility()
   func openAccessibilitySettings()
-  func requestScreenCapture()
-  func openScreenCaptureSettings()
   func openSystemAudioSettings()
 }
 
@@ -44,10 +40,6 @@ struct LivePermissionClient: PermissionClient {
 
   var accessibilityStatus: AppPermissionStatus {
     AccessibilityPermission.isTrusted ? .granted : .denied
-  }
-
-  var screenCaptureStatus: AppPermissionStatus {
-    CGPreflightScreenCaptureAccess() ? .granted : .notDetermined
   }
 
   var systemAudioStatus: AppPermissionStatus {
@@ -72,14 +64,6 @@ struct LivePermissionClient: PermissionClient {
     AccessibilityPermission.openSettings()
   }
 
-  func requestScreenCapture() {
-    _ = CGRequestScreenCaptureAccess()
-  }
-
-  func openScreenCaptureSettings() {
-    openPrivacySettings(pane: "Privacy_ScreenCapture")
-  }
-
   func openSystemAudioSettings() {
     openPrivacySettings(pane: "Privacy_AudioCapture")
   }
@@ -99,7 +83,6 @@ struct LivePermissionClient: PermissionClient {
 final class PermissionCoordinator {
   private(set) var microphoneStatus: AppPermissionStatus
   private(set) var accessibilityStatus: AppPermissionStatus
-  private(set) var screenCaptureStatus: AppPermissionStatus
   private(set) var systemAudioStatus: AppPermissionStatus
   private(set) var isRequestingMicrophone = false
 
@@ -113,14 +96,12 @@ final class PermissionCoordinator {
     self.client = client
     microphoneStatus = client.microphoneStatus
     accessibilityStatus = client.accessibilityStatus
-    screenCaptureStatus = client.screenCaptureStatus
     systemAudioStatus = client.systemAudioStatus
   }
 
   func refresh() {
     microphoneStatus = client.microphoneStatus
     accessibilityStatus = client.accessibilityStatus
-    screenCaptureStatus = client.screenCaptureStatus
     systemAudioStatus = client.systemAudioStatus
   }
 
@@ -149,18 +130,6 @@ final class PermissionCoordinator {
     client.requestAccessibility()
     if !client.accessibilityStatus.isGranted {
       client.openAccessibilitySettings()
-    }
-    refresh()
-  }
-
-  func grantScreenCapture() {
-    guard !client.screenCaptureStatus.isGranted else {
-      refresh()
-      return
-    }
-    client.requestScreenCapture()
-    if !client.screenCaptureStatus.isGranted {
-      client.openScreenCaptureSettings()
     }
     refresh()
   }

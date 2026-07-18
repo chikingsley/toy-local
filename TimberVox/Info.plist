@@ -30,8 +30,6 @@
 	<string>© 2026 Weigh Anchor</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>TimberVox records your microphone while you dictate.</string>
-	<key>NSScreenCaptureUsageDescription</key>
-	<string>TimberVox captures visible screen context when you enable screen-aware dictation.</string>
 	<key>RevenueCatAPIKey</key>
 	<string>$(REVENUECAT_API_KEY)</string>
 	<key>TimberVoxAPIKey</key>

@@ -22,7 +22,7 @@ public struct DictationContextOptions: Codable, Equatable, Sendable {
   }
 
   public var capturesAnyContext: Bool {
-    includeApplicationContext || includeSelectionContext || includeClipboardContext || includeScreenContext
+    includeApplicationContext || includeSelectionContext || includeClipboardContext
   }
 }
 
@@ -31,7 +31,7 @@ public extension DictationContextOptions {
     includeApplicationContext: true,
     includeSelectionContext: true,
     includeClipboardContext: true,
-    includeScreenContext: true
+    includeScreenContext: false
   )
 
   static let none = DictationContextOptions()

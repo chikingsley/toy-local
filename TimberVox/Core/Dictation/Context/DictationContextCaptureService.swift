@@ -28,10 +28,8 @@ final class DictationContextCaptureService {
       mode: mode,
       startedAt: startedAt,
       clipboardMonitor: clipboardMonitor,
-      attachmentDirectory: attachmentDirectory,
       limits: limits
     )
-    await session.prepare()
     session.startMonitoring()
     return session
   }
@@ -61,7 +59,6 @@ final class DictationContextCaptureService {
 final class DictationContextCaptureSession {
   private let mode: DictationMode
   private let clipboardMonitor: DictationClipboardMonitor
-  private let attachmentDirectory: URL?
   private var builder: DictationContextCaptureBuilder
   private var importedClipboardChangeCounts: Set<Int> = []
   private var task: Task<Void, Never>?
@@ -70,12 +67,10 @@ final class DictationContextCaptureSession {
     mode: DictationMode,
     startedAt: Date,
     clipboardMonitor: DictationClipboardMonitor,
-    attachmentDirectory: URL?,
     limits: DictationContextCaptureLimits
   ) {
     self.mode = mode
     self.clipboardMonitor = clipboardMonitor
-    self.attachmentDirectory = attachmentDirectory
     let context = SystemDictationContextProvider.capture(for: mode)
     builder = DictationContextCaptureBuilder(
       startedAt: startedAt,
@@ -92,10 +87,6 @@ final class DictationContextCaptureSession {
     importClipboardSnapshots(through: startedAt)
   }
 
-  func prepare() async {
-    await captureScreen(capturedAt: builder.startedAt)
-  }
-
   func startMonitoring() {
     task?.cancel()
     task = Task { @MainActor [weak self] in
@@ -108,7 +99,6 @@ final class DictationContextCaptureSession {
 
   func finish(endedAt: Date = .now) async -> DictationContextSnapshot {
     refresh(capturedAt: endedAt)
-    await captureScreen(capturedAt: endedAt)
     stopMonitoring()
     return builder.snapshot(endedAt: endedAt)
   }
@@ -168,16 +158,4 @@ final class DictationContextCaptureSession {
     }
   }
 
-  private func captureScreen(capturedAt: Date) async {
-    guard mode.effectiveTextTransformContextOptions.includeScreenContext else { return }
-    let result = await ScreenContextCapture.capture(
-      attachmentDirectory: attachmentDirectory,
-      capturedAt: capturedAt
-    )
-    builder.appendScreen(
-      text: result.text,
-      attachment: result.attachment,
-      capturedAt: capturedAt
-    )
-  }
 }

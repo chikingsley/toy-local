@@ -51,7 +51,7 @@ final class TextTransformProviderLiveAcceptanceTests: XCTestCase {
         includeApplicationContext: true,
         includeSelectionContext: true,
         includeClipboardContext: true,
-        includeScreenContext: true
+        includeScreenContext: false
       )
     )
   }

@@ -5,7 +5,6 @@ struct ModeCustomPromptSettings: View {
   @Binding var includeApplication: Bool
   @Binding var includeSelection: Bool
   @Binding var includeClipboard: Bool
-  @Binding var includeScreen: Bool
 
   @Environment(\.theme) private var theme
 
@@ -66,7 +65,6 @@ struct ModeCustomPromptSettings: View {
       contextCheckbox("Application", isChecked: $includeApplication)
       contextCheckbox("Copied text", isChecked: $includeClipboard)
       contextCheckbox("Selected text", isChecked: $includeSelection)
-      contextCheckbox("Screen text", isChecked: $includeScreen)
     }
   }
 
@@ -95,10 +93,6 @@ struct ModeCustomPromptSettings: View {
       contextHelpRow(
         "Selected text",
         "Includes text selected in the active application while recording."
-      )
-      contextHelpRow(
-        "Screen text",
-        "Includes visible text captured at the start and end of recording when Screen Recording permission is available."
       )
     }
     .font(.caption)

@@ -26,7 +26,7 @@ struct SettingsAccessGrid: View {
       }
 
       LazyVGrid(
-        columns: Array(repeating: GridItem(.flexible(), spacing: AppSpacing.sm), count: 4),
+        columns: Array(repeating: GridItem(.flexible(), spacing: AppSpacing.sm), count: 3),
         spacing: AppSpacing.sm
       ) {
         SettingsAccessTile(
@@ -49,15 +49,6 @@ struct SettingsAccessGrid: View {
         }
 
         SettingsAccessTile(
-          icon: "rectangle.dashed.badge.record",
-          label: "Screen capture",
-          isGranted: permissions.screenCaptureStatus.isGranted,
-          actionLabel: "Grant"
-        ) {
-          permissions.grantScreenCapture()
-        }
-
-        SettingsAccessTile(
           icon: "speaker.wave.2",
           label: "System audio",
           isGranted: permissions.systemAudioStatus.isGranted,
@@ -69,7 +60,7 @@ struct SettingsAccessGrid: View {
       }
 
       Text(
-        "Screen capture and system audio are optional and independent. System audio shows Confirmed after a successful capture because macOS does not provide a preflight status API for Core Audio taps."
+        "System audio is optional and independent. It shows Confirmed after a successful capture because macOS does not provide a preflight status API for Core Audio taps."
       )
       .font(.system(size: 11))
       .foregroundStyle(theme.mutedForeground)
@@ -80,7 +71,6 @@ struct SettingsAccessGrid: View {
   private var allGranted: Bool {
     permissions.microphoneStatus.isGranted
       && permissions.accessibilityStatus.isGranted
-      && permissions.screenCaptureStatus.isGranted
       && permissions.systemAudioStatus.isGranted
   }
 }
