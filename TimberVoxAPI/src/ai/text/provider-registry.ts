@@ -5,36 +5,43 @@ import { createGoogle } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createSuperwhisper } from "@chikingsley/superwhisper-provider";
 import { createProviderRegistry, type LanguageModel } from "ai";
 import { createZhipu } from "zhipu-ai-provider";
 
 import type { Env } from "../../bindings";
 import { resolveLanguageModelRoute } from "../models/language-models";
-import type { LanguageModelProviderId } from "../models/types";
+import type { LanguageModelExecutionProviderId } from "../models/types";
+import {
+  superwhisperCredentials,
+  superwhisperIsConfigured,
+} from "../superwhisper/config";
 
-const languageProviderApiKey = (
+const languageProviderIsConfigured = (
   env: Env,
-  provider: LanguageModelProviderId
-): string | undefined => {
+  provider: LanguageModelExecutionProviderId
+): boolean => {
   switch (provider) {
     case "anthropic":
-      return env.ANTHROPIC_API_KEY;
+      return Boolean(env.ANTHROPIC_API_KEY);
     case "cerebras":
-      return env.CEREBRAS_API_KEY;
+      return Boolean(env.CEREBRAS_API_KEY);
     case "deepseek":
-      return env.DEEPSEEK_API_KEY;
+      return Boolean(env.DEEPSEEK_API_KEY);
     case "google":
-      return env.GOOGLE_GENERATIVE_AI_API_KEY;
+      return Boolean(env.GOOGLE_GENERATIVE_AI_API_KEY);
     case "groq":
-      return env.GROQ_API_KEY;
+      return Boolean(env.GROQ_API_KEY);
     case "mistral":
-      return env.MISTRAL_API_KEY;
+      return Boolean(env.MISTRAL_API_KEY);
     case "openai":
-      return env.OPENAI_API_KEY;
+      return Boolean(env.OPENAI_API_KEY);
+    case "superwhisper":
+      return superwhisperIsConfigured(env);
     case "zai":
-      return env.ZAI_API_KEY;
+      return Boolean(env.ZAI_API_KEY);
     default:
-      return;
+      return false;
   }
 };
 
@@ -46,6 +53,9 @@ const createLanguageModelProviders = (env: Env) => ({
   groq: createGroq({ apiKey: env.GROQ_API_KEY }),
   mistral: createMistral({ apiKey: env.MISTRAL_API_KEY }),
   openai: createOpenAI({ apiKey: env.OPENAI_API_KEY }),
+  superwhisper: createSuperwhisper({
+    credentials: superwhisperCredentials(env),
+  }),
   zai: createZhipu({
     apiKey: env.ZAI_API_KEY,
     baseURL: "https://api.z.ai/api/paas/v4",
@@ -60,9 +70,9 @@ export const resolveLanguageModel = (
   modelId: string
 ): LanguageModel => {
   const route = resolveLanguageModelRoute(modelId);
-  if (!languageProviderApiKey(env, route.provider)) {
+  if (!languageProviderIsConfigured(env, route.executionProvider)) {
     throw new Error(
-      `missing API key for language model provider: ${route.provider}`
+      `missing credentials for language model execution provider: ${route.executionProvider}`
     );
   }
   return createAiRegistry(env).languageModel(route.providerModelId);

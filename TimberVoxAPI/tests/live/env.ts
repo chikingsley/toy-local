@@ -13,5 +13,9 @@ export const liveEnv = (): Env =>
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY ?? "",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    SUPERWHISPER_USER_AGENT: process.env.SUPERWHISPER_USER_AGENT,
+    SUPERWHISPER_X_ID: process.env.SUPERWHISPER_X_ID,
+    SUPERWHISPER_X_LICENSE: process.env.SUPERWHISPER_X_LICENSE,
+    SUPERWHISPER_X_SIGNATURE: process.env.SUPERWHISPER_X_SIGNATURE,
     ZAI_API_KEY: process.env.ZAI_API_KEY,
   }) as Env;

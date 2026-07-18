@@ -174,12 +174,12 @@ export const runText = async (
       kind: "llm",
       model: request.model,
       outputTokens: result.usage.outputTokens,
-      provider: route.provider,
+      provider: route.executionProvider,
       providerLatencyMs,
       route: "/v1/text",
       status: 200,
       totalTokens: result.usage.totalTokens,
-      upstreamModel: route.upstreamModel,
+      upstreamModel: route.executionModel,
       userId: actor.userId,
     });
   }
@@ -258,12 +258,12 @@ export const runTextStream = async (
         kind: "llm",
         model: request.model,
         outputTokens: step.usage.outputTokens,
-        provider: route.provider,
+        provider: route.executionProvider,
         providerLatencyMs,
         route: "/v1/text/stream",
         status: 502,
         totalTokens: step.usage.totalTokens,
-        upstreamModel: route.upstreamModel,
+        upstreamModel: route.executionModel,
         userId: actor.userId,
       });
       await emit(
@@ -287,12 +287,12 @@ export const runTextStream = async (
       kind: "llm",
       model: request.model,
       outputTokens: step.usage.outputTokens,
-      provider: route.provider,
+      provider: route.executionProvider,
       providerLatencyMs,
       route: "/v1/text/stream",
       status: 200,
       totalTokens: step.usage.totalTokens,
-      upstreamModel: route.upstreamModel,
+      upstreamModel: route.executionModel,
       userId: actor.userId,
     });
     await emit(
@@ -331,11 +331,11 @@ export const runTextStream = async (
       error: failure.message,
       kind: "llm",
       model: request.model,
-      provider: route.provider,
+      provider: route.executionProvider,
       providerLatencyMs,
       route: "/v1/text/stream",
       status: failure.statusCode ?? 502,
-      upstreamModel: route.upstreamModel,
+      upstreamModel: route.executionModel,
       userId: actor.userId,
     });
     await emit(

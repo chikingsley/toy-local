@@ -3,6 +3,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 
 import { publicModelCatalog } from "../ai/models/catalog";
 import type { PublicAsrRouteSpec, PublicModelSpec } from "../ai/models/types";
+import { superwhisperIsConfigured } from "../ai/superwhisper/config";
 import type { Env } from "../bindings";
 
 type App = OpenAPIHono<{ Bindings: Env }>;
@@ -181,6 +182,8 @@ const providerIsConfigured = (env: Env, provider: string): boolean => {
       return Boolean(env.MISTRAL_API_KEY);
     case "openai":
       return Boolean(env.OPENAI_API_KEY);
+    case "superwhisper":
+      return superwhisperIsConfigured(env);
     case "zai":
       return Boolean(env.ZAI_API_KEY);
     default:
@@ -191,7 +194,7 @@ const providerIsConfigured = (env: Env, provider: string): boolean => {
 export const registerModelRoutes = (app: App): void => {
   app.openapi(modelsRoute, (c) => {
     const models = publicModelCatalog().filter((model) =>
-      providerIsConfigured(c.env, model.provider)
+      providerIsConfigured(c.env, model.executionProvider)
     );
     return c.json(
       {

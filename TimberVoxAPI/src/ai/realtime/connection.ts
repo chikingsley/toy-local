@@ -15,7 +15,7 @@ import {
   sendMistralInputAudioFlush,
 } from "../mistral/realtime/client";
 import { parseMistralRealtimeEvent } from "../mistral/realtime/events";
-import type { RealtimeAsrProviderId } from "../models/types";
+import type { DirectRealtimeAsrExecutionProviderId } from "../models/types";
 import {
   normalizeDeepgramTranscriptEvent,
   normalizeMistralTranscriptEvent,
@@ -25,7 +25,7 @@ import {
 export interface RealtimeProviderConnectionConfig {
   deepgram: DeepgramRealtimeOptions;
   encoding: string | null;
-  provider: RealtimeAsrProviderId;
+  provider: DirectRealtimeAsrExecutionProviderId;
   sampleRate: number | null;
   targetStreamingDelayMs: number | null;
   upstreamModel: string;
@@ -42,7 +42,7 @@ export interface RealtimeProviderConnection {
   connect: () => Promise<WebSocket>;
   finish: (socket: WebSocket) => void;
   parseMessage: (data: string) => ParsedRealtimeProviderMessage;
-  provider: RealtimeAsrProviderId;
+  provider: DirectRealtimeAsrExecutionProviderId;
   sendAudio: (socket: WebSocket, audio: Uint8Array) => void;
 }
 

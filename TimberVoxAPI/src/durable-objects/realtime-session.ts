@@ -6,7 +6,10 @@ import {
 import { z } from "zod";
 
 import type { DeepgramRealtimeOptions } from "../ai/deepgram/realtime/client";
-import type { RealtimeAsrProviderId } from "../ai/models/types";
+import type {
+  RealtimeAsrExecutionProviderId,
+  RealtimeAsrProviderId,
+} from "../ai/models/types";
 import { createRealtimeTranscriptionModel } from "../ai/realtime/model";
 import {
   type RealtimeTranscriptEvent,
@@ -18,6 +21,7 @@ import {
   terminalSessionEvent,
   transcriptProtocolEvent,
 } from "../ai/realtime/protocol";
+import { createSuperwhisperProvider } from "../ai/superwhisper/config";
 import type { Env } from "../bindings";
 import {
   buildRealtimeArtifact,
@@ -44,6 +48,8 @@ interface RealtimeSessionConfig {
   credentialId: string;
   deepgram: DeepgramRealtimeOptions;
   encoding: string | null;
+  executionModel: string;
+  executionProvider: RealtimeAsrExecutionProviderId;
   language: string | null;
   model: string;
   provider: RealtimeAsrProviderId;
@@ -88,9 +94,11 @@ const RealtimeSessionConfigSchema = z
       })
       .optional(),
     encoding: z.string().nullable().optional(),
+    executionModel: z.string(),
+    executionProvider: z.enum(["deepgram", "mistral", "superwhisper"]),
     language: z.string().nullable().optional(),
     model: z.string(),
-    provider: z.enum(["deepgram", "mistral"]),
+    provider: z.enum(["deepgram", "elevenlabs", "mistral"]),
     sampleRate: z.number().int().positive().nullable().optional(),
     sessionId: z.string(),
     targetStreamingDelayMs: z.number().int().positive().nullable().optional(),
@@ -116,6 +124,8 @@ const configFromHeaders = (headers: Headers): RealtimeSessionConfig => {
       sampleRate: config.sampleRate ?? undefined,
     },
     encoding: config.encoding ?? null,
+    executionModel: config.executionModel,
+    executionProvider: config.executionProvider,
     language: config.language ?? null,
     model: config.model,
     provider: config.provider,
@@ -203,16 +213,21 @@ export class RealtimeSession {
     >();
     this.audioInputWriter = audioInput.writable.getWriter();
     this.streamAbortController = new AbortController();
-    const model = createRealtimeTranscriptionModel(this.env, {
-      deepgram: config.deepgram,
-      encoding: config.encoding,
-      language: config.language,
-      modelId: config.model,
-      provider: config.provider,
-      sampleRate: config.sampleRate,
-      targetStreamingDelayMs: config.targetStreamingDelayMs,
-      upstreamModel: config.upstreamModel,
-    });
+    const model =
+      config.executionProvider === "superwhisper"
+        ? createSuperwhisperProvider(this.env).transcriptionModel(
+            config.executionModel
+          )
+        : createRealtimeTranscriptionModel(this.env, {
+            deepgram: config.deepgram,
+            encoding: config.encoding,
+            language: config.language,
+            modelId: config.model,
+            provider: config.executionProvider,
+            sampleRate: config.sampleRate,
+            targetStreamingDelayMs: config.targetStreamingDelayMs,
+            upstreamModel: config.executionModel,
+          });
     this.streamResult = experimental_streamTranscribe({
       abortSignal: this.streamAbortController.signal,
       audio: audioInput.readable,
@@ -222,6 +237,19 @@ export class RealtimeSession {
         type: inputAudioType(config.encoding),
       },
       model,
+      providerOptions:
+        config.executionProvider === "superwhisper"
+          ? {
+              superwhisper: {
+                diarize: config.deepgram.diarize,
+                keyterms: [
+                  ...(config.deepgram.keyterm ?? []),
+                  ...(config.deepgram.keywords ?? []),
+                ],
+                language: config.language ?? undefined,
+              },
+            }
+          : undefined,
     });
     this.streamConsumptionPromise = this.consumeTranscriptionStream(
       server,

@@ -236,6 +236,8 @@ export const registerRealtimeRoutes = (app: App): void => {
           version: query.data.version,
         },
         encoding: query.data.encoding ?? query.data.audio_format,
+        executionModel: modelRoute.executionModel,
+        executionProvider: modelRoute.executionProvider,
         language,
         model: query.data.model,
         provider: modelRoute.provider,

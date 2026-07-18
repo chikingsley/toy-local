@@ -1,3 +1,9 @@
+import {
+  LANGUAGE_MODELS,
+  SUPERWHISPER_OBSERVED_CONTRACT,
+  VOICE_MODELS,
+} from "@chikingsley/superwhisper-provider";
+
 import type { Env } from "../../bindings";
 import type { AsrTransport, PublicModelKind } from "../models/types";
 import type {
@@ -286,7 +292,49 @@ const manualAdapter = (
   provider,
 });
 
+const superwhisperContractAdapter: ProviderInventoryAdapter = {
+  list: (context) => {
+    const languageModels: ProviderInventoryModel[] = LANGUAGE_MODELS.filter(
+      (model) => model.observedInventory && model.observedStatus === 200
+    ).map((model) => ({
+      kind: "language",
+      upstreamModel: model.key,
+    }));
+    const voiceModels: ProviderInventoryModel[] = VOICE_MODELS.flatMap(
+      (model) => {
+        const transports: AsrTransport[] = [];
+        if (model.observedBatch) {
+          transports.push("batch");
+        }
+        if (model.observedRealtime) {
+          transports.push("realtime");
+        }
+        return transports.length > 0
+          ? [
+              {
+                kind: "transcription" as const,
+                transports,
+                upstreamModel: model.key,
+              },
+            ]
+          : [];
+      }
+    );
+    return Promise.resolve(
+      source({
+        models: [...languageModels, ...voiceModels],
+        provider: "superwhisper",
+        reason: `Observed Superwhisper ${SUPERWHISPER_OBSERVED_CONTRACT.app.version} contract from ${SUPERWHISPER_OBSERVED_CONTRACT.generatedFrom} (${SUPERWHISPER_OBSERVED_CONTRACT.app.binarySha256})`,
+        sourceKind: "contract",
+        status: "ok",
+      })(context)
+    );
+  },
+  provider: "superwhisper",
+};
+
 export const providerInventoryAdapters: readonly ProviderInventoryAdapter[] = [
+  superwhisperContractAdapter,
   apiAdapter({
     apiKey: (env) => env.OPENAI_API_KEY,
     headers: bearerHeaders,

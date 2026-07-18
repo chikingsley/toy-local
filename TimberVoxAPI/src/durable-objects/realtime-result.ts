@@ -1,5 +1,8 @@
 import { recordUsageEvent } from "../accounting/usage";
-import type { RealtimeAsrProviderId } from "../ai/models/types";
+import type {
+  RealtimeAsrExecutionProviderId,
+  RealtimeAsrProviderId,
+} from "../ai/models/types";
 import type { RealtimeTranscriptEvent } from "../ai/realtime/normalize";
 import {
   realtimeTranscriptionArtifact,
@@ -10,6 +13,8 @@ import type { Env } from "../bindings";
 export interface RealtimeResultConfig {
   clientId: string;
   credentialId: string;
+  executionModel: string;
+  executionProvider: RealtimeAsrExecutionProviderId;
   language: string | null;
   model: string;
   provider: RealtimeAsrProviderId;
@@ -133,10 +138,10 @@ export const persistRealtimeResult = async (
     kind: "realtime_asr",
     metadata: { session_id: config.sessionId },
     model: config.model,
-    provider: config.provider,
+    provider: config.executionProvider,
     route: "/v1/realtime",
     status: input.status === "succeeded" ? 200 : 500,
-    upstreamModel: config.upstreamModel,
+    upstreamModel: config.executionModel,
     userId: config.userId,
   });
 

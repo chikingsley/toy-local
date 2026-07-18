@@ -1,6 +1,7 @@
 packages:
   - "."
 allowBuilds:
+  '@chikingsley/superwhisper-provider@git+https://github.com/chikingsley/superwhisper-api.git#292a7892edfc47c7633747bc69eef6192f9502bf&path:/superwhisper-provider': true
   esbuild: true
   sharp: true
   workerd: true

@@ -23,8 +23,8 @@ const catalogProviderRoutes = (
       {
         id: model.id,
         kind: model.kind,
-        provider: model.provider,
-        upstreamModel: model.upstreamModel,
+        provider: model.executionProvider,
+        upstreamModel: model.executionModel,
       },
     ];
   }
@@ -34,18 +34,18 @@ const catalogProviderRoutes = (
     routes.push({
       id: model.id,
       kind: model.kind,
-      provider: model.routes.batch.provider,
+      provider: model.routes.batch.executionProvider,
       transport: "batch",
-      upstreamModel: model.routes.batch.upstreamModel,
+      upstreamModel: model.routes.batch.executionModel,
     });
   }
   if (model.routes.realtime) {
     routes.push({
       id: model.id,
       kind: model.kind,
-      provider: model.routes.realtime.provider,
+      provider: model.routes.realtime.executionProvider,
       transport: "realtime",
-      upstreamModel: model.routes.realtime.upstreamModel,
+      upstreamModel: model.routes.realtime.executionModel,
     });
   }
 
@@ -55,8 +55,8 @@ const catalogProviderRoutes = (
         {
           id: model.id,
           kind: model.kind,
-          provider: model.provider,
-          upstreamModel: model.upstreamModel,
+          provider: model.executionProvider,
+          upstreamModel: model.executionModel,
         },
       ];
 };

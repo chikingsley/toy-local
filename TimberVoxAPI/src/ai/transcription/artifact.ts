@@ -1,6 +1,10 @@
 import { z } from "@hono/zod-openapi";
 
-import type { RealtimeTranscriptEvent } from "../realtime/normalize";
+import type { RealtimeAsrProviderId } from "../models/types";
+import {
+  finalRealtimeTranscript,
+  type RealtimeTranscriptEvent,
+} from "../realtime/normalize";
 import type { BatchTranscriptionResult } from "./types";
 
 const TranscriptSpeakerSchema = z.union([z.string(), z.number()]);
@@ -299,7 +303,7 @@ interface RealtimeArtifactInput {
   firstResultAt?: string | null;
   messageCount: number;
   model: string;
-  provider: string;
+  provider: RealtimeAsrProviderId;
   providerEvents: unknown[];
   providerMetadata: Record<string, unknown>;
   requestedLanguage?: string | null;
@@ -351,7 +355,7 @@ export const realtimeTranscriptionArtifact = (
   return TranscriptionArtifactSchema.parse({
     content: {
       audio_events: unavailableCollection("provider_omitted"),
-      segments: artifactCollection(segments, "provider"),
+      segments: artifactCollection(segments.map(timedText), "provider"),
       speaker_turns: artifactCollection(
         speakerTurns.map((turn) => ({ ...timedText(turn), scores: null })),
         "derived"
@@ -422,7 +426,7 @@ export const realtimeTranscriptionArtifact = (
       },
     },
     schema_version: 2,
-    text: finalRealtimeText(input.events),
+    text: finalRealtimeTranscript(input.provider, input.events),
     warnings: normalizedWarnings,
   });
 };
@@ -459,6 +463,8 @@ const timedText = (
   value:
     | BatchTranscriptionResult["segments"][number]
     | BatchTranscriptionResult["words"][number]
+    | RealtimeTranscriptEvent["segments"][number]
+    | RealtimeTranscriptEvent["words"][number]
 ): z.infer<typeof TimedTextSchema> => ({
   end_seconds: value.endSeconds,
   scores: scores(value.scores),
@@ -489,21 +495,6 @@ const audioSeconds = (
     return null;
   }
   return audioBytes / 2 / sampleRate;
-};
-
-const finalRealtimeText = (events: RealtimeTranscriptEvent[]): string => {
-  const complete = events.findLast((event) => event.delivery === "complete");
-  if (complete) {
-    return complete.text;
-  }
-  const committed = events
-    .filter((event) => event.delivery === "committed")
-    .map((event) => event.text.trim())
-    .filter(Boolean);
-  if (committed.length > 0) {
-    return committed.join(" ");
-  }
-  return events.at(-1)?.text ?? "";
 };
 
 const uniqueTimedText = <

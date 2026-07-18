@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseDeepgramRealtimeEvent } from "../../src/ai/deepgram/realtime/events";
 import { parseMistralRealtimeEvent } from "../../src/ai/mistral/realtime/events";
 import {
+  finalRealtimeTranscript,
   normalizeDeepgramTranscriptEvent,
   normalizeMistralTranscriptEvent,
   realtimeTranscriptEventFromStreamPart,
@@ -130,6 +131,129 @@ describe("provider-neutral realtime protocol", () => {
     expect(Object.keys(required(mistralEvent)).sort()).toEqual(
       requiredTranscriptKeys.sort()
     );
+  });
+
+  it("assembles Mistral deltas instead of replacing them with a trailing done packet", () => {
+    const events = [
+      normalizeMistralTranscriptEvent(
+        required(
+          parseMistralRealtimeEvent(
+            JSON.stringify({
+              text: "TimberVox realtime dictation test",
+              type: "transcription.text.delta",
+            })
+          )
+        )
+      ),
+      normalizeMistralTranscriptEvent(
+        required(
+          parseMistralRealtimeEvent(
+            JSON.stringify({
+              text: ".",
+              type: "transcription.text.delta",
+            })
+          )
+        )
+      ),
+      normalizeMistralTranscriptEvent(
+        required(
+          parseMistralRealtimeEvent(
+            JSON.stringify({
+              language: "en",
+              model: "voxtral-mini-transcribe-realtime-2602",
+              text: ".",
+              type: "transcription.done",
+            })
+          )
+        )
+      ),
+    ].map(required);
+
+    expect(finalRealtimeTranscript("mistral", events)).toBe(
+      "TimberVox realtime dictation test."
+    );
+
+    const artifact = realtimeTranscriptionArtifact({
+      audioBytes: 32_000,
+      completedAt: "2026-07-11T12:00:01.000Z",
+      events,
+      messageCount: 3,
+      model: "mistral-voxtral-realtime",
+      provider: "mistral",
+      providerEvents: [],
+      providerMetadata: {},
+      requestedLanguage: "en",
+      responses: [],
+      resultSegments: [],
+      runId: "rt_mistral_deltas",
+      sampleRate: 16_000,
+      startedAt: "2026-07-11T12:00:00.000Z",
+      upstreamModel: "voxtral-mini-transcribe-realtime-2602",
+      warnings: [],
+    });
+    expect(artifact.text).toBe("TimberVox realtime dictation test.");
+  });
+
+  it("normalizes Deepgram timed segments into the persisted artifact schema", () => {
+    const deepgram = required(
+      normalizeDeepgramTranscriptEvent(
+        required(
+          parseDeepgramRealtimeEvent(
+            JSON.stringify({
+              channel: {
+                alternatives: [
+                  {
+                    transcript: "TimberVox realtime dictation test.",
+                    words: [
+                      {
+                        confidence: 0.99,
+                        end: 0.5,
+                        start: 0,
+                        word: "TimberVox",
+                      },
+                    ],
+                  },
+                ],
+              },
+              duration: 1.25,
+              is_final: true,
+              speech_final: true,
+              start: 0,
+              type: "Results",
+            })
+          )
+        )
+      )
+    );
+    const artifact = realtimeTranscriptionArtifact({
+      audioBytes: 40_000,
+      completedAt: "2026-07-11T12:00:01.250Z",
+      events: [deepgram],
+      messageCount: 1,
+      model: "deepgram-nova-3",
+      provider: "deepgram",
+      providerEvents: [],
+      providerMetadata: {},
+      requestedLanguage: "en",
+      responses: [],
+      resultSegments: [],
+      runId: "rt_deepgram_segments",
+      sampleRate: 16_000,
+      startedAt: "2026-07-11T12:00:00.000Z",
+      upstreamModel: "nova-3",
+      warnings: [],
+    });
+
+    expect(artifact.text).toBe("TimberVox realtime dictation test.");
+    expect(artifact.content.segments.items).toEqual([
+      {
+        end_seconds: 1.25,
+        scores: null,
+        speaker: null,
+        start_seconds: 0,
+        text: "TimberVox realtime dictation test.",
+      },
+    ]);
   });
 
   it("uses one terminal result contract for either provider", () => {

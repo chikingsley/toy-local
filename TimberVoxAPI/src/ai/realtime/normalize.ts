@@ -293,18 +293,33 @@ export const finalRealtimeTranscript = (
   provider: RealtimeAsrProviderId,
   events: readonly RealtimeTranscriptEvent[]
 ): string => {
-  const finalEvents = events.filter((event) => event.isFinal && event.text);
   if (provider === "deepgram") {
-    return finalEvents
+    return events
+      .filter((event) => event.isFinal && event.text)
       .map((event) => event.text)
       .join(" ")
       .trim();
   }
+
+  const deltaText = events
+    .filter((event) => event.delivery === "delta")
+    .map((event) => event.text)
+    .join("")
+    .trim();
+  if (deltaText) {
+    return deltaText;
+  }
+
+  const committedText = events
+    .filter((event) => event.delivery === "committed")
+    .map((event) => event.text.trim())
+    .filter(Boolean)
+    .join(" ");
+  if (committedText) {
+    return committedText;
+  }
+
   return (
-    finalEvents.at(-1)?.text ??
-    events
-      .filter((event) => event.text)
-      .map((event) => event.text)
-      .join("")
-  ).trim();
+    events.findLast((event) => event.delivery === "complete")?.text.trim() ?? ""
+  );
 };

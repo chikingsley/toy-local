@@ -4,7 +4,7 @@ import { runText } from "../../src/ai/text/service";
 import { liveEnv, liveTestsEnabled } from "./env";
 
 interface TextCase {
-  envKey: string;
+  envKeys: string[];
   model: string;
 }
 
@@ -14,11 +14,20 @@ interface TextCase {
 const liveTestTimeoutMs = 10_500;
 
 const cases: TextCase[] = [
-  { envKey: "MISTRAL_API_KEY", model: "mistral-mistral-small-latest" },
-  { envKey: "OPENAI_API_KEY", model: "openai-gpt-5.5" },
+  { envKeys: ["MISTRAL_API_KEY"], model: "mistral-mistral-small-latest" },
+  { envKeys: ["OPENAI_API_KEY"], model: "openai-gpt-5.5" },
   {
-    envKey: "GOOGLE_GENERATIVE_AI_API_KEY",
+    envKeys: ["GOOGLE_GENERATIVE_AI_API_KEY"],
     model: "google-gemini-3.1-flash-lite",
+  },
+  {
+    envKeys: [
+      "SUPERWHISPER_X_ID",
+      "SUPERWHISPER_X_LICENSE",
+      "SUPERWHISPER_X_SIGNATURE",
+      "SUPERWHISPER_USER_AGENT",
+    ],
+    model: "anthropic-claude-sonnet-5",
   },
 ];
 
@@ -27,7 +36,12 @@ describe("live text providers", () => {
     it(
       `generates text with ${testCase.model}`,
       async ({ skip }) => {
-        if (!(liveTestsEnabled && process.env[testCase.envKey])) {
+        if (
+          !(
+            liveTestsEnabled &&
+            testCase.envKeys.every((key) => process.env[key])
+          )
+        ) {
           skip("live tests disabled or provider credential unavailable");
         }
         const result = await runText(liveEnv(), {

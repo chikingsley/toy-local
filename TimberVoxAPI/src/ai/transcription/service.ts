@@ -1,6 +1,9 @@
 import type { Env } from "../../bindings";
 import { resolveBatchAsrModel } from "../models/transcription-routes";
-import type { BatchAsrProviderId } from "../models/types";
+import type {
+  BatchAsrExecutionProviderId,
+  BatchAsrProviderId,
+} from "../models/types";
 import { resolveBatchTranscriptionProvider } from "./registry";
 import {
   BatchTranscriptionResultSchema,
@@ -8,6 +11,8 @@ import {
 } from "./types";
 
 export interface TranscribeRemoteMediaResult {
+  executionModel: string;
+  executionProvider: BatchAsrExecutionProviderId;
   model: string;
   provider: BatchAsrProviderId;
   result: ReturnType<typeof BatchTranscriptionResultSchema.parse>;
@@ -25,16 +30,21 @@ export const transcribeRemoteMedia = async (
   }
 ): Promise<TranscribeRemoteMediaResult> => {
   const route = resolveBatchAsrModel(modelId);
-  const provider = resolveBatchTranscriptionProvider(env, route.provider);
+  const provider = resolveBatchTranscriptionProvider(
+    env,
+    route.executionProvider
+  );
   const result = await provider.transcribe({
     diarize: input.diarize,
     language: input.language,
     media: input.media,
-    model: route.upstreamModel,
+    model: route.executionModel,
     providerOptions: input.providerOptions?.[route.provider],
   });
 
   return {
+    executionModel: route.executionModel,
+    executionProvider: route.executionProvider,
     model: modelId,
     provider: route.provider,
     result: BatchTranscriptionResultSchema.parse(result),

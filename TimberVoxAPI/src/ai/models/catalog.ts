@@ -65,6 +65,8 @@ export const publicModelCatalog = (): PublicModelSpec[] => {
 
   for (const [id, model] of Object.entries(LANGUAGE_MODEL_MAP)) {
     models.set(id, {
+      executionModel: model.executionModel,
+      executionProvider: model.executionProvider,
       id,
       intelligence: model.intelligence,
       kind: "language",
@@ -82,12 +84,16 @@ export const publicModelCatalog = (): PublicModelSpec[] => {
         batch: acceptedOptions,
       },
       accuracy: transcriptionAccuracy(id),
+      executionModel: model.executionModel,
+      executionProvider: model.executionProvider,
       id,
       kind: "transcription",
       provider: model.provider,
       routes: {
         batch: {
           acceptedOptions,
+          executionModel: model.executionModel,
+          executionProvider: model.executionProvider,
           model: id,
           provider: model.provider,
           supportedLanguages: copy(model.supportedLanguages),
@@ -108,6 +114,8 @@ export const publicModelCatalog = (): PublicModelSpec[] => {
     const { acceptedOptions } = model;
     const realtimeRoute: PublicAsrRouteSpec = {
       acceptedOptions,
+      executionModel: model.executionModel,
+      executionProvider: model.executionProvider,
       model: id,
       provider: model.provider,
       supportedLanguages: copy(model.supportedLanguages),
@@ -139,6 +147,8 @@ export const publicModelCatalog = (): PublicModelSpec[] => {
         realtime: acceptedOptions,
       },
       accuracy: transcriptionAccuracy(publicId),
+      executionModel: model.executionModel,
+      executionProvider: model.executionProvider,
       id: publicId,
       kind: "transcription",
       provider: model.provider,

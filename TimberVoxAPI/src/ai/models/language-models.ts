@@ -1,12 +1,15 @@
 import type {
   LanguageModelCallPolicy,
   LanguageModelEntry,
+  LanguageModelExecutionProviderId,
   LanguageModelIntelligence,
   LanguageModelProviderId,
 } from "./types";
 
 interface LanguageModelConfig {
   callPolicy: LanguageModelCallPolicy;
+  executionModel?: string;
+  executionProvider?: LanguageModelExecutionProviderId;
   intelligence?: LanguageModelIntelligence;
   model: string;
 }
@@ -27,17 +30,42 @@ const mapLanguageModels = <TProvider extends LanguageModelProviderId>(
   models: readonly LanguageModelConfig[]
 ): Record<string, LanguageModelEntry> =>
   Object.fromEntries(
-    models.map(({ callPolicy, intelligence, model }) => [
-      `${provider}-${model}`,
-      {
+    models.map(
+      ({
         callPolicy,
+        executionModel,
+        executionProvider,
         intelligence,
-        provider,
-        providerModelId: `${provider}:${model}`,
-        upstreamModel: model,
-      },
-    ])
+        model,
+      }) => {
+        const resolvedExecutionProvider =
+          executionProvider ?? directExecutionProvider(provider);
+        const resolvedExecutionModel = executionModel ?? model;
+        return [
+          `${provider}-${model}`,
+          {
+            callPolicy,
+            executionModel: resolvedExecutionModel,
+            executionProvider: resolvedExecutionProvider,
+            intelligence,
+            provider,
+            providerModelId:
+              `${resolvedExecutionProvider}:${resolvedExecutionModel}` as const,
+            upstreamModel: model,
+          },
+        ];
+      }
+    )
   );
+
+const directExecutionProvider = (
+  provider: LanguageModelProviderId
+): LanguageModelExecutionProviderId => {
+  if (provider === "grok") {
+    throw new Error("Grok routes require an explicit execution provider");
+  }
+  return provider;
+};
 
 const ANTHROPIC_LANGUAGE_MODELS = [
   {
@@ -45,8 +73,17 @@ const ANTHROPIC_LANGUAGE_MODELS = [
       providerOptions: { anthropic: { thinking: { type: "disabled" } } },
       reasoningProfile: "none",
     },
+    executionProvider: "superwhisper",
     intelligence: artificialAnalysis(41.7, "claude-sonnet-5-non-reasoning"),
     model: "claude-sonnet-5",
+  },
+  {
+    callPolicy: {
+      providerOptions: { anthropic: { thinking: { type: "disabled" } } },
+      reasoningProfile: "none",
+    },
+    executionProvider: "superwhisper",
+    model: "claude-sonnet-4-6",
   },
   {
     callPolicy: {
@@ -112,6 +149,24 @@ const GOOGLE_LANGUAGE_MODELS = [
     intelligence: artificialAnalysis(25, "gemini-3.1-flash-lite-minimal"),
     model: "gemini-3.1-flash-lite",
   },
+  {
+    callPolicy: { reasoningProfile: "none" },
+    executionProvider: "superwhisper",
+    model: "gemini-3-flash-preview",
+  },
+  {
+    callPolicy: { reasoningProfile: "none" },
+    executionProvider: "superwhisper",
+    model: "gemini-3.1-flash-lite-preview",
+  },
+] as const satisfies readonly LanguageModelConfig[];
+
+const GROK_LANGUAGE_MODELS = [
+  {
+    callPolicy: { reasoningProfile: "none" },
+    executionProvider: "superwhisper",
+    model: "grok-4-1-fast-non-reasoning",
+  },
 ] as const satisfies readonly LanguageModelConfig[];
 
 const GROQ_LANGUAGE_MODELS = [
@@ -171,6 +226,22 @@ const OPENAI_LANGUAGE_MODELS = [
       providerOptions: { openai: { reasoningEffort: "none" } },
       reasoningProfile: "none",
     },
+    executionProvider: "superwhisper",
+    model: "gpt-5.2",
+  },
+  {
+    callPolicy: {
+      providerOptions: { openai: { reasoningEffort: "none" } },
+      reasoningProfile: "none",
+    },
+    executionProvider: "superwhisper",
+    model: "gpt-5.3-chat-latest",
+  },
+  {
+    callPolicy: {
+      providerOptions: { openai: { reasoningEffort: "none" } },
+      reasoningProfile: "none",
+    },
     intelligence: artificialAnalysis(35.4, "gpt-5-5-non-reasoning"),
     model: "gpt-5.5",
   },
@@ -187,6 +258,7 @@ const OPENAI_LANGUAGE_MODELS = [
       providerOptions: { openai: { reasoningEffort: "none" } },
       reasoningProfile: "none",
     },
+    executionProvider: "superwhisper",
     intelligence: artificialAnalysis(16.6, "gpt-5-4-mini-non-reasoning"),
     model: "gpt-5.4-mini",
   },
@@ -195,6 +267,7 @@ const OPENAI_LANGUAGE_MODELS = [
       providerOptions: { openai: { reasoningEffort: "none" } },
       reasoningProfile: "none",
     },
+    executionProvider: "superwhisper",
     intelligence: artificialAnalysis(17.6, "gpt-5-4-nano-non-reasoning"),
     model: "gpt-5.4-nano",
   },
@@ -216,6 +289,7 @@ export const LANGUAGE_MODEL_MAP = {
   ...mapLanguageModels("cerebras", CEREBRAS_LANGUAGE_MODELS),
   ...mapLanguageModels("deepseek", DEEPSEEK_LANGUAGE_MODELS),
   ...mapLanguageModels("google", GOOGLE_LANGUAGE_MODELS),
+  ...mapLanguageModels("grok", GROK_LANGUAGE_MODELS),
   ...mapLanguageModels("groq", GROQ_LANGUAGE_MODELS),
   ...mapLanguageModels("mistral", MISTRAL_LANGUAGE_MODELS),
   ...mapLanguageModels("openai", OPENAI_LANGUAGE_MODELS),

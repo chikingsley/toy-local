@@ -6,41 +6,13 @@ import {
 } from "./asr-languages";
 import type {
   AcceptedAsrOptionName,
+  BatchAsrExecutionProviderId,
   BatchAsrModelEntry,
   BatchAsrProviderId,
+  RealtimeAsrExecutionProviderId,
   RealtimeAsrModelEntry,
   RealtimeAsrProviderId,
 } from "./types";
-
-const deepgramBatchOptions = [
-  "language",
-  "detectLanguage",
-  "smartFormat",
-  "punctuate",
-  "paragraphs",
-  "summarize",
-  "topics",
-  "intents",
-  "sentiment",
-  "detectEntities",
-  "redact",
-  "replace",
-  "search",
-  "keyterm",
-  "diarize",
-  "utterances",
-  "uttSplit",
-  "fillerWords",
-] as const;
-
-const elevenLabsBatchOptions = [
-  "languageCode",
-  "tagAudioEvents",
-  "numSpeakers",
-  "timestampsGranularity",
-  "diarize",
-  "fileFormat",
-] as const;
 
 const mistralBatchOptions = [
   "contextBias",
@@ -50,33 +22,35 @@ const mistralBatchOptions = [
   "timestampGranularities",
 ] as const;
 
-const deepgramRealtimeOptions = [
-  "channels",
-  "detect_entities",
+const superwhisperDeepgramBatchOptions = [
   "diarize",
-  "diarize_model",
-  "dictation",
+  "keyterm",
+  "language",
+] as const;
+
+const superwhisperScribeBatchOptions = [
+  "diarize",
+  "keyterms",
+  "languageCode",
+] as const;
+
+const superwhisperBatchOptions = ["keyterms", "language"] as const;
+
+const superwhisperDeepgramRealtimeOptions = [
+  "diarize",
   "encoding",
-  "endpointing",
-  "filler_words",
-  "interim_results",
   "keyterm",
   "keywords",
   "language",
-  "mip_opt_out",
-  "multichannel",
-  "numerals",
-  "profanity_filter",
-  "punctuate",
-  "redact",
-  "replace",
   "sample_rate",
-  "search",
-  "smart_format",
-  "tag",
-  "utterance_end_ms",
-  "vad_events",
-  "version",
+] as const;
+
+const superwhisperScribeRealtimeOptions = [
+  "encoding",
+  "keyterm",
+  "keywords",
+  "language",
+  "sample_rate",
 ] as const;
 
 const mistralRealtimeOptions = [
@@ -90,15 +64,20 @@ const mapBatchRoutes = <
   const TModels extends readonly string[],
 >(
   provider: TProvider,
+  executionProvider: BatchAsrExecutionProviderId,
   models: TModels,
   supportedLanguagesByModel: Record<TModels[number], readonly string[]>,
-  acceptedOptions: readonly AcceptedAsrOptionName[]
+  acceptedOptions: readonly AcceptedAsrOptionName[],
+  executionModelsByModel: Partial<Record<TModels[number], string>> = {}
 ): Record<string, BatchAsrModelEntry> =>
   Object.fromEntries(
     models.map((model) => [
       `${provider}-${model}`,
       {
         acceptedOptions,
+        executionModel:
+          executionModelsByModel[model as TModels[number]] ?? model,
+        executionProvider,
         provider,
         supportedLanguages: supportedLanguagesByModel[model as TModels[number]],
         supportsAutomaticLanguage: true,
@@ -112,15 +91,20 @@ const mapRealtimeRoutes = <
   const TModels extends readonly string[],
 >(
   provider: TProvider,
+  executionProvider: RealtimeAsrExecutionProviderId,
   models: TModels,
   supportedLanguagesByModel: Record<TModels[number], readonly string[]>,
-  acceptedOptions: readonly AcceptedAsrOptionName[]
+  acceptedOptions: readonly AcceptedAsrOptionName[],
+  executionModelsByModel: Partial<Record<TModels[number], string>> = {}
 ): Record<string, RealtimeAsrModelEntry> =>
   Object.fromEntries(
     models.map((model) => [
       `${provider}-${model}`,
       {
         acceptedOptions,
+        executionModel:
+          executionModelsByModel[model as TModels[number]] ?? model,
+        executionProvider,
         provider,
         supportedLanguages: supportedLanguagesByModel[model as TModels[number]],
         supportsAutomaticLanguage: true,
@@ -132,38 +116,75 @@ const mapRealtimeRoutes = <
 export const BATCH_ASR_MODEL_MAP = {
   ...mapBatchRoutes(
     "deepgram",
-    ["nova-3", "nova-2"],
+    "superwhisper",
+    ["nova-3", "nova-2", "nova-2-medical"],
     {
       "nova-2": deepgramNova2Languages,
+      "nova-2-medical": ["en"],
       "nova-3": deepgramNova3Languages,
     },
-    deepgramBatchOptions
+    superwhisperDeepgramBatchOptions,
+    {
+      "nova-2": "sw-deepgram-nova-2",
+      "nova-2-medical": "sw-deepgram-nova-2-medical",
+      "nova-3": "sw-deepgram-nova-3",
+    }
   ),
   ...mapBatchRoutes(
     "elevenlabs",
+    "superwhisper",
     ["scribe_v2"],
     { scribe_v2: elevenLabsScribeV2Languages },
-    elevenLabsBatchOptions
+    superwhisperScribeBatchOptions,
+    { scribe_v2: "sw-elevenlabs-scribe" }
   ),
   ...mapBatchRoutes(
+    "mistral",
     "mistral",
     ["voxtral-mini-latest"],
     { "voxtral-mini-latest": mistralVoxtralLanguages },
     mistralBatchOptions
+  ),
+  ...mapBatchRoutes(
+    "superwhisper",
+    "superwhisper",
+    ["ultra-cloud-v1-east", "sv-1"],
+    { "sv-1": [], "ultra-cloud-v1-east": [] },
+    superwhisperBatchOptions,
+    {
+      "sv-1": "sv-1",
+      "ultra-cloud-v1-east": "sw-ultra-cloud-v1-east",
+    }
   ),
 } as const satisfies Record<string, BatchAsrModelEntry>;
 
 export const REALTIME_ASR_MODEL_MAP = {
   ...mapRealtimeRoutes(
     "deepgram",
-    ["nova-3", "nova-2"],
+    "superwhisper",
+    ["nova-3", "nova-2", "nova-2-medical"],
     {
       "nova-2": deepgramNova2Languages,
+      "nova-2-medical": ["en"],
       "nova-3": deepgramNova3Languages,
     },
-    deepgramRealtimeOptions
+    superwhisperDeepgramRealtimeOptions,
+    {
+      "nova-2": "sw-deepgram-nova-2",
+      "nova-2-medical": "sw-deepgram-nova-2-medical",
+      "nova-3": "sw-deepgram-nova-3",
+    }
   ),
   ...mapRealtimeRoutes(
+    "elevenlabs",
+    "superwhisper",
+    ["scribe_v2"],
+    { scribe_v2: elevenLabsScribeV2Languages },
+    superwhisperScribeRealtimeOptions,
+    { scribe_v2: "sw-elevenlabs-scribe" }
+  ),
+  ...mapRealtimeRoutes(
+    "mistral",
     "mistral",
     ["voxtral-mini-transcribe-realtime-2602"],
     {

@@ -18,6 +18,10 @@ export interface Env {
   R2_BUCKET_NAME?: string;
   R2_SECRET_ACCESS_KEY?: string;
   REALTIME_SESSIONS: DurableObjectNamespace;
+  SUPERWHISPER_USER_AGENT?: string;
+  SUPERWHISPER_X_ID?: string;
+  SUPERWHISPER_X_LICENSE?: string;
+  SUPERWHISPER_X_SIGNATURE?: string;
   TIMBERVOX_ADMIN_TOKEN?: string;
   TIMBERVOX_API_KEYS?: string;
   TIMBERVOX_USAGE_DATASET?: string;

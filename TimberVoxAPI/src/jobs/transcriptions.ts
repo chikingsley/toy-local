@@ -122,12 +122,12 @@ export const runTranscriptionJob = async (
       kind: "asr",
       model: transcription.model,
       outputTokens: transcription.result.usage.outputTokens ?? null,
-      provider: transcription.provider,
+      provider: transcription.executionProvider,
       providerLatencyMs: Math.round(providerLatencyMs),
       route: "/v1/transcriptions",
       status: 200,
       totalTokens: transcription.result.usage.totalTokens ?? null,
-      upstreamModel: transcription.upstreamModel,
+      upstreamModel: transcription.executionModel,
       userId: job.owner_user_id,
     });
 

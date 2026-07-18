@@ -4,9 +4,16 @@ import { transcribeRemoteMedia } from "../../src/ai/transcription/service";
 import { liveEnv, liveTestsEnabled } from "./env";
 
 interface AsrCase {
-  envKey: string;
+  envKeys: string[];
   model: string;
 }
+
+const superwhisperEnvKeys = [
+  "SUPERWHISPER_X_ID",
+  "SUPERWHISPER_X_LICENSE",
+  "SUPERWHISPER_X_SIGNATURE",
+  "SUPERWHISPER_USER_AGENT",
+];
 
 const mediaUrl = new URL(
   process.env.TIMBERVOX_LIVE_ASR_MEDIA_URL ??
@@ -21,15 +28,17 @@ const media = {
 };
 
 const cases: AsrCase[] = [
-  { envKey: "MISTRAL_API_KEY", model: "mistral-voxtral-mini-latest" },
-  { envKey: "DEEPGRAM_API_KEY", model: "deepgram-nova-3" },
-  { envKey: "ELEVENLABS_API_KEY", model: "elevenlabs-scribe_v2" },
+  { envKeys: ["MISTRAL_API_KEY"], model: "mistral-voxtral-mini-latest" },
+  { envKeys: superwhisperEnvKeys, model: "deepgram-nova-3" },
+  { envKeys: superwhisperEnvKeys, model: "elevenlabs-scribe_v2" },
 ];
 
 describe("live remote-media ASR providers", () => {
   for (const testCase of cases) {
     it(`transcribes a URL with ${testCase.model}`, async ({ skip }) => {
-      if (!(liveTestsEnabled && process.env[testCase.envKey])) {
+      if (
+        !(liveTestsEnabled && testCase.envKeys.every((key) => process.env[key]))
+      ) {
         skip("live tests disabled or provider credential unavailable");
       }
       const result = await transcribeRemoteMedia(liveEnv(), testCase.model, {
@@ -46,8 +55,12 @@ describe("live remote-media ASR providers", () => {
   it("preserves Deepgram URL diarization and speaker timing", async ({
     skip,
   }) => {
-    if (!(liveTestsEnabled && process.env.DEEPGRAM_API_KEY)) {
-      skip("live tests disabled or Deepgram credential unavailable");
+    if (
+      !(
+        liveTestsEnabled && superwhisperEnvKeys.every((key) => process.env[key])
+      )
+    ) {
+      skip("live tests disabled or Superwhisper credential unavailable");
     }
     const result = await transcribeRemoteMedia(liveEnv(), "deepgram-nova-3", {
       diarize: true,

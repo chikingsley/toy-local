@@ -13,7 +13,7 @@ export type ProviderInventoryProviderId =
   | BatchAsrProviderId
   | RealtimeAsrProviderId;
 
-type ProviderInventorySourceKind = "api" | "manual";
+type ProviderInventorySourceKind = "api" | "contract" | "manual";
 type ProviderInventoryStatus = "ok" | "skipped" | "failed";
 
 export interface ProviderInventoryModel {

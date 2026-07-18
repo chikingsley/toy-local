@@ -12,11 +12,12 @@ const activeSockets = new Set<WebSocket>();
 
 interface RealtimeCase {
   model: string;
-  provider: "deepgram" | "mistral";
+  provider: "deepgram" | "elevenlabs" | "mistral";
 }
 
 const cases: RealtimeCase[] = [
   { model: "deepgram-nova-3", provider: "deepgram" },
+  { model: "elevenlabs-scribe_v2", provider: "elevenlabs" },
   {
     model: "mistral-voxtral-mini-transcribe-realtime-2602",
     provider: "mistral",

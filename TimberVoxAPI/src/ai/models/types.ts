@@ -5,14 +5,39 @@ export type LanguageModelProviderId =
   | "cerebras"
   | "deepseek"
   | "google"
+  | "grok"
   | "groq"
   | "mistral"
   | "openai"
   | "zai";
 
-export type BatchAsrProviderId = "deepgram" | "elevenlabs" | "mistral";
+export type LanguageModelExecutionProviderId =
+  | Exclude<LanguageModelProviderId, "grok">
+  | "superwhisper";
 
-export type RealtimeAsrProviderId = "deepgram" | "mistral";
+export type BatchAsrProviderId =
+  | "deepgram"
+  | "elevenlabs"
+  | "mistral"
+  | "superwhisper";
+
+export type BatchAsrExecutionProviderId =
+  | "deepgram"
+  | "elevenlabs"
+  | "mistral"
+  | "superwhisper";
+
+export type RealtimeAsrProviderId = "deepgram" | "elevenlabs" | "mistral";
+
+export type RealtimeAsrExecutionProviderId =
+  | "deepgram"
+  | "mistral"
+  | "superwhisper";
+
+export type DirectRealtimeAsrExecutionProviderId = Exclude<
+  RealtimeAsrExecutionProviderId,
+  "superwhisper"
+>;
 
 export type LanguageModelReasoningProfile =
   | "low"
@@ -57,14 +82,18 @@ export interface ModelSpeedPresentation {
 
 export interface LanguageModelEntry {
   callPolicy: LanguageModelCallPolicy;
+  executionModel: string;
+  executionProvider: LanguageModelExecutionProviderId;
   intelligence?: LanguageModelIntelligence;
   provider: LanguageModelProviderId;
-  providerModelId: `${LanguageModelProviderId}:${string}`;
+  providerModelId: `${LanguageModelExecutionProviderId}:${string}`;
   upstreamModel: string;
 }
 
 export interface BatchAsrModelEntry {
   acceptedOptions: readonly AcceptedAsrOptionName[];
+  executionModel: string;
+  executionProvider: BatchAsrExecutionProviderId;
   provider: BatchAsrProviderId;
   supportedLanguages: readonly string[];
   supportsAutomaticLanguage: boolean;
@@ -73,6 +102,8 @@ export interface BatchAsrModelEntry {
 
 export interface RealtimeAsrModelEntry {
   acceptedOptions: readonly AcceptedAsrOptionName[];
+  executionModel: string;
+  executionProvider: RealtimeAsrExecutionProviderId;
   provider: RealtimeAsrProviderId;
   supportedLanguages: readonly string[];
   supportsAutomaticLanguage: boolean;
@@ -85,6 +116,10 @@ export type AcceptedAsrOptionName = string;
 
 export interface PublicAsrRouteSpec {
   acceptedOptions: readonly AcceptedAsrOptionName[];
+  executionModel: string;
+  executionProvider:
+    | BatchAsrExecutionProviderId
+    | RealtimeAsrExecutionProviderId;
   model: string;
   provider: BatchAsrProviderId | RealtimeAsrProviderId;
   supportedLanguages: readonly string[];
@@ -96,6 +131,8 @@ export interface PublicAsrRouteSpec {
 interface PublicLanguageModelSpec {
   acceptedOptions?: never;
   accuracy?: never;
+  executionModel: string;
+  executionProvider: LanguageModelExecutionProviderId;
   id: string;
   intelligence?: LanguageModelIntelligence;
   kind: "language";
@@ -113,6 +150,10 @@ export interface PublicTranscriptionModelSpec {
     Record<AsrTransport, readonly AcceptedAsrOptionName[]>
   >;
   accuracy?: ModelAccuracyPresentation;
+  executionModel: string;
+  executionProvider:
+    | BatchAsrExecutionProviderId
+    | RealtimeAsrExecutionProviderId;
   id: string;
   kind: "transcription";
   provider: BatchAsrProviderId | RealtimeAsrProviderId;

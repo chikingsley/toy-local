@@ -30,6 +30,8 @@ const InventoryModel = z
 const AsrRouteSpec = z
   .object({
     accepted_options: z.array(z.string()).optional(),
+    execution_model: z.string(),
+    execution_provider: z.string(),
     model: z.string(),
     provider: z.string(),
     supported_languages: z.array(z.string()).optional(),
@@ -44,7 +46,7 @@ const InventorySource = z
     models: z.array(InventoryModel),
     provider: z.string(),
     reason: z.string().optional(),
-    source_kind: z.enum(["api", "manual"]),
+    source_kind: z.enum(["api", "contract", "manual"]),
     status: z.enum(["ok", "skipped", "failed"]),
     url: z.string().optional(),
   })
@@ -58,6 +60,8 @@ const InventoryCatalogModel = z
         realtime: z.array(z.string()).optional(),
       })
       .optional(),
+    execution_model: z.string(),
+    execution_provider: z.string(),
     id: z.string(),
     kind: z.enum(["language", "transcription"]),
     provider: z.string(),
@@ -263,6 +267,8 @@ const routeView = (route: PublicAsrRouteSpec | undefined) =>
         accepted_options: route.acceptedOptions
           ? [...route.acceptedOptions]
           : undefined,
+        execution_model: route.executionModel,
+        execution_provider: route.executionProvider,
         model: route.model,
         provider: route.provider,
         supported_languages: route.supportedLanguages
@@ -283,6 +289,8 @@ const routesView = (routes: PublicModelSpec["routes"]) =>
 
 const catalogModelView = (model: PublicModelSpec) => ({
   accepted_options: acceptedOptionsView(model.acceptedOptions),
+  execution_model: model.executionModel,
+  execution_provider: model.executionProvider,
   id: model.id,
   kind: model.kind,
   provider: model.provider,
