@@ -1,7 +1,7 @@
 import {
   createPeacockeryVoiceClient,
   type PeacockeryVoiceClient,
-} from "@chikingsley/peacockery-voice-client";
+} from "@simonpeacocks/peacockery-voice-client";
 
 import { configuredApiOrigin } from "@/lib/api-credential";
 

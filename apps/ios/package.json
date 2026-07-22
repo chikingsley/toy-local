@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@bacons/apple-targets": "^4.0.7",
-    "@chikingsley/peacockery-voice-client": "git+https://github.com/chikingsley/peacockery-voice.git#304057e901f374f819ed49f0fec62f60c88eb852&path:/clients/typescript",
+    "@simonpeacocks/peacockery-voice-client": "^0.1.0",
     "@legendapp/list": "3.3.3",
     "@rn-primitives/portal": "~1.4.0",
     "@rn-primitives/separator": "^1.5.2",

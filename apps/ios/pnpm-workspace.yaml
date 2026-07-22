@@ -1,4 +1,6 @@
 allowBuilds:
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@simonpeacocks/peacockery-voice-client@0.1.0'
 patchedDependencies:
   '@bacons/apple-targets@4.0.7': patches/@bacons__apple-targets@4.0.7.patch
