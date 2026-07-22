@@ -1,7 +1,7 @@
 import Constants from "expo-constants";
 import { SymbolView } from "expo-symbols";
 import { useSQLiteContext } from "expo-sqlite";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
@@ -11,6 +11,10 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { useDictationSession } from "@/features/dictation/dictation-session";
+import {
+  type LiveActivityDisplayMode,
+  useLiveActivityPreferences,
+} from "@/features/dictation/live-activity-preferences";
 import {
   clearStoredAudio,
   clearStoredHistory,
@@ -46,6 +50,7 @@ export default function SettingsScreen() {
   const modes = useModes();
   const setup = useSetupState();
   const keyboard = useKeyboardPreferences();
+  const liveActivity = useLiveActivityPreferences();
   const [storage, setStorage] = useState(EMPTY_STORAGE);
   const [retention, setRetention] = useState<AudioRetentionDays>(null);
   const activeModel =
@@ -76,6 +81,12 @@ export default function SettingsScreen() {
       mounted = false;
     };
   }, [database]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshStorage();
+    }, [refreshStorage]),
+  );
 
   const restartSetup = () => {
     setup.restart();
@@ -155,30 +166,43 @@ export default function SettingsScreen() {
           checked={keyboard.preferences.predictions}
           label="Predictive text"
           onChange={(value) => keyboard.update("predictions", value)}
+          testID="settings-predictions"
         />
         <Separator />
         <SwitchRow
           checked={keyboard.preferences.autocorrect}
           label="Auto-correction"
           onChange={(value) => keyboard.update("autocorrect", value)}
+          testID="settings-autocorrect"
         />
         <Separator />
         <SwitchRow
           checked={keyboard.preferences.swipe}
           label="Swipe typing"
           onChange={(value) => keyboard.update("swipe", value)}
+          testID="settings-swipe"
+        />
+        <Separator />
+        <ActionRow
+          label="Personal vocabulary"
+          onPress={() => router.push("./personal-vocabulary")}
+          systemName="chevron.right"
+          testID="settings-personal-vocabulary"
+          value="Learn & reorder"
         />
         <Separator />
         <SwitchRow
           checked={keyboard.preferences.haptics}
           label="Haptic feedback"
           onChange={(value) => keyboard.update("haptics", value)}
+          testID="settings-haptics"
         />
         <Separator />
         <SwitchRow
           checked={keyboard.preferences.sound}
           label="Key sounds"
           onChange={(value) => keyboard.update("sound", value)}
+          testID="settings-sound"
         />
       </AppSection>
 
@@ -197,20 +221,56 @@ export default function SettingsScreen() {
           label="Background session"
           value={session.sessionActive ? "Ready" : "Off"}
         />
+        <Separator />
         {session.sessionActive ? (
           <ActionRow
             destructive
             label="End background session"
             onPress={session.endSession}
+            testID="settings-end-background-session"
           />
-        ) : null}
+        ) : (
+          <ActionRow
+            label="Start background session"
+            onPress={() => {
+              void session.startSession();
+            }}
+            systemName="mic.fill"
+            testID="settings-start-background-session"
+          />
+        )}
+      </AppSection>
+
+      <AppSection className="mt-1" title="Live Activity">
+        <View className="gap-3 py-4">
+          <View className="gap-1">
+            <Text className="font-semibold">While listening</Text>
+            <Text className="text-muted-foreground text-sm leading-5">
+              Choose what TimberVox shows in the Live Activity and Dynamic
+              Island.
+            </Text>
+          </View>
+          <LiveActivityDisplayPicker
+            onChange={liveActivity.setDisplayMode}
+            value={liveActivity.displayMode}
+          />
+        </View>
+        <Separator />
+        <SwitchRow
+          checked={keyboard.preferences.streamingInsertion}
+          label="Insert words while speaking"
+          onChange={(value) => keyboard.update("streamingInsertion", value)}
+          testID="settings-streaming-insertion"
+        />
+        <Text className="text-muted-foreground pb-4 text-xs leading-4">
+          Live insertion works while the TimberVox keyboard owns the focused
+          text field. Live words may be visible on the Lock Screen when selected
+          above.
+        </Text>
       </AppSection>
 
       <AppSection className="mt-1" title="Shortcut">
-        <ValueRow
-          label="Toggle TimberVox Dictation"
-          value="Apple-signed"
-        />
+        <ValueRow label="Toggle TimberVox Dictation" value="Apple-signed" />
         <Separator />
         <View className="gap-3 py-4">
           <Text className="text-muted-foreground text-sm leading-5">
@@ -231,6 +291,7 @@ export default function SettingsScreen() {
           label="Keep audio"
           onPress={chooseRetention}
           systemName="chevron.right"
+          testID="settings-audio-retention"
           value={retentionLabel(retention)}
         />
         <Separator />
@@ -239,6 +300,7 @@ export default function SettingsScreen() {
           disabled={storage.audioCount === 0}
           label="Clear saved audio"
           onPress={confirmClearAudio}
+          testID="settings-clear-audio"
         />
         <Separator />
         <ActionRow
@@ -246,6 +308,7 @@ export default function SettingsScreen() {
           disabled={storage.historyCount === 0}
           label="Clear recording history"
           onPress={confirmClearHistory}
+          testID="settings-clear-history"
         />
       </AppSection>
 
@@ -260,6 +323,7 @@ export default function SettingsScreen() {
           label="Open iPhone Settings"
           onPress={setup.openKeyboardSettings}
           systemName="arrow.up.right"
+          testID="settings-open-ios-settings"
         />
       </AppSection>
 
@@ -268,10 +332,14 @@ export default function SettingsScreen() {
           label="Run setup again"
           onPress={restartSetup}
           systemName="chevron.right"
+          testID="settings-run-setup"
         />
       </AppSection>
 
       <Text className="text-muted-foreground mt-3 text-center text-xs">
+        Swipe typing is powered by FUTO Swipe technology.
+      </Text>
+      <Text className="text-muted-foreground mt-2 text-center text-xs">
         TimberVox {Constants.expoConfig?.version ?? "1.0.0"} (
         {Constants.expoConfig?.ios?.buildNumber ?? "—"})
       </Text>
@@ -283,15 +351,58 @@ function SwitchRow({
   checked,
   label,
   onChange,
+  testID,
 }: {
   checked: boolean;
   label: string;
   onChange: (value: boolean) => void;
+  testID?: string;
 }) {
   return (
     <View className="min-h-[58px] flex-row items-center justify-between gap-3">
       <Text className="font-semibold">{label}</Text>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Switch checked={checked} onCheckedChange={onChange} testID={testID} />
+    </View>
+  );
+}
+
+function LiveActivityDisplayPicker({
+  onChange,
+  value,
+}: {
+  onChange: (value: LiveActivityDisplayMode) => void;
+  value: LiveActivityDisplayMode;
+}) {
+  return (
+    <View
+      className="bg-muted flex-row rounded-xl p-1"
+      testID="settings-live-activity-display"
+    >
+      {(["waveform", "words"] as const).map((option) => {
+        const selected = value === option;
+        return (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            className={cn(
+              "h-10 flex-1 items-center justify-center rounded-[9px]",
+              selected && "bg-card",
+            )}
+            key={option}
+            onPress={() => onChange(option)}
+            testID={`settings-live-activity-${option}`}
+          >
+            <Text
+              className={cn(
+                "text-muted-foreground text-sm font-semibold",
+                selected && "text-foreground",
+              )}
+            >
+              {option === "waveform" ? "Waveform" : "Live words"}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -337,6 +448,7 @@ function ActionRow({
   label,
   onPress,
   systemName,
+  testID,
   value,
 }: {
   destructive?: boolean;
@@ -344,6 +456,7 @@ function ActionRow({
   label: string;
   onPress: () => void | Promise<void>;
   systemName?: string;
+  testID?: string;
   value?: string;
 }) {
   return (
@@ -354,6 +467,7 @@ function ActionRow({
       )}
       disabled={disabled}
       onPress={onPress}
+      testID={testID}
     >
       <Text
         className={cn(

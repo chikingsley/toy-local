@@ -1,5 +1,10 @@
 import { parseNativeResultEnvelope } from "@/features/dictation/native-result-bridge";
 
+jest.mock("timbervox-system", () => ({
+  acknowledgeNativeResult: jest.fn(),
+  getNativeResultOutbox: jest.fn(() => []),
+}));
+
 jest.mock("@/features/dictation/dictation-repository", () => ({
   persistDictationOutcome: jest.fn(),
 }));
@@ -15,6 +20,7 @@ const envelope = {
   createdAt: "2026-07-15T08:00:00Z",
   durationMs: 1_500,
   endedAt: "2026-07-15T08:00:01Z",
+  entryPoint: "shortcut",
   errorCode: null,
   errorMessage: null,
   finalText: "Hello.",

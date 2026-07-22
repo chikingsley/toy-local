@@ -12,13 +12,15 @@ type KeyboardPreferenceKey =
   | "keyboardAutocorrectEnabled"
   | "keyboardPredictionsEnabled"
   | "keyboardSoundEnabled"
-  | "keyboardSwipeEnabled";
+  | "keyboardSwipeEnabled"
+  | "streamingInsertionEnabled";
 
 type KeyboardPreferences = {
   autocorrect: boolean;
   haptics: boolean;
   predictions: boolean;
   sound: boolean;
+  streamingInsertion: boolean;
   swipe: boolean;
 };
 
@@ -43,6 +45,7 @@ function readPreferences(): KeyboardPreferences {
     haptics: readBridgeBoolean("keyboardHapticsEnabled"),
     predictions: readBridgeBoolean("keyboardPredictionsEnabled"),
     sound: readBridgeBoolean("keyboardSoundEnabled"),
+    streamingInsertion: readBridgeBoolean("streamingInsertionEnabled"),
     swipe: readBridgeBoolean("keyboardSwipeEnabled"),
   };
 }
@@ -59,6 +62,8 @@ function preferenceBridgeKey(
       return "keyboardPredictionsEnabled";
     case "sound":
       return "keyboardSoundEnabled";
+    case "streamingInsertion":
+      return "streamingInsertionEnabled";
     case "swipe":
       return "keyboardSwipeEnabled";
   }

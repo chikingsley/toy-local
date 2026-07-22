@@ -1,0 +1,29 @@
+appId: studio.peacockery.timbervox
+name: TimberVox settings and durable storage controls
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: Settings
+- assertVisible:
+    id: settings-predictions
+- assertVisible:
+    id: settings-autocorrect
+- assertVisible:
+    id: settings-swipe
+- assertVisible:
+    id: settings-start-background-session
+- scrollUntilVisible:
+    element:
+      id: settings-audio-retention
+    direction: DOWN
+- assertVisible:
+    id: settings-clear-audio
+- assertVisible:
+    id: settings-clear-history
+- scrollUntilVisible:
+    element:
+      id: settings-open-ios-settings
+    direction: DOWN
+- assertVisible:
+    id: settings-run-setup

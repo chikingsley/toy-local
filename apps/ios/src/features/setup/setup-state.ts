@@ -8,31 +8,43 @@ import {
   readBridgeBoolean,
   writeBridgeBoolean,
 } from "@/features/keyboard/app-group-bridge";
+import {
+  getKeyboardStatus,
+  markKeyboardVerificationRequired,
+  startKeyboardStatusObserver,
+  type KeyboardStatus,
+} from "timbervox-system";
 
 export type SetupState = {
   completed: boolean;
   fullAccessVerified: boolean;
   keyboardEnabled: boolean;
   keyboardVerified: boolean;
+  keyboardVerificationPending: boolean;
   microphoneGranted: boolean;
   shortcutAvailable: boolean;
 };
 
 export function useSetupState() {
   initializeAppGroupBridge();
+  startKeyboardStatusObserver();
   const [state, setState] = useState<SetupState>(() => readSetupState(false));
   const refreshBridgeState = useCallback(() => {
-    setState((current) => readSetupState(current.microphoneGranted));
+    setState((current) =>
+      readSetupState(current.microphoneGranted, getKeyboardStatus()),
+    );
   }, []);
   const refresh = useCallback(async () => {
     const microphone = await getRecordingPermissionsAsync();
-    setState(readSetupState(microphone.granted));
+    setState(readSetupState(microphone.granted, getKeyboardStatus()));
   }, []);
 
   useEffect(() => {
     let mounted = true;
     void getRecordingPermissionsAsync().then((microphone) => {
-      if (mounted) setState(readSetupState(microphone.granted));
+      if (mounted) {
+        setState(readSetupState(microphone.granted, getKeyboardStatus()));
+      }
     });
     return () => {
       mounted = false;
@@ -62,16 +74,13 @@ export function useSetupState() {
   }, []);
 
   const openKeyboardSettings = useCallback(() => {
-    // iOS exposes keyboard enablement and Full Access only to the running
-    // keyboard extension. Invalidate the extension's last observation before
-    // opening Settings so the containing app never presents stale access as
-    // current. The keyboard republishes both values the next time it appears.
-    writeBridgeBoolean("keyboardSeen", false);
-    writeBridgeBoolean("keyboardHasFullAccess", false);
+    // iOS exposes these values only to the running keyboard extension. Keep
+    // the last verified values in storage, but require a fresh extension
+    // observation after Settings before presenting them as current.
+    markKeyboardVerificationRequired();
     setState((current) => ({
       ...current,
-      fullAccessVerified: false,
-      keyboardEnabled: false,
+      keyboardVerificationPending: true,
       keyboardVerified: false,
     }));
     return Linking.openSettings();
@@ -88,14 +97,24 @@ export function useSetupState() {
   };
 }
 
-function readSetupState(microphoneGranted: boolean): SetupState {
-  const keyboardEnabled = readBridgeBoolean("keyboardSeen");
-  const fullAccessVerified = readBridgeBoolean("keyboardHasFullAccess");
+function readSetupState(
+  microphoneGranted: boolean,
+  keyboardStatus?: KeyboardStatus,
+): SetupState {
+  const keyboardEnabled =
+    keyboardStatus?.keyboardSeen ?? readBridgeBoolean("keyboardSeen");
+  const fullAccessVerified =
+    keyboardStatus?.fullAccess ?? readBridgeBoolean("keyboardHasFullAccess");
+  const keyboardVerificationPending =
+    keyboardStatus?.verificationRequired ??
+    readBridgeBoolean("keyboardVerificationRequired");
   return {
     completed: readBridgeBoolean("onboardingComplete"),
     fullAccessVerified,
     keyboardEnabled,
-    keyboardVerified: keyboardEnabled && fullAccessVerified,
+    keyboardVerificationPending,
+    keyboardVerified:
+      !keyboardVerificationPending && keyboardEnabled && fullAccessVerified,
     microphoneGranted,
     shortcutAvailable: readBridgeBoolean("shortcutAvailable"),
   };

@@ -7,14 +7,20 @@ try {
 }
 
 function developmentCredential() {
-  if (process.env.PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL !== "1") return "";
+  const production =
+    process.env.PEACOCKERY_VOICE_ENVIRONMENT === "production" ||
+    process.env.PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL === "0";
+  if (production) return "";
   const credential = process.env.PEACOCKERY_VOICE_API_KEY?.trim();
-  if (!credential) {
+  const credentialRequired =
+    process.env.PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL === "1" ||
+    process.env.CONFIGURATION === "Release";
+  if (!credential && credentialRequired) {
     throw new Error(
-      "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL=1 requires PEACOCKERY_VOICE_API_KEY",
+      "Internal TimberVox builds require PEACOCKERY_VOICE_API_KEY",
     );
   }
-  return credential;
+  return credential ?? "";
 }
 
 module.exports = ({ config }) => {

@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 
+import { AppHeaderBackButton } from "@/components/app/app-header-back-button";
 import { ModeEditorProvider } from "@/features/modes/mode-editor-state";
 
 export default function ModesLayout() {
@@ -7,11 +8,24 @@ export default function ModesLayout() {
     <ModeEditorProvider>
       <Stack screenOptions={{ headerBackButtonDisplayMode: "minimal" }}>
         <Stack.Screen name="index" options={{ title: "Modes" }} />
-        <Stack.Screen name="new" options={{ title: "Mode" }} />
-        <Stack.Screen name="[modeId]" options={{ title: "Mode" }} />
+        <Stack.Screen
+          name="new"
+          options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Modes" />,
+            title: "Mode",
+          }}
+        />
+        <Stack.Screen
+          name="[modeId]"
+          options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Modes" />,
+            title: "Mode",
+          }}
+        />
         <Stack.Screen
           name="sheets/icon-picker"
           options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Mode" />,
             presentation: "formSheet",
             sheetAllowedDetents: [0.46],
             sheetGrabberVisible: true,
@@ -21,6 +35,7 @@ export default function ModesLayout() {
         <Stack.Screen
           name="sheets/preset-picker"
           options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Mode" />,
             presentation: "formSheet",
             sheetAllowedDetents: [0.72],
             sheetGrabberVisible: true,
@@ -30,6 +45,7 @@ export default function ModesLayout() {
         <Stack.Screen
           name="sheets/model-picker"
           options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Mode" />,
             presentation: "formSheet",
             sheetAllowedDetents: [0.55],
             sheetGrabberVisible: true,
@@ -39,6 +55,7 @@ export default function ModesLayout() {
         <Stack.Screen
           name="sheets/language-picker"
           options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Mode" />,
             presentation: "formSheet",
             sheetAllowedDetents: [0.75, 0.95],
             sheetGrabberVisible: true,
@@ -48,6 +65,7 @@ export default function ModesLayout() {
         <Stack.Screen
           name="sheets/language-model-picker"
           options={{
+            headerLeft: () => <AppHeaderBackButton label="Back to Mode" />,
             presentation: "formSheet",
             sheetAllowedDetents: [0.8, 0.95],
             sheetGrabberVisible: true,

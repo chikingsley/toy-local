@@ -66,9 +66,14 @@ describe("cloud batch transcription", () => {
     expect(uploadRequest[1]?.method).toBe("PUT");
     expect((uploadRequest[1]?.body as Uint8Array).byteLength).toBe(48);
 
-    const transcriptionRequest = fetchImplementation.mock.calls[3];
-    expect(transcriptionRequest[0]).toContain("/v1/transcriptions");
-    expect(JSON.parse(String(transcriptionRequest[1]?.body))).toMatchObject({
+    const transcriptionRequest = fetchImplementation.mock.calls[3][0];
+    expect(transcriptionRequest).toBeInstanceOf(Request);
+    expect((transcriptionRequest as Request).url).toContain(
+      "/v1/transcriptions",
+    );
+    expect(
+      JSON.parse(await (transcriptionRequest as Request).text()),
+    ).toMatchObject({
       asr_model: "voxtral-mini-latest",
       input_key: "inputs/request_1.wav",
       language: "en",
@@ -79,17 +84,19 @@ describe("cloud batch transcription", () => {
 
 function jsonResponse(value: Record<string, unknown>) {
   return {
+    headers: { get: () => "application/json" },
     json: async () => value,
     ok: true,
     status: 200,
     text: async () => JSON.stringify(value),
-  } as Response;
+  } as unknown as Response;
 }
 
 function emptyResponse() {
   return {
+    headers: { get: () => "application/json" },
     ok: true,
     status: 200,
     text: async () => "",
-  } as Response;
+  } as unknown as Response;
 }

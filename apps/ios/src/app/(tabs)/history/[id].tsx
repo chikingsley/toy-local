@@ -1,8 +1,9 @@
+import * as Clipboard from "expo-clipboard";
 import { File } from "expo-file-system";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Share, View } from "react-native";
 
 import { AppBottomActionBar } from "@/components/app/app-bottom-action-bar";
@@ -21,7 +22,9 @@ import {
   formatDate,
 } from "@/features/history/history-format";
 import { HistoryPlaybackControl } from "@/features/history/history-playback-control";
+import { reprocessStoredDictation } from "@/features/history/history-reprocess";
 import { useHistory } from "@/features/history/history-store";
+import { configuredApiCredential } from "@/lib/api-credential";
 
 type ArtifactKind = StoredArtifact["kind"];
 
@@ -31,6 +34,9 @@ export default function HistoryDetailScreen() {
   const history = useHistory();
   const router = useRouter();
   const [detail, setDetail] = useState<StoredDictationDetail | null>();
+  const [reprocessing, setReprocessing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const copyResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -41,6 +47,13 @@ export default function HistoryDetailScreen() {
       mounted = false;
     };
   }, [database, id]);
+
+  useEffect(
+    () => () => {
+      if (copyResetTimer.current) clearTimeout(copyResetTimer.current);
+    },
+    [],
+  );
 
   const artifacts = useMemo(() => availableArtifacts(detail), [detail]);
   const [selected, setSelected] = useState<ArtifactKind>("raw");
@@ -71,6 +84,31 @@ export default function HistoryDetailScreen() {
   const shareText =
     artifacts.find((item) => item.kind === visibleArtifact)?.text ??
     detail.text;
+  const canReprocess =
+    detail.mode.presetKind !== "voice" &&
+    artifacts.some((artifact) => artifact.kind === "raw");
+
+  const reprocess = async () => {
+    setReprocessing(true);
+    try {
+      await reprocessStoredDictation(
+        database,
+        detail,
+        configuredApiCredential(),
+      );
+      const updated = await loadStoredDictationDetail(database, detail.id);
+      setDetail(updated);
+      await history.reload();
+      setSelected("processed");
+    } catch (error) {
+      Alert.alert(
+        "Could not reprocess",
+        error instanceof Error ? error.message : String(error),
+      );
+    } finally {
+      setReprocessing(false);
+    }
+  };
 
   const deleteDetail = () => {
     Alert.alert(
@@ -92,6 +130,14 @@ export default function HistoryDetailScreen() {
     );
   };
 
+  const copyDetail = async () => {
+    if (!shareText.trim()) return;
+    await Clipboard.setStringAsync(shareText);
+    setCopied(true);
+    if (copyResetTimer.current) clearTimeout(copyResetTimer.current);
+    copyResetTimer.current = setTimeout(() => setCopied(false), 2_000);
+  };
+
   return (
     <>
       <Stack.Screen options={{ title: formatDate(detail.createdAt) }} />
@@ -99,6 +145,7 @@ export default function HistoryDetailScreen() {
         className="flex-1 gap-0"
         onValueChange={(value) => setSelected(value as ArtifactKind)}
         value={visibleArtifact}
+        testID="history-artifact-tabs"
       >
         <View className="flex-1">
           <AppScreen contentClassName="pb-8" scroll>
@@ -143,6 +190,42 @@ export default function HistoryDetailScreen() {
               </TabsList>
             ) : null}
             <View className="flex-row justify-end gap-2">
+              {canReprocess ? (
+                <Button
+                  accessibilityLabel={
+                    reprocessing
+                      ? "Reprocessing dictation"
+                      : "Reprocess dictation"
+                  }
+                  disabled={reprocessing}
+                  onPress={() => void reprocess()}
+                  size="icon"
+                  testID="history-reprocess"
+                  variant="ghost"
+                >
+                  <SymbolView
+                    name="arrow.triangle.2.circlepath"
+                    size={20}
+                    tintColor="#91a8ff"
+                  />
+                </Button>
+              ) : null}
+              <Button
+                accessibilityLabel={
+                  copied ? "Dictation copied" : "Copy dictation"
+                }
+                disabled={!shareText.trim()}
+                onPress={() => void copyDetail()}
+                size="icon"
+                testID="history-copy"
+                variant="ghost"
+              >
+                <SymbolView
+                  name={copied ? "checkmark.circle.fill" : "doc.on.doc"}
+                  size={20}
+                  tintColor={copied ? "#43d38a" : "#91a8ff"}
+                />
+              </Button>
               <Button
                 accessibilityLabel="Dictation information"
                 onPress={() =>
@@ -152,6 +235,7 @@ export default function HistoryDetailScreen() {
                   })
                 }
                 size="icon"
+                testID="history-info"
                 variant="ghost"
               >
                 <SymbolView name="info.circle" size={20} tintColor="#91a8ff" />
@@ -161,6 +245,7 @@ export default function HistoryDetailScreen() {
                 disabled={!shareText.trim()}
                 onPress={() => void Share.share({ message: shareText })}
                 size="icon"
+                testID="history-share"
                 variant="ghost"
               >
                 <SymbolView
@@ -173,6 +258,7 @@ export default function HistoryDetailScreen() {
                 accessibilityLabel="Delete dictation"
                 onPress={deleteDetail}
                 size="icon"
+                testID="history-delete"
                 variant="ghost"
               >
                 <SymbolView name="trash" size={20} tintColor="#ff5a5f" />

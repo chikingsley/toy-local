@@ -23,6 +23,7 @@ function RecordingControl({
       className="h-14 w-full rounded-2xl"
       disabled={disabled || presentation.disabled}
       onPress={onPress}
+      testID="recording-control"
       variant={presentation.variant}
     >
       {presentation.busy ? (

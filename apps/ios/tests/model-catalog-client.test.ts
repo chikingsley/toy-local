@@ -3,6 +3,7 @@ import { fetchModelCatalog } from "@/features/modes/model-catalog";
 describe("model catalog client", () => {
   it("authenticates the catalog request with the TimberVox credential", async () => {
     const fetchImplementation = jest.fn().mockResolvedValue({
+      headers: { get: () => "application/json" },
       json: async () => ({
         models: [
           {
@@ -36,11 +37,13 @@ describe("model catalog client", () => {
       ]),
     });
 
-    expect(fetchImplementation).toHaveBeenCalledWith(
+    const request = fetchImplementation.mock.calls[0][0];
+    expect(request).toBeInstanceOf(Request);
+    expect((request as Request).url).toBe(
       "https://voice-lab.peacockery.studio/v1/models",
-      expect.objectContaining({
-        headers: { Authorization: "Bearer mobile-session" },
-      }),
+    );
+    expect((request as Request).headers.get("Authorization")).toBe(
+      "Bearer mobile-session",
     );
   });
 

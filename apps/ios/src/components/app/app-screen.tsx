@@ -3,6 +3,8 @@ import type { PropsWithChildren } from "react";
 import { ScrollView, View, type ScrollViewProps } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
+import { APP_SCROLL_CONTENT_STYLE } from "@/components/app/app-layout";
+
 type AppScreenProps = PropsWithChildren<{
   className?: string;
   contentClassName?: string;
@@ -23,10 +25,9 @@ function AppScreen({
     return (
       <ScrollView
         className={cn("bg-background flex-1", className)}
-        contentContainerClassName={cn(
-          "gap-3 px-[18px] pt-[18px] pb-[120px]",
-          contentClassName,
-        )}
+        contentContainerClassName={contentClassName}
+        contentContainerStyle={APP_SCROLL_CONTENT_STYLE}
+        keyboardDismissMode="interactive"
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       >
         {children}

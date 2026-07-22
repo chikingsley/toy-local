@@ -35,6 +35,13 @@ describe("App Group bridge contract", () => {
     resolve(__dirname, "../src/features/setup/setup-state.ts"),
     "utf8",
   );
+  const systemModule = readFileSync(
+    resolve(
+      __dirname,
+      "../modules/timbervox-system/ios/TimberVoxSystemModule.swift",
+    ),
+    "utf8",
+  );
   const welcomeScreen = readFileSync(
     resolve(__dirname, "../src/app/(onboarding)/welcome.tsx"),
     "utf8",
@@ -45,6 +52,20 @@ describe("App Group bridge contract", () => {
   );
   const delivery = readFileSync(
     resolve(__dirname, "../src/features/dictation/result-delivery.ts"),
+    "utf8",
+  );
+  const liveActivity = readFileSync(
+    resolve(
+      __dirname,
+      "../targets/live-activity/TimberVoxRecordingLiveActivity.swift",
+    ),
+    "utf8",
+  );
+  const shortcutIntent = readFileSync(
+    resolve(
+      __dirname,
+      "../targets/shortcut/_shared/AudioRecordingIntent.swift",
+    ),
     "utf8",
   );
   const keys = Object.values(contract.keys).flat();
@@ -77,8 +98,36 @@ describe("App Group bridge contract", () => {
     );
   });
 
+  it("streams owned partials without duplicating the authoritative final result", () => {
+    expect(shortcutIntent).toContain('forKey: "partialTranscriptRequestId"');
+    expect(shortcutIntent).toContain('forKey: "partialTranscriptRevision"');
+    expect(keyboardController).toContain(
+      "requestID == KeyboardBridge.string(for: .keyboardRequestId)",
+    );
+    expect(keyboardController).toContain("replaceStreamedText(with: text)");
+    expect(keyboardController).toContain("context.hasSuffix(verification)");
+    expect(keyboardController).toContain(
+      "discardStreamedText(requestID: requestID)",
+    );
+  });
+
+  it("uses real metering, full-width activity signals, and distinct dictation haptics", () => {
+    expect(shortcutIntent).toContain("recorder.isMeteringEnabled = true");
+    expect(shortcutIntent).toContain("averagePower(forChannel: 0)");
+    expect(shortcutIntent).toContain("audioLevels: activityLevels");
+    expect(liveActivity).toContain(".frame(maxWidth: .infinity)");
+    expect(liveActivity).toContain("TimberlineWaveform");
+    expect(keyboardController).toContain("dictationFeedback(.start)");
+    expect(keyboardController).toContain("dictationFeedback(.stop)");
+    expect(keyboardController).toContain("notificationOccurred(.success)");
+  });
+
   it("opens the app through TimberVox dictation and resumes the owned keyboard request", () => {
     expect(keyboardController).toContain("hasDictationKey = true");
+    expect(keyboardController).toContain("extensionContext.open(url)");
+    expect(keyboardController).not.toContain(
+      'NSSelectorFromString("openURL:")',
+    );
     expect(keyboardController).toContain(
       'KeyboardBridge.set("keyboard", for: .requestedEntryPoint)',
     );
@@ -105,12 +154,42 @@ describe("App Group bridge contract", () => {
     expect(keyboardRoot).not.toContain('keyButton(systemName: "delete.left"');
   });
 
-  it("invalidates stale Settings observations and keeps verification above the keyboard", () => {
-    expect(setupState).toContain('writeBridgeBoolean("keyboardSeen", false)');
-    expect(setupState).toContain(
-      'writeBridgeBoolean("keyboardHasFullAccess", false)',
+  it("keeps the recording-state decoration from swallowing the stop command", () => {
+    expect(keyboardRoot).toContain(".allowsHitTesting(false)");
+  });
+
+  it("allows a pending keyboard request to be stopped before the app session opens", () => {
+    const stopBranch = keyboardController.indexOf("if recordingRequested {");
+    const sessionBranch = keyboardController.indexOf(
+      "guard sessionActive else {",
     );
-    expect(welcomeScreen).toContain("KeyboardAvoidingView");
+
+    expect(stopBranch).toBeGreaterThan(-1);
+    expect(sessionBranch).toBeGreaterThan(stopBranch);
+    expect(keyboardController.slice(stopBranch, sessionBranch)).toContain(
+      "KeyboardBridge.set(false, for: .recordingRequested)",
+    );
+  });
+
+  it("requires a fresh keyboard observation after Settings without erasing the last result", () => {
+    expect(setupState).toContain("markKeyboardVerificationRequired()");
+    expect(setupState).toContain("keyboardVerificationPending: true");
+    expect(setupState).not.toContain(
+      'writeBridgeBoolean("keyboardSeen", false)',
+    );
+    expect(welcomeScreen).toContain("automaticallyAdjustKeyboardInsets");
     expect(welcomeScreen).toContain("ref={verificationInput}");
+    expect(welcomeScreen).toContain('pending ? "Verify below"');
+  });
+
+  it("reports restricted and full keyboard states through the containing app", () => {
+    expect(keyboardController).toContain("KeyboardStatusNotifier.post");
+    expect(swift).toContain("enum KeyboardStatusNotifier");
+    expect(setupState).toContain("startKeyboardStatusObserver()");
+    expect(setupState).toContain("getKeyboardStatus()");
+    expect(systemModule).toContain('Function("getKeyboardStatus")');
+    expect(systemModule).toContain(
+      'Function("markKeyboardVerificationRequired")',
+    );
   });
 });

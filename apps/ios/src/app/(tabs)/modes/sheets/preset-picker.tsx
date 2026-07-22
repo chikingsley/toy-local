@@ -32,6 +32,7 @@ export default function PresetPickerScreen() {
                     router.back();
                   }}
                   selected={editor.draft?.presetKind === presetKind}
+                  testID={`preset-option-${presetKind}`}
                 />
               </Fragment>
             );
@@ -44,6 +45,7 @@ export default function PresetPickerScreen() {
             iconKey="person.3.fill"
             label="Meeting · Coming later"
             selected={false}
+            testID="preset-option-meeting"
           />
         </CardContent>
       </Card>

@@ -1,0 +1,35 @@
+appId: studio.peacockery.timbervox
+name: TimberVox iPhone shell
+---
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      id: recording-control
+    timeout: 30000
+- assertVisible:
+    id: record-mode-picker
+- tapOn:
+    text: Modes
+- extendedWaitUntil:
+    visible:
+      id: create-mode
+    timeout: 15000
+- tapOn:
+    text: History
+- assertVisible:
+    id: history-search
+- tapOn:
+    text: Settings
+- assertVisible:
+    id: settings-predictions
+- assertVisible:
+    id: settings-swipe
+- assertVisible:
+    id: settings-start-background-session
+- assertVisible:
+    id: add-shortcut
+- tapOn:
+    text: Record
+- assertVisible:
+    id: recording-control

@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppBottomActionBar } from "@/components/app/app-bottom-action-bar";
 import { AppSection } from "@/components/app/app-section";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -22,11 +21,11 @@ export default function ShortcutScreen() {
   return (
     <SafeAreaView
       className="bg-background flex-1"
-      edges={["top", "left", "right"]}
+      edges={["top", "right", "bottom", "left"]}
     >
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-5 px-[18px] pt-6 pb-6"
+        contentContainerClassName="grow gap-5 px-[18px] pt-6 pb-[18px]"
       >
         <View className="gap-4">
           <View className="bg-primary size-16 items-center justify-center rounded-[20px]">
@@ -56,9 +55,7 @@ export default function ShortcutScreen() {
             </View>
             <View className="flex-row items-center gap-2">
               <View className="bg-success size-2 rounded-full" />
-              <Text className="text-success text-sm font-semibold">
-                Signed
-              </Text>
+              <Text className="text-success text-sm font-semibold">Signed</Text>
             </View>
           </View>
         </AppSection>
@@ -69,16 +66,25 @@ export default function ShortcutScreen() {
           </Text>
           <ShortcutsButton className="h-14 w-full" />
         </View>
-      </ScrollView>
 
-      <AppBottomActionBar className="gap-2">
-        <Button className="h-14 rounded-2xl" onPress={finish}>
-          <Text className="text-base font-bold">Finish setup</Text>
-        </Button>
-        <Button className="h-11" onPress={() => router.back()} variant="ghost">
-          <Text>Back</Text>
-        </Button>
-      </AppBottomActionBar>
+        <View className="mt-auto gap-2 pt-2">
+          <Button
+            className="h-14 rounded-2xl"
+            onPress={finish}
+            testID="finish-setup"
+          >
+            <Text className="text-base font-bold">Finish setup</Text>
+          </Button>
+          <Button
+            className="h-11"
+            onPress={() => router.back()}
+            testID="shortcut-back"
+            variant="ghost"
+          >
+            <Text>Back</Text>
+          </Button>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

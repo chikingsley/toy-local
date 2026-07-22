@@ -1,7 +1,9 @@
+import { configuredApiCredential } from "@/lib/api-credential";
 import {
-  configuredApiCredential,
-  configuredApiOrigin,
-} from "@/lib/api-credential";
+  configuredVoiceClient,
+  voiceApiError,
+} from "@/lib/peacockery-voice-client";
+import { DEFAULT_TRANSCRIPTION_MODEL_ID } from "@/features/modes/mode-defaults";
 
 // Hermes does not ship Intl.DisplayNames. Keep the presentation mapping local
 // while the Worker remains authoritative for which codes each route supports.
@@ -294,21 +296,35 @@ async function fetchModelCatalog(
   if (!credential) {
     throw new Error("This build does not have an active TimberVox session.");
   }
-  const response = await fetchImplementation(
-    `${configuredApiOrigin()}/v1/models`,
-    {
-      headers: { Authorization: `Bearer ${credential}` },
-      signal,
-    },
-  );
-  if (!response.ok) {
-    throw new Error(`The model catalog request failed (${response.status}).`);
+  const timeoutController = new AbortController();
+  const forwardAbort = () => timeoutController.abort();
+  signal?.addEventListener("abort", forwardAbort, { once: true });
+  const timeout = setTimeout(() => timeoutController.abort(), 15_000);
+  try {
+    const { data, error, response } = await configuredVoiceClient(
+      credential,
+      fetchImplementation,
+    ).GET("/v1/models", { signal: timeoutController.signal });
+    if (error) {
+      throw voiceApiError("The model catalog request", response, error);
+    }
+    return parseModelCatalog(data);
+  } catch (error) {
+    if (timeoutController.signal.aborted && !signal?.aborted) {
+      throw new Error("The model catalog request timed out. Try again.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener("abort", forwardAbort);
   }
-  return parseModelCatalog(await response.json());
 }
 
 function defaultTranscriptionModel(catalog: ModelCatalog) {
   return (
+    catalog.transcriptionModels.find(
+      (model) => model.id === DEFAULT_TRANSCRIPTION_MODEL_ID && model.realtime,
+    ) ??
     catalog.transcriptionModels.find(
       (model) => model.provider === "mistral" && model.realtime,
     ) ??
@@ -333,9 +349,27 @@ function selectedRoute(
 function modelDisplayName(model: TranscriptionModel) {
   if (model.id === "local-parakeet-110m") return "Parakeet Local";
   if (model.id.includes("voxtral")) return "Voxtral Mini";
+  if (model.id.includes("nova-2-medical")) return "Nova 2 Medical";
   if (model.id.includes("nova-3")) return "Nova 3";
   if (model.id.includes("nova-2")) return "Nova 2";
-  return model.id;
+  if (model.id.includes("scribe_v2")) return "Scribe v2";
+  return humanizeModelIdentifier(model.id, model.provider);
+}
+
+function humanizeModelIdentifier(identifier: string, provider: string) {
+  const providerPrefix = `${provider}-`;
+  const providerless = identifier.startsWith(providerPrefix)
+    ? identifier.slice(providerPrefix.length)
+    : identifier;
+  return providerless
+    .replaceAll("_", "-")
+    .split("-")
+    .map((token) => {
+      if (/^v\d+$/i.test(token)) return token.toLocaleLowerCase();
+      if (/^\d+$/.test(token)) return token;
+      return token.charAt(0).toLocaleUpperCase() + token.slice(1);
+    })
+    .join(" ");
 }
 
 function languageModelDisplayName(model: LanguageModel) {

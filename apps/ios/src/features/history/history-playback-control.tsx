@@ -1,11 +1,13 @@
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
-import { type LayoutChangeEvent, Pressable, View } from "react-native";
+import { useCallback, useState } from "react";
+import { View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { formatDuration } from "@/features/history/history-format";
+import { configurePlaybackAudioSession } from "@/features/audio/audio-session";
+import { useDictationSession } from "@/features/dictation/dictation-session";
+import { HistoryPlaybackScrubber } from "@/features/history/history-playback-scrubber";
 
 function HistoryPlaybackControl({
   audioUri,
@@ -16,68 +18,68 @@ function HistoryPlaybackControl({
 }) {
   const player = useAudioPlayer(audioUri, { updateInterval: 100 });
   const status = useAudioPlayerStatus(player);
-  const [trackWidth, setTrackWidth] = useState(0);
+  const session = useDictationSession();
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
   const duration = status.duration || fallbackDurationMs / 1_000;
-  const progress = duration > 0 ? status.currentTime / duration : 0;
+  const seekTo = useCallback(
+    (time: number) => {
+      void player.seekTo(time);
+    },
+    [player],
+  );
 
-  const togglePlayback = () => {
+  const togglePlayback = async () => {
     if (status.playing) {
       player.pause();
       return;
     }
-    if (duration > 0 && status.currentTime >= duration - 0.05) {
-      void player.seekTo(0).then(() => player.play());
-      return;
+    setPlaybackError(null);
+    try {
+      if (session.sessionActive) await session.endSession();
+      await configurePlaybackAudioSession();
+      if (duration > 0 && status.currentTime >= duration - 0.05) {
+        await player.seekTo(0);
+      }
+      player.play();
+    } catch (error) {
+      setPlaybackError(
+        error instanceof Error ? error.message : "Audio playback failed.",
+      );
     }
-    player.play();
-  };
-
-  const seek = (locationX: number) => {
-    if (trackWidth <= 0 || duration <= 0) return;
-    void player.seekTo(
-      Math.min(duration, Math.max(0, (locationX / trackWidth) * duration)),
-    );
   };
 
   return (
-    <View className="bg-card flex-row items-center gap-3 rounded-[18px] px-3 py-3">
-      <Button
-        accessibilityLabel={
-          status.playing ? "Pause recording" : "Play recording"
-        }
-        className="rounded-full"
-        onPress={togglePlayback}
-        size="icon"
-      >
-        <SymbolView
-          name={status.playing ? "pause.fill" : "play.fill"}
-          size={15}
-          tintColor="#ffffff"
-        />
-      </Button>
-      <View className="flex-1 gap-1.5">
-        <Pressable
-          accessibilityLabel="Recording position"
-          className="bg-muted h-2 overflow-hidden rounded-full"
-          onLayout={(event: LayoutChangeEvent) =>
-            setTrackWidth(event.nativeEvent.layout.width)
+    <View className="gap-2">
+      <View className="bg-card h-[72px] flex-row items-center gap-3 rounded-[18px] px-3">
+        <Button
+          accessibilityLabel={
+            status.playing ? "Pause recording" : "Play recording"
           }
-          onPress={(event) => seek(event.nativeEvent.locationX)}
+          className="rounded-full"
+          onPress={() => void togglePlayback()}
+          size="icon"
+          testID="history-playback-toggle"
         >
-          <View
-            className="bg-primary h-full rounded-full"
-            style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
+          <SymbolView
+            name={status.playing ? "pause.fill" : "play.fill"}
+            size={15}
+            tintColor="#ffffff"
           />
-        </Pressable>
-        <View className="flex-row justify-between">
-          <Text className="text-muted-foreground text-[11px]">
-            {formatDuration(status.currentTime * 1_000)}
-          </Text>
-          <Text className="text-muted-foreground text-[11px]">
-            {formatDuration(duration * 1_000)}
-          </Text>
-        </View>
+        </Button>
+        <HistoryPlaybackScrubber
+          currentTime={status.currentTime}
+          duration={duration}
+          onSeek={seekTo}
+        />
       </View>
+      {status.error || playbackError ? (
+        <Text
+          className="text-destructive px-2 text-xs"
+          testID="history-playback-error"
+        >
+          {status.error || playbackError}
+        </Text>
+      ) : null}
     </View>
   );
 }

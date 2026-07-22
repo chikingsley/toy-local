@@ -15,6 +15,7 @@ function PickerOption({
   live = false,
   onPress,
   selected,
+  testID,
 }: {
   detail?: string;
   disabled?: boolean;
@@ -25,6 +26,7 @@ function PickerOption({
   live?: boolean;
   onPress?: () => void;
   selected: boolean;
+  testID?: string;
 }) {
   return (
     <Pressable
@@ -37,6 +39,7 @@ function PickerOption({
       disabled={disabled}
       onPress={onPress}
       style={{ opacity: disabled ? 0.45 : 1 }}
+      testID={testID}
     >
       {leading ??
         (iconKey ? (

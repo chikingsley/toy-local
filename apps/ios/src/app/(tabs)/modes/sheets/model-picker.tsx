@@ -86,6 +86,7 @@ export default function ModelPickerScreen() {
                   router.back();
                 }}
                 selected={editor.draft?.asrModelId === model.id}
+                testID={`model-option-${model.id}`}
               />
             </Fragment>
           ))}

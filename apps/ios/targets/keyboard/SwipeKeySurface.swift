@@ -1,27 +1,6 @@
 import SwiftUI
 import UIKit
 
-enum KeyboardControlKey {
-  case delete
-  case shift
-}
-
-struct KeyLayout {
-  let frames: [Character: CGRect]
-  let shiftFrame: CGRect
-  let deleteFrame: CGRect
-
-  func key(at point: CGPoint) -> Character? {
-    frames.first(where: { $0.value.insetBy(dx: -4, dy: -4).contains(point) })?.key
-  }
-
-  func control(at point: CGPoint) -> KeyboardControlKey? {
-    if shiftFrame.insetBy(dx: -3, dy: -3).contains(point) { return .shift }
-    if deleteFrame.insetBy(dx: -3, dy: -3).contains(point) { return .delete }
-    return nil
-  }
-}
-
 enum KeyboardPalette {
   static let keyUIColor = UIColor { traits in
     traits.userInterfaceStyle == .dark ? UIColor(white: 0.31, alpha: 1) : .white
@@ -47,7 +26,7 @@ enum KeyboardPalette {
 
 struct SwipeKeySurface: View {
   @ObservedObject var model: KeyboardModel
-  @State private var trail: [CGPoint] = []
+  @State private var trail: [SwipePoint] = []
   @State private var activeControl: KeyboardControlKey?
 
   private let rows = [Array("qwertyuiop"), Array("asdfghjkl"), Array("zxcvbnm")]
@@ -62,12 +41,19 @@ struct SwipeKeySurface: View {
 
         controlKey(
           frame: layout.shiftFrame,
-          systemName: model.shifted ? "shift.fill" : "shift"
+          systemName: model.shifted ? "shift.fill" : "shift",
+          label: "Shift",
+          identifier: "key-shift"
         )
-        controlKey(frame: layout.deleteFrame, systemName: "delete.left")
+        controlKey(
+          frame: layout.deleteFrame,
+          systemName: "delete.left",
+          label: "Delete",
+          identifier: "key-delete"
+        )
 
         if model.swipeEnabled, trail.count > 1 {
-          SwipeTrailShape(points: trail)
+          SwipeTrailShape(points: trail.map(\.location))
             .stroke(
               LinearGradient(
                 colors: [.cyan.opacity(0.45), .blue.opacity(0.88)],
@@ -91,10 +77,20 @@ struct SwipeKeySurface: View {
                 model.beginDeleting()
               }
             }
-            trail.append(value.location)
+            trail.append(
+              SwipePoint(
+                location: value.location,
+                timestamp: ProcessInfo.processInfo.systemUptime
+              )
+            )
           }
           .onEnded { value in
-            trail.append(value.location)
+            trail.append(
+              SwipePoint(
+                location: value.location,
+                timestamp: ProcessInfo.processInfo.systemUptime
+              )
+            )
             if let activeControl {
               switch activeControl {
               case .delete:
@@ -106,7 +102,7 @@ struct SwipeKeySurface: View {
               trail.removeAll(keepingCapacity: true)
               return
             }
-            let distance = trailDistance(trail)
+            let distance = trailDistance(trail.map(\.location))
             if distance < 22 {
               if let control = layout.control(at: value.location) {
                 switch control {
@@ -117,7 +113,7 @@ struct SwipeKeySurface: View {
                 model.insert(String(key))
               }
             } else {
-              model.handleSwipe(points: trail, layout: layout)
+              model.handleSwipe(samples: trail, layout: layout)
             }
             withAnimation(.easeOut(duration: 0.16)) {
               trail.removeAll(keepingCapacity: true)
@@ -145,9 +141,18 @@ struct SwipeKeySurface: View {
       .shadow(color: .black.opacity(0.18), radius: 0.5, y: 1)
       .frame(width: frame.width, height: frame.height)
       .position(x: frame.midX, y: frame.midY)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(String(key))
+      .accessibilityIdentifier("key-\(key)")
+      .accessibilityAddTraits(.isButton)
   }
 
-  private func controlKey(frame: CGRect, systemName: String) -> some View {
+  private func controlKey(
+    frame: CGRect,
+    systemName: String,
+    label: String,
+    identifier: String
+  ) -> some View {
     RoundedRectangle(cornerRadius: 6, style: .continuous)
       .fill(KeyboardPalette.specialKey)
       .overlay {
@@ -161,6 +166,10 @@ struct SwipeKeySurface: View {
       .shadow(color: .black.opacity(0.12), radius: 0.5, y: 1)
       .frame(width: frame.width, height: frame.height)
       .position(x: frame.midX, y: frame.midY)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(label)
+      .accessibilityIdentifier(identifier)
+      .accessibilityAddTraits(.isButton)
   }
 
   private func makeLayout(size: CGSize) -> KeyLayout {
@@ -197,6 +206,7 @@ struct SwipeKeySurface: View {
 
     return KeyLayout(
       frames: frames,
+      size: size,
       shiftFrame: CGRect(x: 2.5, y: rowHeight * 2 + 2.5, width: controlWidth - 5, height: rowHeight - 5),
       deleteFrame: CGRect(
         x: size.width - controlWidth + 2.5,

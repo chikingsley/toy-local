@@ -13,17 +13,21 @@ import { useModes } from "@/features/modes/mode-provider";
 export default function RecordScreen() {
   const router = useRouter();
   const session = useDictationSession();
-  const { activeMode } = useModes();
+  const { activeMode, catalog, catalogError, retryCatalog } = useModes();
   const text = session.partialTranscript;
   const chooseMode = session.errorCode === "unsupported_model";
 
   return (
     <View className="bg-background flex-1">
-      <AppScreen className="px-5" edges={["top", "left", "right"]}>
+      <AppScreen
+        contentClassName="px-[18px]"
+        edges={["top", "left", "right"]}
+      >
         <Pressable
           accessibilityLabel="Choose active mode"
           className="bg-card border-border mt-[18px] h-[50px] flex-row items-center gap-2.5 self-center rounded-full border px-[18px]"
           onPress={() => router.push("/mode-picker")}
+          testID="record-mode-picker"
         >
           <SymbolView
             name={(activeMode?.iconKey ?? "person.wave.2.fill") as never}
@@ -36,7 +40,26 @@ export default function RecordScreen() {
           <SymbolView name="chevron.right" size={14} tintColor="#707785" />
         </Pressable>
 
-        {session.stage === "error" ? (
+        {catalogError && !catalog ? (
+          <View className="flex-1 items-center justify-center gap-4 px-3.5">
+            <Text className="text-destructive text-sm font-bold">
+              Models unavailable
+            </Text>
+            <View className="max-w-[320px] items-center gap-3">
+              <Text className="text-muted-foreground text-center text-sm leading-5">
+                {catalogError}
+              </Text>
+              <Button
+                onPress={() => void retryCatalog()}
+                size="sm"
+                testID="record-retry-model-catalog"
+                variant="outline"
+              >
+                <Text>Retry Models</Text>
+              </Button>
+            </View>
+          </View>
+        ) : session.stage === "error" ? (
           <View className="flex-1 items-center justify-center gap-4 px-3.5">
             <Text className="text-destructive text-sm font-bold">
               Needs attention
@@ -52,6 +75,7 @@ export default function RecordScreen() {
                     : () => void session.recover()
                 }
                 size="sm"
+                testID="record-recovery-action"
                 variant="outline"
               >
                 <Text>
@@ -65,10 +89,13 @@ export default function RecordScreen() {
         ) : (
           <ScrollView
             className="flex-1"
-            contentContainerClassName="px-3.5 pt-10 pb-10"
+            contentContainerClassName="pt-10 pb-10"
           >
             {text ? (
-              <Text className="text-left text-[22px] leading-[31px]">
+              <Text
+                className="text-left text-[22px] leading-[31px]"
+                testID="record-transcript"
+              >
                 {text}
               </Text>
             ) : null}
@@ -79,6 +106,7 @@ export default function RecordScreen() {
       <AppBottomActionBar>
         <RecordingControl
           disabled={
+            !catalog ||
             session.errorCode === "persistence_failure" ||
             session.errorCode === "delivery_failure"
           }

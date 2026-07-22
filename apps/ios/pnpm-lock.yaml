@@ -14,9 +14,15 @@ importers:
       '@bacons/apple-targets':
         specifier: ^4.0.7
         version: 4.0.7(patch_hash=0bff940f5e792c443bc9d55df5462b7f881da8142ae1afda55ee8a6fbe34f581)(expo@57.0.4)
+      '@chikingsley/peacockery-voice-client':
+        specifier: git+https://github.com/chikingsley/peacockery-voice.git#304057e901f374f819ed49f0fec62f60c88eb852&path:/clients/typescript
+        version: git+https://github.com/chikingsley/peacockery-voice.git#304057e901f374f819ed49f0fec62f60c88eb852&path:/clients/typescript
+      '@legendapp/list':
+        specifier: 3.3.3
+        version: 3.3.3(react-dom@19.2.3(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
       '@rn-primitives/portal':
         specifier: ~1.4.0
-        version: 1.4.0(@types/react@19.2.17)(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+        version: 1.4.0(@types/react@19.2.17)(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
       '@rn-primitives/separator':
         specifier: ^1.5.2
         version: 1.5.2(@types/react@19.2.17)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
@@ -131,6 +137,9 @@ importers:
       timbervox-local-asr:
         specifier: link:modules/timbervox-local-asr
         version: link:modules/timbervox-local-asr
+      timbervox-system:
+        specifier: link:modules/timbervox-system
+        version: link:modules/timbervox-system
     devDependencies:
       '@babel/core':
         specifier: ^7.29.7
@@ -138,6 +147,9 @@ importers:
       '@babel/plugin-transform-react-jsx':
         specifier: ^7.29.7
         version: 7.29.7(@babel/core@7.29.7)
+      '@bacons/xcode':
+        specifier: 1.0.0-alpha.32
+        version: 1.0.0-alpha.32
       '@testing-library/react-native':
         specifier: ^13.3.3
         version: 13.3.3(jest@29.7.0(@types/node@26.1.1))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react-test-renderer@19.2.3(react@19.2.3))(react@19.2.3)
@@ -652,6 +664,10 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
+  '@chikingsley/peacockery-voice-client@git+https://github.com/chikingsley/peacockery-voice.git#304057e901f374f819ed49f0fec62f60c88eb852&path:/clients/typescript':
+    resolution: {commit: 304057e901f374f819ed49f0fec62f60c88eb852, path: /clients/typescript, repo: https://github.com/chikingsley/peacockery-voice.git, type: git}
+    version: 0.1.0
+
   '@egjs/hammerjs@2.0.17':
     resolution: {integrity: sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==}
     engines: {node: '>=0.8.0'}
@@ -1030,6 +1046,18 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@legendapp/list@3.3.3':
+    resolution: {integrity: sha512-p3g4xG6f//s4XQKhuus2189GCQgOHEIbJXHePqeDxj+6UQQQyij4YBjyArNSCgqoP0c03sxDPSOuCFB128Ql6g==}
+    peerDependencies:
+      react: '*'
+      react-dom: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
 
   '@napi-rs/wasm-runtime@1.1.6':
     resolution: {integrity: sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg==}
@@ -4252,6 +4280,12 @@ packages:
     resolution: {integrity: sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q==}
     engines: {node: '>=8'}
 
+  openapi-fetch@0.17.0:
+    resolution: {integrity: sha512-PsbZR1wAPcG91eEthKhN+Zn92FMHxv+/faECIwjXdxfTODGSGegYv0sc1Olz+HYPvKOuoXfp+0pA2XVt2cI0Ig==}
+
+  openapi-typescript-helpers@0.1.0:
+    resolution: {integrity: sha512-OKTGPthhivLw/fHz6c3OPtg72vi86qaMlqbJuVJ23qOvQ+53uw1n7HdmkJFibloF7QEjDrDkzJiOJuockM/ljw==}
+
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -5332,6 +5366,11 @@ packages:
       '@types/react':
         optional: true
 
+  use-sync-external-store@1.6.0:
+    resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -6133,6 +6172,10 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@chikingsley/peacockery-voice-client@git+https://github.com/chikingsley/peacockery-voice.git#304057e901f374f819ed49f0fec62f60c88eb852&path:/clients/typescript':
+    dependencies:
+      openapi-fetch: 0.17.0
+
   '@egjs/hammerjs@2.0.17':
     dependencies:
       '@types/hammerjs': 2.0.46
@@ -6818,6 +6861,14 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@legendapp/list@3.3.3(react-dom@19.2.3(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
+      use-sync-external-store: 1.6.0(react@19.2.3)
+    optionalDependencies:
+      react-dom: 19.2.3(react@19.2.3)
+      react-native: 0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)
+
   '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@emnapi/core': 1.10.0
@@ -7221,10 +7272,10 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
 
-  '@rn-primitives/portal@1.4.0(@types/react@19.2.17)(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)':
+  '@rn-primitives/portal@1.4.0(@types/react@19.2.17)(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))':
     dependencies:
       react: 19.2.3
-      zustand: 5.0.14(@types/react@19.2.17)(react@19.2.3)
+      zustand: 5.0.14(@types/react@19.2.17)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     optionalDependencies:
       react-native: 0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)
       react-native-web: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -10600,6 +10651,12 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
+  openapi-fetch@0.17.0:
+    dependencies:
+      openapi-typescript-helpers: 0.1.0
+
+  openapi-typescript-helpers@0.1.0: {}
+
   optionator@0.9.4:
     dependencies:
       deep-is: 0.1.4
@@ -11784,6 +11841,10 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
 
+  use-sync-external-store@1.6.0(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+
   util-deprecate@1.0.2: {}
 
   utils-merge@1.0.1: {}
@@ -11969,7 +12030,8 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zustand@5.0.14(@types/react@19.2.17)(react@19.2.3):
+  zustand@5.0.14(@types/react@19.2.17)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3)):
     optionalDependencies:
       '@types/react': 19.2.17
       react: 19.2.3
+      use-sync-external-store: 1.6.0(react@19.2.3)

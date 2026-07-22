@@ -1,0 +1,23 @@
+appId: com.apple.shortcuts
+name: TimberVox Shortcut persistent background session
+---
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      text: Toggle TimberVox Dictation
+    timeout: 30000
+- openLink: shortcuts://run-shortcut?name=Toggle%20TimberVox%20Dictation
+- extendedWaitUntil:
+    visible:
+      text: Toggle TimberVox Dictation
+    timeout: 30000
+- assertNotVisible:
+    text: The action could not run because an unknown error occurred.
+- openLink: shortcuts://run-shortcut?name=Toggle%20TimberVox%20Dictation
+- extendedWaitUntil:
+    visible:
+      text: Toggle TimberVox Dictation
+    timeout: 30000
+- assertNotVisible:
+    text: The action could not run because an unknown error occurred.

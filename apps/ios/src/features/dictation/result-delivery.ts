@@ -9,17 +9,18 @@ import {
 
 async function deliverDictationResult(outcome: DictationOutcome, text: string) {
   const deliveredText = text.trim();
-  if (!deliveredText) return;
-  if (outcome.entryPoint === "keyboard") {
+  if (outcome.entryPoint === "keyboard" || outcome.entryPoint === "shortcut") {
     writeBridgeString("finalResultId", outcome.resultId);
     writeBridgeString("finalRequestId", outcome.requestId);
     writeBridgeString("finalTranscript", deliveredText);
+    writeBridgeString("finalResultStatus", outcome.status);
     writeBridgeNumber(
       "transcriptRevision",
       readBridgeNumber("transcriptRevision") + 1,
     );
-    return;
+    if (outcome.entryPoint === "keyboard") return;
   }
+  if (!deliveredText) return;
   await Clipboard.setStringAsync(deliveredText);
 }
 

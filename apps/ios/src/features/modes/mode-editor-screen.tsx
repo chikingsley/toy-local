@@ -150,6 +150,7 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
             onCheckedChange={(identifySpeakers) =>
               editor.patch({ identifySpeakers })
             }
+            testID="mode-identify-speakers-toggle"
           />
         );
       case "languageModel":
@@ -158,6 +159,7 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
             disabled={!processingModel}
             label="Language model"
             onPress={() => router.push("/modes/sheets/language-model-picker")}
+            testID="mode-language-model-picker"
             value={
               processingModel
                 ? languageModelDisplayName(processingModel)
@@ -200,12 +202,14 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
               detail={preset.defaultDescription}
               label="Preset"
               onPress={() => router.push("/modes/sheets/preset-picker")}
+              testID="mode-preset-picker"
               value={preset.defaultName}
             />
             <Separator />
             <PickerRow
               label="Language"
               onPress={() => router.push("/modes/sheets/language-picker")}
+              testID="mode-language-picker"
               value={
                 draft.language
                   ? languageDisplayName(draft.language)
@@ -219,7 +223,14 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
               disabled={!modes.catalog}
               label="Voice model"
               onPress={() => router.push("/modes/sheets/model-picker")}
-              value={model ? modelDisplayName(model) : "Loading…"}
+              testID="mode-transcription-model-picker"
+              value={
+                model
+                  ? modelDisplayName(model)
+                  : modes.catalogError
+                    ? "Unavailable"
+                    : "Loading…"
+              }
             />
             {model?.batch && model.realtime ? (
               <>
@@ -230,10 +241,27 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
                   onCheckedChange={(realtimeEnabled) =>
                     editor.patch({ realtimeEnabled })
                   }
+                  testID="mode-realtime-toggle"
                 />
               </>
             ) : null}
           </AppSection>
+
+          {modes.catalogError ? (
+            <AppSection contentClassName="items-center gap-3 py-4">
+              <Text className="text-destructive text-center text-sm">
+                {modes.catalogError}
+              </Text>
+              <Button
+                onPress={() => void modes.retryCatalog()}
+                size="sm"
+                testID="retry-model-catalog"
+                variant="outline"
+              >
+                <Text>Retry Models</Text>
+              </Button>
+            </AppSection>
+          ) : null}
 
           {settingFields.length > 0 ? (
             <AppSection>
@@ -258,6 +286,7 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
                   }
                   placeholder="How should TimberVox shape the transcript?"
                   value={draft.processingInstructions ?? ""}
+                  testID="mode-processing-instructions"
                 />
               </View>
             </AppSection>
@@ -269,6 +298,7 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
                 accessibilityLabel="Delete mode"
                 className="active:bg-accent min-h-[58px] flex-row items-center justify-between px-[17px]"
                 onPress={deleteCurrentMode}
+                testID="delete-mode"
               >
                 <Text className="text-destructive font-semibold">
                   Delete this mode
@@ -285,6 +315,7 @@ function ModeEditorScreen({ isNew }: { isNew: boolean }) {
             className="h-14 rounded-2xl"
             disabled={saving || !modes.catalog}
             onPress={() => void activateCurrentMode()}
+            testID="use-mode"
           >
             <Text className="text-base font-bold">
               {saving ? "Saving…" : "Use Mode"}
@@ -313,6 +344,7 @@ function ModeEditorHeader({
         accessibilityLabel="Change mode icon"
         className="active:bg-accent size-8 items-center justify-center rounded-full"
         onPress={onChangeIcon}
+        testID="change-mode-icon"
       >
         <SymbolView name={iconKey as never} size={19} tintColor="#f4f6fb" />
       </Pressable>
@@ -320,6 +352,7 @@ function ModeEditorHeader({
         accessibilityLabel={`Rename ${name} mode`}
         className="active:bg-accent min-w-0 flex-row items-center gap-1 rounded-lg px-1.5 py-1"
         onPress={onRename}
+        testID="rename-mode"
       >
         <Text
           className="max-w-[164px] text-[17px] font-semibold"
@@ -339,12 +372,14 @@ function PickerRow({
   label,
   onPress,
   value,
+  testID,
 }: {
   detail?: string;
   disabled?: boolean;
   label: string;
   onPress: () => void;
   value: string;
+  testID?: string;
 }) {
   return (
     <Pressable
@@ -352,6 +387,7 @@ function PickerRow({
       disabled={disabled}
       onPress={onPress}
       style={{ opacity: disabled ? 0.5 : 1 }}
+      testID={testID}
     >
       <View className="min-h-8 flex-row items-center justify-between gap-4">
         <Text className="font-semibold">{label}</Text>
@@ -378,15 +414,21 @@ function SwitchRow({
   checked,
   label,
   onCheckedChange,
+  testID,
 }: {
   checked: boolean;
   label: string;
   onCheckedChange: (checked: boolean) => void;
+  testID?: string;
 }) {
   return (
     <View className="min-h-[58px] flex-row items-center justify-between gap-4">
       <Text className="font-semibold">{label}</Text>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        testID={testID}
+      />
     </View>
   );
 }

@@ -19,7 +19,7 @@ struct KeyboardRootView: View {
     VStack(spacing: KeyboardMetrics.sectionSpacing) {
       KeyboardSuggestionBar(
         suggestions: model.predictions,
-        partialTranscript: model.partialTranscript,
+        partialTranscript: model.streamingInsertionEnabled ? "" : model.partialTranscript,
         isEnabled: model.predictionsEnabled,
         onSelect: model.acceptPrediction
       )
@@ -101,6 +101,15 @@ struct KeyboardRootView: View {
             if model.recordingRequested {
               RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(.white.opacity(0.45), lineWidth: 2)
+                .allowsHitTesting(false)
+            } else if model.sessionPhase == "processing" || model.sessionPhase == "finalizing" {
+              Circle()
+                .fill(Color.cyan)
+                .frame(width: 8, height: 8)
+                .overlay(Circle().stroke(.white.opacity(0.8), lineWidth: 1))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(4)
+                .allowsHitTesting(false)
             }
           }
       }

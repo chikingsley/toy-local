@@ -1,4 +1,5 @@
 import type { ModeDraft, ModePresetKind } from "@/features/modes/mode-types";
+import { DEFAULT_TRANSCRIPTION_MODEL_ID } from "@/features/modes/mode-defaults";
 
 type PresetDefinition = {
   defaultDescription: string;
@@ -81,7 +82,7 @@ function createModeId() {
 
 function createModeDraft(
   presetKind: ModePresetKind = "voice",
-  asrModelId = "",
+  asrModelId = DEFAULT_TRANSCRIPTION_MODEL_ID,
 ): ModeDraft {
   const preset = PRESET_DEFINITIONS[presetKind];
   return {

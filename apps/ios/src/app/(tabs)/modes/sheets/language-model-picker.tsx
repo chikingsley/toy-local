@@ -59,6 +59,7 @@ export default function LanguageModelPickerScreen() {
             router.back();
           }}
           selected={selectedFamily === languageModelFamilyKey(model)}
+          testID={`language-model-option-${model.id}`}
         />
       )}
     />

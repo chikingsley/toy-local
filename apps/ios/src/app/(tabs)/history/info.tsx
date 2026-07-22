@@ -16,10 +16,18 @@ import {
   formatDate,
   formatDuration,
 } from "@/features/history/history-format";
+import {
+  languageDisplayName,
+  modelDisplayName,
+  selectedTranscriptionModel,
+  type ModelCatalog,
+} from "@/features/modes/model-catalog";
+import { useModes } from "@/features/modes/mode-provider";
 
 export default function HistoryInfoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const database = useSQLiteContext();
+  const { catalog } = useModes();
   const [detail, setDetail] = useState<StoredDictationDetail | null>();
 
   useEffect(() => {
@@ -36,9 +44,21 @@ export default function HistoryInfoScreen() {
             <Separator />
             <InfoRow label="Mode" value={detail.mode.name} />
             <Separator />
-            <InfoRow label="Model" value={detail.modelId} />
+            <InfoRow
+              label="Model"
+              testID="history-info-model"
+              value={modelName(detail.modelId, catalog)}
+            />
             <Separator />
-            <InfoRow label="Language" value={detail.language ?? "Automatic"} />
+            <InfoRow
+              label="Language"
+              testID="history-info-language"
+              value={
+                detail.language
+                  ? languageDisplayName(detail.language)
+                  : "Automatic"
+              }
+            />
             <Separator />
             <InfoRow
               label="Duration"
@@ -64,13 +84,31 @@ export default function HistoryInfoScreen() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  testID,
+  value,
+}: {
+  label: string;
+  testID?: string;
+  value: string;
+}) {
   return (
-    <View className="min-h-[56px] flex-row items-center justify-between gap-5">
+    <View
+      className="min-h-[56px] flex-row items-center justify-between gap-5"
+      testID={testID}
+    >
       <Text className="text-muted-foreground">{label}</Text>
       <Text className="flex-1 text-right font-semibold">{value}</Text>
     </View>
   );
+}
+
+function modelName(modelId: string, catalog: ModelCatalog | null) {
+  const model = catalog
+    ? selectedTranscriptionModel(catalog, modelId)
+    : undefined;
+  return model ? modelDisplayName(model) : modelId;
 }
 
 function entryPointLabel(entryPoint: StoredDictationDetail["entryPoint"]) {

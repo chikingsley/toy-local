@@ -41,6 +41,7 @@ export function HistoryProvider({ children }: PropsWithChildren) {
   const [items, setItems] = useState<DictationHistoryItem[]>([]);
 
   const reload = useCallback(async () => {
+    await applyAudioRetention(database);
     setItems(await loadHistory(database));
   }, [database]);
 

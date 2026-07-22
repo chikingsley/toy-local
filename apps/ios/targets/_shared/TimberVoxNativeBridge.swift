@@ -4,7 +4,7 @@ import Foundation
 
 enum TimberVoxNativeBridge {
   static let appGroup = "group.studio.peacockery.timbervox"
-  static let schemaVersion = 3
+  static let schemaVersion = 5
 
   static var defaults: UserDefaults {
     guard let defaults = UserDefaults(suiteName: appGroup) else {
@@ -13,9 +13,14 @@ enum TimberVoxNativeBridge {
     return defaults
   }
 
-  static func publishStopRequest() {
+  static func publishRecordingStopRequest() {
     defaults.set(false, forKey: "recordingRequested")
     defaults.set(defaults.integer(forKey: "requestRevision") + 1, forKey: "requestRevision")
+  }
+
+  static func publishSessionStopRequest() {
+    defaults.set(true, forKey: "sessionStopRequested")
+    defaults.set(defaults.integer(forKey: "sessionRevision") + 1, forKey: "sessionRevision")
   }
 }
 
@@ -59,7 +64,10 @@ struct TimberVoxNativeModeSnapshot: Codable, Hashable, Sendable {
 
 struct TimberVoxRecordingAttributes: ActivityAttributes {
   struct ContentState: Codable, Hashable {
+    let audioLevels: [Double]
+    let displayMode: String
     let phase: String
+    let partialTranscript: String
   }
 
   let modeName: String
@@ -68,12 +76,12 @@ struct TimberVoxRecordingAttributes: ActivityAttributes {
 }
 
 struct StopTimberVoxRecordingIntent: LiveActivityIntent {
-  static let title: LocalizedStringResource = "Stop TimberVox Recording"
-  static let description = IntentDescription("Finish the active TimberVox dictation.")
+  static let title: LocalizedStringResource = "End TimberVox Session"
+  static let description = IntentDescription("End the active TimberVox background session.")
   static let openAppWhenRun = false
 
   func perform() async throws -> some IntentResult {
-    TimberVoxNativeBridge.publishStopRequest()
+    TimberVoxNativeBridge.publishSessionStopRequest()
     return .result()
   }
 }

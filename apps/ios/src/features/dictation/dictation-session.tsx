@@ -1,6 +1,5 @@
 import {
   requestRecordingPermissionsAsync,
-  setAudioModeAsync,
   useAudioStream,
   type AudioStreamBuffer,
 } from "expo-audio";
@@ -18,6 +17,10 @@ import {
 } from "react";
 import { AppState } from "react-native";
 
+import {
+  configurePlaybackAudioSession,
+  configureRecordingAudioSession,
+} from "@/features/audio/audio-session";
 import { persistDictationOutcome } from "@/features/dictation/dictation-repository";
 import { transcribeCloudBatch } from "@/features/dictation/cloud-batch-client";
 import {
@@ -82,6 +85,13 @@ type DictationSessionValue = {
   stopDictation: () => void;
 };
 
+type NativeSessionState = {
+  active: boolean;
+  error: string | null;
+  phase: string;
+  recording: boolean;
+};
+
 const INITIAL_SNAPSHOT: DictationWorkflowSnapshot = {
   error: null,
   finalText: "",
@@ -105,7 +115,11 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
   const localPackage = useLocalModelPackage();
   const [snapshot, setSnapshot] =
     useState<DictationWorkflowSnapshot>(INITIAL_SNAPSHOT);
+  const [nativeSession, setNativeSession] = useState<NativeSessionState>(() =>
+    readNativeSessionState(),
+  );
   const sessionActiveRef = useRef(false);
+  const nativeSessionRef = useRef(nativeSession);
   const lastEntryPointRef = useRef<DictationEntryPoint>("app");
   const lastRequestRevisionRef = useRef(readBridgeNumber("requestRevision"));
   const activeModeRef = useRef<Mode | null>(modes.activeMode);
@@ -146,6 +160,10 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
   }, [workflow]);
 
   useEffect(() => {
+    nativeSessionRef.current = nativeSession;
+  }, [nativeSession]);
+
+  useEffect(() => {
     activeModeRef.current = modes.activeMode;
     catalogRef.current = modes.catalog;
   }, [modes.activeMode, modes.catalog]);
@@ -165,13 +183,41 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
     }
   }, [database, historyReload]);
 
+  const refreshNativeSession = useCallback(() => {
+    const next = readNativeSessionState();
+    nativeSessionRef.current = next;
+    setNativeSession((current) =>
+      nativeSessionStateEqual(current, next) ? current : next,
+    );
+    return next;
+  }, []);
+
   useEffect(() => {
     void importNativeResult();
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") void importNativeResult();
+      if (state === "active") {
+        refreshNativeSession();
+        void importNativeResult();
+      }
     });
     return () => subscription.remove();
-  }, [importNativeResult]);
+  }, [importNativeResult, refreshNativeSession]);
+
+  useEffect(() => {
+    let lastResultRevision = readBridgeNumber("nativeResultRevision");
+    const timer = setInterval(() => {
+      refreshNativeSession();
+      const resultRevision = readBridgeNumber("nativeResultRevision");
+      if (resultRevision !== lastResultRevision) {
+        lastResultRevision = resultRevision;
+        void importNativeResult();
+      }
+      if (sessionActiveRef.current) {
+        writeBridgeNumber("sessionHeartbeat", Date.now() / 1_000);
+      }
+    }, 200);
+    return () => clearInterval(timer);
+  }, [importNativeResult, refreshNativeSession]);
 
   const beginDictation = useCallback(
     (entryPoint: DictationEntryPoint, requestedId?: string) => {
@@ -193,6 +239,11 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
         lastEntryPointRef.current = entryPoint;
         writeBridgeString("partialTranscript", "");
         writeBridgeString("activeRequestId", plan.value.requestId);
+        writeBridgeString("partialTranscriptRequestId", plan.value.requestId);
+        writeBridgeNumber(
+          "partialTranscriptRevision",
+          readBridgeNumber("partialTranscriptRevision") + 1,
+        );
       }
       return started;
     },
@@ -228,6 +279,7 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
   });
 
   const startSession = useCallback(async () => {
+    if (nativeSessionRef.current.active) return true;
     if (sessionActiveRef.current) {
       workflowRef.current.ready();
       return true;
@@ -248,13 +300,14 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
       return false;
     }
     try {
-      await setAudioModeAsync({
-        allowsBackgroundRecording: true,
-        allowsRecording: true,
-        playsInSilentMode: true,
-      });
+      await configureRecordingAudioSession();
       await stream.start();
       writeBridgeBoolean("sessionActive", true);
+      writeBridgeString("sessionOwner", "expo");
+      writeBridgeString("sessionPhase", "ready");
+      writeBridgeString("sessionErrorMessage", "");
+      writeBridgeNumber("sessionHeartbeat", Date.now() / 1_000);
+      writeBridgeBoolean("sessionStopRequested", false);
       sessionActiveRef.current = true;
       workflowRef.current.ready();
       if (pendingKeyboardRequestId) {
@@ -268,6 +321,9 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
       }
       return true;
     } catch {
+      writeBridgeBoolean("sessionActive", false);
+      writeBridgeString("sessionOwner", "");
+      writeBridgeString("sessionPhase", "off");
       workflowRef.current.failBeforeStart({
         action: "retry-session",
         code: "interrupted_input",
@@ -279,6 +335,18 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
   }, [beginDictation, stream]);
 
   const startDictation = useCallback(async () => {
+    if (nativeSessionRef.current.active) {
+      const requestId = createRequestId();
+      writeBridgeString("requestedEntryPoint", "app");
+      writeBridgeString("activeRequestId", requestId);
+      writeBridgeBoolean("recordingRequested", true);
+      writeBridgeNumber(
+        "requestRevision",
+        readBridgeNumber("requestRevision") + 1,
+      );
+      refreshNativeSession();
+      return;
+    }
     if (!sessionActiveRef.current && !(await startSession())) return;
     writeBridgeString("requestedEntryPoint", "app");
     writeBridgeBoolean("recordingRequested", true);
@@ -287,7 +355,7 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
       readBridgeNumber("requestRevision") + 1,
     );
     if (!beginDictation("app")) writeBridgeBoolean("recordingRequested", false);
-  }, [beginDictation, startSession]);
+  }, [beginDictation, refreshNativeSession, startSession]);
 
   const stopDictation = useCallback(() => {
     writeBridgeBoolean("recordingRequested", false);
@@ -296,7 +364,8 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
       readBridgeNumber("requestRevision") + 1,
     );
     workflowRef.current.stop();
-  }, []);
+    refreshNativeSession();
+  }, [refreshNativeSession]);
 
   const cancelDictation = useCallback(() => {
     writeBridgeBoolean("recordingRequested", false);
@@ -305,18 +374,63 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
       readBridgeNumber("requestRevision") + 1,
     );
     writeBridgeString("partialTranscript", "");
-    workflowRef.current.cancel();
-  }, []);
+    writeBridgeString("partialTranscriptRequestId", "");
+    writeBridgeNumber(
+      "partialTranscriptRevision",
+      readBridgeNumber("partialTranscriptRevision") + 1,
+    );
+    if (!nativeSessionRef.current.active) workflowRef.current.cancel();
+    refreshNativeSession();
+  }, [refreshNativeSession]);
 
-  const endSession = useCallback(async () => {
-    workflowRef.current.cancel();
+  const endExpoSession = useCallback(async () => {
+    const stage = workflowRef.current.current.stage;
+    const finalizingCapture = stage === "connecting" || stage === "listening";
+    if (finalizingCapture) workflowRef.current.stop();
+    else workflowRef.current.cancel();
     stream.stop();
     writeBridgeBoolean("sessionActive", false);
+    writeBridgeString("sessionOwner", "");
+    writeBridgeString("sessionPhase", "off");
+    writeBridgeString("sessionErrorMessage", "");
+    writeBridgeNumber("sessionHeartbeat", 0);
+    writeBridgeBoolean("sessionStopRequested", false);
     writeBridgeBoolean("recordingRequested", false);
     writeBridgeString("partialTranscript", "");
+    writeBridgeString("partialTranscriptRequestId", "");
+    writeBridgeNumber(
+      "partialTranscriptRevision",
+      readBridgeNumber("partialTranscriptRevision") + 1,
+    );
     sessionActiveRef.current = false;
-    workflowRef.current.idle();
+    await configurePlaybackAudioSession();
+    if (!finalizingCapture) workflowRef.current.idle();
   }, [stream]);
+
+  const endSession = useCallback(async () => {
+    if (nativeSessionRef.current.active) {
+      writeBridgeBoolean("sessionStopRequested", true);
+      writeBridgeNumber(
+        "sessionRevision",
+        readBridgeNumber("sessionRevision") + 1,
+      );
+      refreshNativeSession();
+      return;
+    }
+    await endExpoSession();
+  }, [endExpoSession, refreshNativeSession]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (
+        sessionActiveRef.current &&
+        readBridgeBoolean("sessionStopRequested")
+      ) {
+        void endExpoSession();
+      }
+    }, 200);
+    return () => clearInterval(timer);
+  }, [endExpoSession]);
 
   const recover = useCallback(async () => {
     const action = workflowRef.current.current.error?.action;
@@ -346,13 +460,27 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (lastEntryPointRef.current === "keyboard") {
-      writeBridgeString("partialTranscript", snapshot.visibleText);
+      const previous = readBridgeString("partialTranscript");
+      if (previous !== snapshot.visibleText) {
+        writeBridgeString("partialTranscript", snapshot.visibleText);
+        writeBridgeString(
+          "partialTranscriptRequestId",
+          snapshot.requestId ?? readBridgeString("activeRequestId"),
+        );
+        writeBridgeNumber(
+          "partialTranscriptRevision",
+          readBridgeNumber("partialTranscriptRevision") + 1,
+        );
+      }
     }
     if (snapshot.stage === "result") {
       writeBridgeBoolean("recordingRequested", false);
       writeBridgeString("activeRequestId", "");
       const timer = setTimeout(
-        () => workflowRef.current.acknowledgeResult(),
+        () => {
+          if (sessionActiveRef.current) workflowRef.current.acknowledgeResult();
+          else workflowRef.current.idle();
+        },
         1_100,
       );
       return () => clearTimeout(timer);
@@ -374,29 +502,46 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
     return () => subscription.remove();
   }, [startSession]);
 
+  const presentedStage: DictationStage = nativeSession.active
+    ? nativeSession.error
+      ? "error"
+      : nativeSession.recording
+        ? "listening"
+        : "ready"
+    : snapshot.stage;
+
   const value = useMemo<DictationSessionValue>(
     () => ({
       cancelDictation,
       endSession,
-      error: snapshot.error?.message ?? null,
-      errorCode: snapshot.error?.code ?? null,
-      finalizing: snapshot.stage === "finalizing",
+      error: nativeSession.active
+        ? nativeSession.error
+        : (snapshot.error?.message ?? null),
+      errorCode: nativeSession.active
+        ? nativeSession.error
+          ? "interrupted_input"
+          : null
+        : (snapshot.error?.code ?? null),
+      finalizing: presentedStage === "finalizing",
       lastTranscript: snapshot.finalText,
-      partialTranscript: snapshot.visibleText,
-      recording:
-        snapshot.stage === "connecting" || snapshot.stage === "listening",
+      partialTranscript: nativeSession.active
+        ? readBridgeString("partialTranscript")
+        : snapshot.visibleText,
+      recording: presentedStage === "connecting" || presentedStage === "listening",
       recover,
       recoveryLabel: recoveryLabel(snapshot.error),
-      sessionActive: snapshot.stage !== "idle",
-      stage: snapshot.stage,
+      sessionActive: nativeSession.active || snapshot.stage !== "idle",
+      stage: presentedStage,
       startDictation,
       startSession,
-      stateLabel: stageLabel(snapshot.stage, snapshot.finalText),
+      stateLabel: stageLabel(presentedStage, snapshot.finalText),
       stopDictation,
     }),
     [
       cancelDictation,
       endSession,
+      nativeSession,
+      presentedStage,
       recover,
       snapshot,
       startDictation,
@@ -516,6 +661,35 @@ function createPlan(
 
 function createRequestId() {
   return `request_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function readNativeSessionState(): NativeSessionState {
+  const nativeOwner = readBridgeString("sessionOwner") === "native";
+  const heartbeatAge = Date.now() / 1_000 - readBridgeNumber("sessionHeartbeat");
+  const active =
+    nativeOwner &&
+    readBridgeBoolean("sessionActive") &&
+    heartbeatAge >= 0 &&
+    heartbeatAge < 5;
+  const error = readBridgeString("sessionErrorMessage").trim();
+  return {
+    active,
+    error: error || null,
+    phase: readBridgeString("sessionPhase") || "off",
+    recording: active && readBridgeBoolean("recordingRequested"),
+  };
+}
+
+function nativeSessionStateEqual(
+  left: NativeSessionState,
+  right: NativeSessionState,
+) {
+  return (
+    left.active === right.active &&
+    left.error === right.error &&
+    left.phase === right.phase &&
+    left.recording === right.recording
+  );
 }
 
 function stageLabel(stage: DictationStage, finalText: string) {

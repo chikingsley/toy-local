@@ -353,6 +353,20 @@ describe("mode contracts", () => {
       "Local · ~452 MB · 3.0% WER",
     );
     expect(local && modelDisplayName(local)).toBe("Parakeet Local");
+    expect(
+      modelDisplayName({
+        id: "deepgram-nova-2-medical",
+        provider: "deepgram",
+        runtime: "cloud",
+      }),
+    ).toBe("Nova 2 Medical");
+    expect(
+      modelDisplayName({
+        id: "elevenlabs-scribe_v2",
+        provider: "elevenlabs",
+        runtime: "cloud",
+      }),
+    ).toBe("Scribe v2");
     expect(selectedRoute(local, true)?.model).toBe(
       "parakeet-realtime-eou-120m-coreml/320ms",
     );

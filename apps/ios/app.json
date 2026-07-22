@@ -10,7 +10,7 @@
     "ios": {
       "icon": "./assets/images/timbervox-icon.png",
       "bundleIdentifier": "studio.peacockery.timbervox",
-      "buildNumber": "89",
+      "buildNumber": "94",
       "appleTeamId": "XM69J99HWP",
       "supportsTablet": false,
       "infoPlist": {
@@ -84,6 +84,8 @@
           ]
         }
       ],
+      "./plugins/with-timbervox-app-shortcuts",
+      "./plugins/with-executorch-keyboard",
       "@bacons/apple-targets"
     ],
     "experiments": {

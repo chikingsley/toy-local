@@ -1,0 +1,32 @@
+appId: studio.peacockery.timbervox
+name: TimberVox paired local model download
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: Modes
+- extendedWaitUntil:
+    visible:
+      id: create-mode
+    timeout: 15000
+- tapOn:
+    id: create-mode
+- tapOn:
+    id: mode-transcription-model-picker
+- extendedWaitUntil:
+    visible:
+      id: model-option-local-parakeet-110m
+    timeout: 15000
+- tapOn:
+    id: model-option-local-parakeet-110m
+- extendedWaitUntil:
+    visible:
+      text: "On device · Ready"
+    timeout: 600000
+- tapOn:
+    id: model-option-local-parakeet-110m
+- assertVisible:
+    id: mode-realtime-toggle
+- assertVisible:
+    id: use-mode
+

@@ -1,9 +1,11 @@
+import { LegendList } from "@legendapp/list/react-native";
 import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppScreen } from "@/components/app/app-screen";
+import { APP_VIRTUALIZED_LIST_CONTENT_STYLE } from "@/components/app/app-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
@@ -30,33 +32,42 @@ export default function HistoryScreen() {
   }, [history.items, query]);
 
   return (
-    <AppScreen keyboardShouldPersistTaps="handled" scroll>
-      <Input
-        accessibilityLabel="Search history"
-        className="h-12 rounded-2xl border-0 px-4 shadow-none"
-        onChangeText={setQuery}
-        placeholder="Search history"
-        value={query}
-      />
-
-      {filtered.length === 0 ? (
-        <HistoryEmptyState searching={Boolean(query.trim())} />
-      ) : (
-        <View className="gap-3">
-          {filtered.map((item) => (
-            <HistoryRow
-              item={item}
-              key={item.id}
-              onPress={() =>
-                router.push({
-                  pathname: "/history/[id]",
-                  params: { id: item.id },
-                })
-              }
+    <AppScreen keyboardShouldPersistTaps="handled">
+      <LegendList
+        ListEmptyComponent={
+          <HistoryEmptyState searching={Boolean(query.trim())} />
+        }
+        ListHeaderComponent={
+          <View className="pb-3">
+            <Input
+              accessibilityLabel="Search history"
+              className="h-12 rounded-2xl border-0 px-4 shadow-none"
+              onChangeText={setQuery}
+              placeholder="Search history"
+              testID="history-search"
+              value={query}
             />
-          ))}
-        </View>
-      )}
+          </View>
+        }
+        contentContainerStyle={APP_VIRTUALIZED_LIST_CONTENT_STYLE}
+        data={filtered}
+        estimatedItemSize={132}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        keyExtractor={(item) => item.id}
+        recycleItems
+        renderItem={({ item }) => (
+          <HistoryRow
+            item={item}
+            onPress={() =>
+              router.push({
+                pathname: "/history/[id]",
+                params: { id: item.id },
+              })
+            }
+          />
+        )}
+      />
     </AppScreen>
   );
 }
@@ -72,6 +83,7 @@ function HistoryRow({
     <Pressable
       accessibilityLabel={`Open dictation from ${new Date(item.createdAt).toLocaleDateString()}`}
       onPress={onPress}
+      testID={`history-row-${item.id}`}
     >
       <Card className="gap-0 rounded-[20px] border-0 py-0 shadow-none">
         <CardContent className="gap-3 px-[17px] py-4">

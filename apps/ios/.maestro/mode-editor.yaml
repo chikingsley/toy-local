@@ -1,0 +1,57 @@
+appId: studio.peacockery.timbervox
+name: TimberVox mode editor
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: Modes
+- extendedWaitUntil:
+    visible:
+      id: create-mode
+    timeout: 15000
+- tapOn:
+    id: create-mode
+- assertVisible:
+    id: mode-preset-picker
+- assertVisible:
+    id: mode-language-picker
+- assertVisible:
+    id: mode-transcription-model-picker
+- assertVisible:
+    id: change-mode-icon
+- assertVisible:
+    id: rename-mode
+- tapOn:
+    id: mode-preset-picker
+- assertVisible:
+    id: preset-option-message
+- tapOn:
+    id: preset-option-message
+- assertVisible:
+    id: mode-language-model-picker
+- tapOn:
+    id: mode-language-model-picker
+- assertVisible:
+    id: language-model-option-anthropic-claude-sonnet-4-6
+- tapOn:
+    id: language-model-option-anthropic-claude-sonnet-4-6
+- assertVisible:
+    id: mode-transcription-model-picker
+- tapOn:
+    id: mode-transcription-model-picker
+- extendedWaitUntil:
+    visible:
+      id: model-option-mistral-voxtral-mini-latest
+    timeout: 15000
+- tapOn:
+    id: model-option-mistral-voxtral-mini-latest
+- assertVisible:
+    id: mode-language-picker
+- tapOn:
+    id: mode-language-picker
+- assertVisible:
+    id: language-option-automatic
+- tapOn:
+    id: language-option-automatic
+- assertVisible:
+    id: use-mode

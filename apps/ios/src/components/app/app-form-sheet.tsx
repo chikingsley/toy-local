@@ -2,11 +2,13 @@ import { cn } from "@/lib/utils";
 import type { PropsWithChildren } from "react";
 import { ScrollView, type ScrollViewProps } from "react-native";
 
+import { APP_LAYOUT } from "@/components/app/app-layout";
+
 const APP_FORM_SHEET_CONTENT_STYLE = {
-  gap: 10,
-  paddingBottom: 40,
-  paddingHorizontal: 18,
-  paddingTop: 24,
+  gap: APP_LAYOUT.screenStackGap,
+  paddingBottom: APP_LAYOUT.formSheetBottomInset,
+  paddingHorizontal: APP_LAYOUT.screenGutter,
+  paddingTop: APP_LAYOUT.formSheetTopInset,
 } as const;
 
 const APP_FORM_SHEET_INSET_PROPS = {
@@ -31,10 +33,8 @@ function AppFormSheetScroll({
     <ScrollView
       {...APP_FORM_SHEET_INSET_PROPS}
       className={cn("bg-background flex-1", className)}
-      contentContainerClassName={cn(
-        "gap-3 px-[18px] pt-6 pb-10",
-        contentClassName,
-      )}
+      contentContainerClassName={contentClassName}
+      contentContainerStyle={APP_FORM_SHEET_CONTENT_STYLE}
       {...props}
     >
       {children}

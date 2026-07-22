@@ -1,6 +1,10 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
-import { migrateDatabase, migrations } from "@/lib/db/database";
+import {
+  DEFAULT_TRANSCRIPTION_MODEL_ID,
+  migrateDatabase,
+  migrations,
+} from "@/lib/db/database";
 
 describe("mobile database migrations", () => {
   it("applies every migration once and is idempotent on relaunch", async () => {
@@ -98,5 +102,42 @@ describe("mobile database migrations", () => {
     expect(schema).toContain("mode_snapshot_json TEXT NOT NULL");
     expect(schema).toContain("CREATE TABLE IF NOT EXISTS artifacts");
     expect(schema).toContain("REFERENCES dictations(id) ON DELETE CASCADE");
+  });
+
+  it("creates linked processing runs without replacing source artifacts", async () => {
+    const database = {
+      execAsync: jest.fn(async () => undefined),
+    } as unknown as SQLiteDatabase;
+    const migration = migrations.find((candidate) => candidate.version === 5);
+
+    await migration!.migrate(database);
+
+    const schema = (database.execAsync as jest.Mock).mock.calls[0][0] as string;
+    expect(schema).toContain("CREATE TABLE IF NOT EXISTS processing_runs");
+    expect(schema).toContain(
+      "source_artifact_id TEXT NOT NULL REFERENCES artifacts(id)",
+    );
+    expect(schema).toContain(
+      "output_artifact_id TEXT REFERENCES artifacts(id)",
+    );
+    expect(schema).toContain("REFERENCES dictations(id) ON DELETE CASCADE");
+  });
+
+  it("repairs the default mode to Voxtral realtime on upgrade", async () => {
+    const runAsync = jest.fn(async () => ({
+      changes: 1,
+      lastInsertRowId: 1,
+    }));
+    const database = { runAsync } as unknown as SQLiteDatabase;
+    const migration = migrations.find((candidate) => candidate.version === 6);
+
+    await migration!.migrate(database);
+
+    expect(runAsync).toHaveBeenCalledWith(
+      expect.stringContaining("realtime_enabled = 1"),
+      DEFAULT_TRANSCRIPTION_MODEL_ID,
+      expect.any(String),
+      "mode_voice_default",
+    );
   });
 });

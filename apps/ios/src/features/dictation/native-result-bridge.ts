@@ -1,4 +1,8 @@
 import type { SQLiteDatabase } from "expo-sqlite";
+import {
+  acknowledgeNativeResult,
+  getNativeResultOutbox,
+} from "timbervox-system";
 
 import { persistDictationOutcome } from "@/features/dictation/dictation-repository";
 import type {
@@ -17,6 +21,7 @@ type NativeResultEnvelope = {
   createdAt: string;
   durationMs: number;
   endedAt: string;
+  entryPoint?: "app" | "keyboard" | "shortcut";
   errorCode: string | null;
   errorMessage: string | null;
   finalText: string;
@@ -31,6 +36,20 @@ type NativeResultEnvelope = {
 };
 
 async function consumeNativeResult(database: SQLiteDatabase) {
+  const outbox = getNativeResultOutbox();
+  if (outbox.length) {
+    for (const item of outbox) {
+      const envelope = parseNativeResultEnvelope(item.json);
+      await persistNativeResult(database, envelope);
+      acknowledgeNativeResult(item.filename);
+    }
+    writeBridgeNumber(
+      "nativeResultConsumedRevision",
+      readBridgeNumber("nativeResultRevision"),
+    );
+    return true;
+  }
+
   const revision = readBridgeNumber("nativeResultRevision");
   if (revision <= readBridgeNumber("nativeResultConsumedRevision")) {
     return false;
@@ -38,6 +57,15 @@ async function consumeNativeResult(database: SQLiteDatabase) {
   const envelope = parseNativeResultEnvelope(
     readBridgeString("nativeResultEnvelope"),
   );
+  await persistNativeResult(database, envelope);
+  writeBridgeNumber("nativeResultConsumedRevision", revision);
+  return true;
+}
+
+async function persistNativeResult(
+  database: SQLiteDatabase,
+  envelope: NativeResultEnvelope,
+) {
   const artifactPayload = parseObject(envelope.artifactJSON);
   const artifacts: PersistedArtifact[] = [];
   if (envelope.rawText.trim()) {
@@ -84,7 +112,7 @@ async function consumeNativeResult(database: SQLiteDatabase) {
       createdAt: envelope.createdAt,
       durationMs: envelope.durationMs,
       endedAt: envelope.endedAt,
-      entryPoint: "shortcut",
+      entryPoint: envelope.entryPoint ?? "shortcut",
       error:
         envelope.errorCode || envelope.errorMessage
           ? {
@@ -101,8 +129,6 @@ async function consumeNativeResult(database: SQLiteDatabase) {
     },
     envelope.recordingURI,
   );
-  writeBridgeNumber("nativeResultConsumedRevision", revision);
-  return true;
 }
 
 function parseNativeResultEnvelope(value: string): NativeResultEnvelope {
@@ -116,6 +142,10 @@ function parseNativeResultEnvelope(value: string): NativeResultEnvelope {
     typeof parsed.createdAt !== "string" ||
     typeof parsed.startedAt !== "string" ||
     typeof parsed.endedAt !== "string" ||
+    (parsed.entryPoint !== undefined &&
+      parsed.entryPoint !== "app" &&
+      parsed.entryPoint !== "keyboard" &&
+      parsed.entryPoint !== "shortcut") ||
     typeof parsed.durationMs !== "number" ||
     typeof parsed.rawText !== "string" ||
     typeof parsed.finalText !== "string" ||

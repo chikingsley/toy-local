@@ -1,6 +1,9 @@
 import { buildPresetProcessingRequest } from "@/features/modes/preset-contracts";
 import type { DictationPlan } from "@/features/dictation/dictation-types";
-import { API_ORIGIN } from "@/features/dictation/websocket-transport";
+import {
+  configuredVoiceClient,
+  voiceApiError,
+} from "@/lib/peacockery-voice-client";
 
 type TextStreamEvent =
   | { delta: string; protocol_version: 1; type: "text.delta" }
@@ -19,21 +22,16 @@ async function processDictationText(plan: DictationPlan, transcript: string) {
     transcript,
   });
   if (!request) return null;
-  const response = await fetch(`${API_ORIGIN}/v1/text/stream`, {
-    body: JSON.stringify(request),
-    headers: {
-      Accept: "text/event-stream",
-      Authorization: `Bearer ${plan.credential}`,
-      "Content-Type": "application/json",
-    },
-    method: "POST",
+  const { data, error, response } = await configuredVoiceClient(
+    plan.credential,
+  ).POST("/v1/text/stream", {
+    body: request,
+    parseAs: "text",
   });
-  if (!response.ok) {
-    throw new Error(`Text processing failed (${response.status}).`);
-  }
+  if (error) throw voiceApiError("Text processing", response, error);
   let output = "";
   let completed = false;
-  for (const event of parseServerSentEvents(await response.text())) {
+  for (const event of parseServerSentEvents(data)) {
     if (event.type === "text.delta") output += event.delta;
     if (event.type === "stream.failed") throw new Error(event.error.message);
     if (event.type === "stream.completed") completed = true;

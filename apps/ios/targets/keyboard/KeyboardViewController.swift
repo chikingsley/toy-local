@@ -7,7 +7,12 @@ final class KeyboardViewController: UIInputViewController {
   private var hostingController: UIHostingController<KeyboardRootView>?
   private var keyboardHeightConstraint: NSLayoutConstraint?
   private var pollTimer: Timer?
+  private var blockedStreamingRequestID: String?
+  private var insertedPartialText = ""
+  private var lastPartialTranscriptRevision = -1
   private var lastTranscriptRevision = -1
+  private var streamingInsertionPrefix = ""
+  private var streamingRequestID: String?
 
   override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
     super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
@@ -43,6 +48,13 @@ final class KeyboardViewController: UIInputViewController {
     model.hasFullAccess = hasFullAccess
     KeyboardBridge.set(true, for: .keyboardSeen)
     KeyboardBridge.set(hasFullAccess, for: .keyboardHasFullAccess)
+    KeyboardBridge.set(false, for: .keyboardVerificationRequired)
+    KeyboardBridge.set(
+      KeyboardBridge.integer(for: .keyboardStatusRevision) + 1,
+      for: .keyboardStatusRevision
+    )
+    KeyboardBridge.synchronize()
+    KeyboardStatusNotifier.post(hasFullAccess: hasFullAccess)
     model.refreshBridgeState()
     model.refreshSuggestions()
     startPolling()
@@ -54,6 +66,9 @@ final class KeyboardViewController: UIInputViewController {
       guard let self else { return }
       model.needsGlobe = needsInputModeSwitchKey
       model.refreshTraits()
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+      self?.model.prepareSwipeContext()
     }
   }
 
@@ -130,20 +145,121 @@ final class KeyboardViewController: UIInputViewController {
   private func pollBridge() {
     KeyboardBridge.set(true, for: .keyboardSeen)
     model.refreshBridgeState()
+    applyPartialTranscriptIfNeeded()
     let revision = KeyboardBridge.integer(for: .transcriptRevision)
     guard revision != lastTranscriptRevision else { return }
     lastTranscriptRevision = revision
     guard let resultID = KeyboardBridge.string(for: .finalResultId), !resultID.isEmpty,
       resultID != KeyboardBridge.string(for: .consumedResultId),
       let requestID = KeyboardBridge.string(for: .finalRequestId),
-      requestID == KeyboardBridge.string(for: .keyboardRequestId),
-      let text = KeyboardBridge.string(for: .finalTranscript), !text.isEmpty
+      requestID == KeyboardBridge.string(for: .keyboardRequestId)
     else { return }
-    textDocumentProxy.insertText(model.textForInsertion(text))
+    let text = KeyboardBridge.string(for: .finalTranscript) ?? ""
+    let status = KeyboardBridge.string(for: .finalResultStatus) ?? "failed"
+    if !text.isEmpty {
+      deliverFinalText(text, requestID: requestID)
+      model.dictationFeedback(.success)
+    } else if status == "no_speech" {
+      discardStreamedText(requestID: requestID)
+      model.dictationFeedback(.warning)
+      model.predictions = ["No speech", "Try", "again"]
+    } else {
+      discardStreamedText(requestID: requestID)
+      model.dictationFeedback(.failure)
+      model.predictions = ["Dictation", "failed", "Try again"]
+    }
     KeyboardBridge.set(resultID, for: .consumedResultId)
     KeyboardBridge.remove(.finalTranscript)
     model.partialTranscript = ""
     model.refreshCapitalization()
+  }
+
+  private func applyPartialTranscriptIfNeeded() {
+    let revision = KeyboardBridge.integer(for: .partialTranscriptRevision)
+    guard revision != lastPartialTranscriptRevision else { return }
+    lastPartialTranscriptRevision = revision
+    guard model.streamingInsertionEnabled,
+      let requestID = KeyboardBridge.string(for: .partialTranscriptRequestId),
+      !requestID.isEmpty,
+      requestID == KeyboardBridge.string(for: .keyboardRequestId),
+      requestID != blockedStreamingRequestID,
+      let transcript = KeyboardBridge.string(for: .partialTranscript),
+      !transcript.isEmpty
+    else { return }
+
+    if streamingRequestID != requestID {
+      insertedPartialText = ""
+      streamingInsertionPrefix = ""
+      streamingRequestID = requestID
+    }
+    guard replaceStreamedText(with: transcript) else {
+      blockedStreamingRequestID = requestID
+      model.predictions = ["Live insertion", "paused", "Cursor moved"]
+      return
+    }
+    model.refreshCapitalization()
+  }
+
+  private func deliverFinalText(_ text: String, requestID: String) {
+    if streamingRequestID == requestID,
+      blockedStreamingRequestID != requestID, !insertedPartialText.isEmpty
+    {
+      if replaceStreamedText(with: text) {
+        resetStreamingInsertion()
+      } else {
+        blockedStreamingRequestID = requestID
+        model.predictions = [text, "Final text", "Cursor moved"]
+      }
+      return
+    }
+    if blockedStreamingRequestID == requestID {
+      model.predictions = [text, "Tap to insert", ""]
+      resetStreamingInsertion()
+      return
+    }
+    textDocumentProxy.insertText(model.textForInsertion(text))
+    resetStreamingInsertion()
+  }
+
+  private func discardStreamedText(requestID: String) {
+    guard streamingRequestID == requestID, !insertedPartialText.isEmpty else {
+      resetStreamingInsertion()
+      return
+    }
+    guard let context = textDocumentProxy.documentContextBeforeInput else { return }
+    let verification = String(insertedPartialText.suffix(40))
+    guard context.hasSuffix(verification) else {
+      blockedStreamingRequestID = requestID
+      return
+    }
+    for _ in insertedPartialText { textDocumentProxy.deleteBackward() }
+    resetStreamingInsertion()
+  }
+
+  private func replaceStreamedText(with text: String) -> Bool {
+    guard let context = textDocumentProxy.documentContextBeforeInput else { return false }
+    if insertedPartialText.isEmpty {
+      let insertion = model.textForInsertion(text)
+      streamingInsertionPrefix = insertion.hasPrefix(" ") ? " " : ""
+      textDocumentProxy.insertText(insertion)
+      insertedPartialText = insertion
+      return true
+    }
+
+    let verification = String(insertedPartialText.suffix(40))
+    guard context.hasSuffix(verification) else { return false }
+    for _ in insertedPartialText { textDocumentProxy.deleteBackward() }
+    let insertion = streamingInsertionPrefix + text
+    textDocumentProxy.insertText(insertion)
+    insertedPartialText = insertion
+    return true
+  }
+
+  private func resetStreamingInsertion() {
+    blockedStreamingRequestID = nil
+    insertedPartialText = ""
+    streamingInsertionPrefix = ""
+    streamingRequestID = nil
   }
 }
 
@@ -159,6 +275,7 @@ final class KeyboardModel: ObservableObject {
   @Published var partialTranscript = ""
   @Published var sessionActive = false
   @Published var recordingRequested = false
+  @Published var sessionPhase = "off"
   @Published var hasFullAccess = false
   @Published var needsGlobe = true
   @Published var shifted = false
@@ -167,6 +284,7 @@ final class KeyboardModel: ObservableObject {
   @Published var predictionsEnabled = true
   @Published var autocorrectEnabled = true
   @Published var swipeEnabled = true
+  @Published var streamingInsertionEnabled = false
   @Published var page = KeyboardPage.letters
   @Published var keyboardType = UIKeyboardType.default
   @Published var returnKeyType = UIReturnKeyType.default
@@ -174,15 +292,21 @@ final class KeyboardModel: ObservableObject {
   weak var controller: UIInputViewController?
   weak var proxy: UITextDocumentProxy?
 
-  let decoder = GeometricSwipeDecoder()
+  private let decoder = NeuralSwipeDecoder()
   private let languageEngine = KeyboardLanguageEngine()
   private var deleteRepeatTask: Task<Void, Never>?
+
+  func prepareSwipeContext() {
+    decoder.prepareContext()
+  }
 
   func refreshBridgeState() {
     let nextSessionActive = KeyboardBridge.bool(for: .sessionActive)
     if sessionActive != nextSessionActive { sessionActive = nextSessionActive }
     let nextRecordingRequested = KeyboardBridge.bool(for: .recordingRequested)
     if recordingRequested != nextRecordingRequested { recordingRequested = nextRecordingRequested }
+    let nextSessionPhase = KeyboardBridge.string(for: .sessionPhase) ?? "off"
+    if sessionPhase != nextSessionPhase { sessionPhase = nextSessionPhase }
     let nextPartialTranscript = KeyboardBridge.string(for: .partialTranscript) ?? ""
     if partialTranscript != nextPartialTranscript { partialTranscript = nextPartialTranscript }
     let nextHapticsEnabled = KeyboardBridge.bool(for: .keyboardHapticsEnabled)
@@ -195,6 +319,10 @@ final class KeyboardModel: ObservableObject {
     if autocorrectEnabled != nextAutocorrectEnabled { autocorrectEnabled = nextAutocorrectEnabled }
     let nextSwipeEnabled = KeyboardBridge.bool(for: .keyboardSwipeEnabled)
     if swipeEnabled != nextSwipeEnabled { swipeEnabled = nextSwipeEnabled }
+    let nextStreamingInsertionEnabled = KeyboardBridge.bool(for: .streamingInsertionEnabled)
+    if streamingInsertionEnabled != nextStreamingInsertionEnabled {
+      streamingInsertionEnabled = nextStreamingInsertionEnabled
+    }
   }
 
   func addSupplementaryLexicon(_ lexicon: UILexicon) {
@@ -268,11 +396,28 @@ final class KeyboardModel: ObservableObject {
   func insertSpace() {
     feedback()
     let context = KeyboardContext(textBeforeCursor: proxy?.documentContextBeforeInput ?? "")
+    if !context.currentCompletion.isEmpty && context.currentCompletion != context.currentWord {
+      languageEngine.learn(
+        word: context.currentCompletionText,
+        after: context.previousWord,
+        atSentenceStart: context.isSentenceStart
+      )
+      proxy?.insertText(" ")
+      refreshSuggestions()
+      return
+    }
     if !context.currentWord.isEmpty {
-      let committed =
+      let correction =
         autocorrectEnabled
-        ? languageEngine.correction(for: context.currentWord) ?? context.currentWord
-        : context.currentWord
+        ? languageEngine.correction(for: context.currentWord)
+        : nil
+      let committed =
+        correction.map {
+          languageEngine.displayForm(
+            for: $0,
+            capitalized: context.currentWordText.first?.isUppercase ?? false
+          )
+        } ?? context.currentWordText
       replaceCurrentWord(with: committed, appendSpace: true)
       return
     }
@@ -336,6 +481,18 @@ final class KeyboardModel: ObservableObject {
       predictions = ["Enable", "Full Access", "in Settings"]
       return
     }
+    if recordingRequested {
+      dictationFeedback(.stop)
+      KeyboardBridge.set(false, for: .recordingRequested)
+      KeyboardBridge.set(
+        KeyboardBridge.integer(for: .requestRevision) + 1,
+        for: .requestRevision
+      )
+      recordingRequested = false
+      partialTranscript = ""
+      predictions = ["Processing…", "Record again", "Session stays on"]
+      return
+    }
     guard sessionActive else {
       let requestID = "keyboard_\(UUID().uuidString.lowercased())"
       KeyboardBridge.set(requestID, for: .keyboardRequestId)
@@ -348,29 +505,25 @@ final class KeyboardModel: ObservableObject {
       )
       recordingRequested = true
       predictions = ["Opening", "TimberVox", "session"]
+      dictationFeedback(.start)
       openPersonalSession()
       return
     }
-    let next = !recordingRequested
-    feedback()
-    if next {
-      let requestID = "keyboard_\(UUID().uuidString.lowercased())"
-      KeyboardBridge.set(requestID, for: .keyboardRequestId)
-      KeyboardBridge.set(requestID, for: .activeRequestId)
-      KeyboardBridge.set("keyboard", for: .requestedEntryPoint)
-    }
-    KeyboardBridge.set(next, for: .recordingRequested)
+    dictationFeedback(.start)
+    let requestID = "keyboard_\(UUID().uuidString.lowercased())"
+    KeyboardBridge.set(requestID, for: .keyboardRequestId)
+    KeyboardBridge.set(requestID, for: .activeRequestId)
+    KeyboardBridge.set("keyboard", for: .requestedEntryPoint)
+    KeyboardBridge.set(true, for: .recordingRequested)
     KeyboardBridge.set(KeyboardBridge.integer(for: .requestRevision) + 1, for: .requestRevision)
-    recordingRequested = next
-    if next {
-      predictions = ["Listening…", "Speak", "naturally"]
-    }
+    recordingRequested = true
+    predictions = ["Listening…", "Speak", "naturally"]
   }
 
-  func handleSwipe(points: [CGPoint], layout: KeyLayout) {
+  func handleSwipe(samples: [SwipePoint], layout: KeyLayout) {
     guard swipeEnabled, page == .letters else { return }
-    guard let firstPoint = points.first,
-      let lastPoint = points.last,
+    guard let firstPoint = samples.first?.location,
+      let lastPoint = samples.last?.location,
       let first = layout.key(at: firstPoint),
       let last = layout.key(at: lastPoint)
     else { return }
@@ -378,25 +531,57 @@ final class KeyboardModel: ObservableObject {
     let vocabulary = languageEngine.swipeVocabulary(
       first: first,
       last: last,
-      estimatedLength: decoder.estimatedKeyCount(points, layout: layout),
       previousWord: context.previousWord
     )
-    let results = decoder.predictions(for: points, layout: layout, vocabulary: vocabulary)
-    guard let first = results.first else { return }
-    predictions = Array(results.prefix(3))
-    let insertion = shifted ? first.capitalized : first
-    proxy?.insertText(textForInsertion(insertion) + " ")
-    languageEngine.learn(word: first, after: context.previousWord)
+    let results = decoder.predictions(
+      for: samples,
+      layout: layout,
+      vocabulary: vocabulary,
+      contextWords: context.contextWords
+    )
+    guard !results.isEmpty else { return }
+    let displayResults = results.map {
+      languageEngine.displayForm(for: $0, capitalized: shifted)
+    }
+    guard let first = displayResults.first else { return }
+    ordinaryHapticFeedback()
+    predictions = Array(displayResults.prefix(3))
+    proxy?.insertText(textForInsertion(first) + " ")
+    languageEngine.learn(
+      word: first,
+      after: context.previousWord,
+      atSentenceStart: context.isSentenceStart
+    )
     shifted = false
     refreshSuggestions()
   }
 
   private func feedback() {
-    if hapticsEnabled {
-      UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.55)
-    }
+    ordinaryHapticFeedback()
     if soundEnabled {
       UIDevice.current.playInputClick()
+    }
+  }
+
+  private func ordinaryHapticFeedback() {
+    if hapticsEnabled {
+      UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.78)
+    }
+  }
+
+  func dictationFeedback(_ event: DictationFeedback) {
+    guard hapticsEnabled else { return }
+    switch event {
+    case .start:
+      UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 0.9)
+    case .stop:
+      UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.8)
+    case .success:
+      UINotificationFeedbackGenerator().notificationOccurred(.success)
+    case .warning:
+      UINotificationFeedbackGenerator().notificationOccurred(.warning)
+    case .failure:
+      UINotificationFeedbackGenerator().notificationOccurred(.error)
     }
   }
 
@@ -412,13 +597,26 @@ final class KeyboardModel: ObservableObject {
   private func replaceCurrentWord(with word: String, appendSpace: Bool) {
     let before = proxy?.documentContextBeforeInput ?? ""
     let context = KeyboardContext(textBeforeCursor: before)
-    for _ in context.currentWord {
+    let replacingPersonalCompletion = word.contains {
+      KeyboardLanguageEngine.isPersonalCompletionCharacter($0)
+        && !($0.isLetter || $0 == "'")
+    }
+    let replacedText =
+      replacingPersonalCompletion ? context.currentCompletionText : context.currentWordText
+    for _ in replacedText {
       proxy?.deleteBackward()
     }
-    let insertion = shifted ? word.capitalized : word
+    let insertion = languageEngine.displayForm(
+      for: word,
+      capitalized: shifted || (context.currentWordText.first?.isUppercase ?? false)
+    )
     proxy?.insertText(insertion)
     if appendSpace { proxy?.insertText(" ") }
-    languageEngine.learn(word: word, after: context.previousWord)
+    languageEngine.learn(
+      word: insertion,
+      after: context.previousWord,
+      atSentenceStart: context.isSentenceStart
+    )
     shifted = false
     refreshCapitalization()
     refreshSuggestions()
@@ -426,23 +624,52 @@ final class KeyboardModel: ObservableObject {
 
   private func commitCurrentWord(append: String) {
     let context = KeyboardContext(textBeforeCursor: proxy?.documentContextBeforeInput ?? "")
-    if !context.currentWord.isEmpty {
-      languageEngine.learn(word: context.currentWord, after: context.previousWord)
+    if !context.currentCompletion.isEmpty && context.currentCompletion != context.currentWord {
+      languageEngine.learn(
+        word: context.currentCompletionText,
+        after: context.previousWord,
+        atSentenceStart: context.isSentenceStart
+      )
+    } else if !context.currentWord.isEmpty {
+      languageEngine.learn(
+        word: context.currentWordText,
+        after: context.previousWord,
+        atSentenceStart: context.isSentenceStart
+      )
     }
     proxy?.insertText(append)
   }
 
   private func openPersonalSession() {
-    guard let url = URL(string: "timbervox://session") else { return }
-    let selector = NSSelectorFromString("openURL:")
-    var responder: UIResponder? = controller
-    while let current = responder {
-      if current.responds(to: selector) {
-        _ = current.perform(selector, with: url)
-        return
-      }
-      responder = current.next
+    guard let url = URL(string: "timbervox://session"),
+      let extensionContext = controller?.extensionContext
+    else {
+      rejectPersonalSessionOpen()
+      return
     }
+    extensionContext.open(url) { [weak self] opened in
+      guard !opened else { return }
+      Task { @MainActor [weak self] in
+        self?.rejectPersonalSessionOpen()
+      }
+    }
+  }
+
+  private func rejectPersonalSessionOpen() {
+    KeyboardBridge.set(false, for: .recordingRequested)
+    KeyboardBridge.set(
+      KeyboardBridge.integer(for: .requestRevision) + 1,
+      for: .requestRevision
+    )
+    recordingRequested = false
     predictions = ["Open TimberVox", "Start session", "Return here"]
   }
+}
+
+enum DictationFeedback {
+  case failure
+  case start
+  case stop
+  case success
+  case warning
 }

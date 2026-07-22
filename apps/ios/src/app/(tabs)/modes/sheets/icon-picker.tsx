@@ -3,6 +3,7 @@ import { SymbolView } from "expo-symbols";
 import { FlatList, Pressable, View } from "react-native";
 
 import {
+  APP_FORM_SHEET_CONTENT_STYLE,
   APP_FORM_SHEET_INSET_PROPS,
 } from "@/components/app/app-form-sheet";
 import {
@@ -19,7 +20,7 @@ export default function IconPickerScreen() {
       {...APP_FORM_SHEET_INSET_PROPS}
       className="bg-background flex-1"
       columnWrapperClassName="justify-between"
-      contentContainerClassName="gap-2 px-[18px] pt-6 pb-10"
+      contentContainerStyle={{ ...APP_FORM_SHEET_CONTENT_STYLE, gap: 8 }}
       data={MODE_ICONS}
       keyExtractor={(iconKey) => iconKey}
       numColumns={MODE_ICON_COLUMNS}
@@ -38,6 +39,7 @@ export default function IconPickerScreen() {
                 editor.chooseIcon(iconKey);
                 router.back();
               }}
+              testID={`icon-option-${iconKey}`}
             >
               <SymbolView
                 name={iconKey}

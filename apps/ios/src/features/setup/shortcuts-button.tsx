@@ -1,25 +1,14 @@
-import { SymbolView } from "expo-symbols";
-import { Linking } from "react-native";
+import { type ViewProps, View } from "react-native";
+import { NativeShortcutsButton } from "timbervox-system";
 
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
+type ShortcutsButtonProps = ViewProps & { className?: string };
 
-const TIMBERVOX_SHORTCUT_URL =
-  "https://www.icloud.com/shortcuts/e42e0c3a7b214062b102571429275e7a";
-
-function ShortcutsButton(props: ButtonProps) {
+function ShortcutsButton(props: ShortcutsButtonProps) {
   return (
-    <Button
-      accessibilityLabel="Add Toggle TimberVox Dictation shortcut"
-      {...props}
-      onPress={() => {
-        void Linking.openURL(TIMBERVOX_SHORTCUT_URL);
-      }}
-    >
-      <SymbolView name="plus.circle.fill" size={20} tintColor="#ffffff" />
-      <Text className="text-base font-bold">Add Shortcut</Text>
-    </Button>
+    <View {...props}>
+      <NativeShortcutsButton style={{ flex: 1 }} />
+    </View>
   );
 }
 
-export { ShortcutsButton, TIMBERVOX_SHORTCUT_URL };
+export { ShortcutsButton };

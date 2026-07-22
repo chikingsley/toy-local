@@ -1,22 +1,16 @@
 import CoreGraphics
 import Foundation
 
-protocol SwipeDecoding {
-  func predictions(
-    for points: [CGPoint],
-    layout: KeyLayout,
-    vocabulary: [SwipeVocabularyEntry]
-  ) -> [String]
-}
-
 struct GeometricSwipeDecoder: SwipeDecoding {
-  private let sampleCount = 24
+  private let sampleCount = 32
 
   func predictions(
-    for points: [CGPoint],
+    for samples: [SwipePoint],
     layout: KeyLayout,
-    vocabulary: [SwipeVocabularyEntry]
+    vocabulary: [SwipeVocabularyEntry],
+    contextWords: [String]
   ) -> [String] {
+    let points = samples.map(\.location)
     let observed = resample(points, count: sampleCount)
     guard let firstPoint = observed.first, let lastPoint = observed.last else { return [] }
 
@@ -41,30 +35,17 @@ struct GeometricSwipeDecoder: SwipeDecoding {
         zip(observed, normalizedTemplate).reduce(CGFloat.zero) { total, pair in
           total + hypot(pair.0.x - pair.1.x, pair.0.y - pair.1.y)
         } / CGFloat(sampleCount)
-      let lengthPenalty =
-        abs(
-          CGFloat(word.count - estimatedKeyCount(points, layout: layout))
-        ) * 2.5
       let frequencyBonus = CGFloat(log10(Double(max(1, entry.frequency)))) * 1.8
       let contextRankPenalty = CGFloat(index) * 0.002
       return (
         word,
-        shapeError + (startDistance + endDistance) * 0.55 + lengthPenalty
+        shapeError + (startDistance + endDistance) * 0.55
           + contextRankPenalty - frequencyBonus
       )
     }
     .sorted { $0.1 < $1.1 }
     .prefix(3)
     .map(\.0)
-  }
-
-  func estimatedKeyCount(_ points: [CGPoint], layout: KeyLayout) -> Int {
-    var visited: [Character] = []
-    for point in points {
-      guard let key = layout.key(at: point), visited.last != key else { continue }
-      visited.append(key)
-    }
-    return visited.count
   }
 
   private func resample(_ points: [CGPoint], count: Int) -> [CGPoint] {

@@ -1,13 +1,15 @@
 import { ExtensionStorage } from "@bacons/apple-targets";
 
 const APP_GROUP = "group.studio.peacockery.timbervox";
-const BRIDGE_SCHEMA_VERSION = 3;
+const BRIDGE_SCHEMA_VERSION = 5;
 const storage = new ExtensionStorage(APP_GROUP);
 
 const bridgeKeys = [
   "bridgeSchemaVersion",
   "keyboardSeen",
   "keyboardHasFullAccess",
+  "keyboardStatusRevision",
+  "keyboardVerificationRequired",
   "shortcutAvailable",
   "activeModeId",
   "keyboardHapticsEnabled",
@@ -15,20 +17,34 @@ const bridgeKeys = [
   "keyboardPredictionsEnabled",
   "keyboardAutocorrectEnabled",
   "keyboardSwipeEnabled",
+  "keyboardPersonalVocabulary",
+  "keyboardPersonalVocabularyRevision",
+  "liveActivityDisplayMode",
+  "streamingInsertionEnabled",
+  "swipeDecoderStatus",
   "onboardingComplete",
   "apiBaseURL",
   "apiCredential",
   "activeModeSnapshot",
   "sessionActive",
+  "sessionOwner",
+  "sessionPhase",
+  "sessionErrorMessage",
+  "sessionHeartbeat",
+  "sessionStopRequested",
+  "sessionRevision",
   "recordingRequested",
   "requestRevision",
   "requestedEntryPoint",
   "activeRequestId",
   "keyboardRequestId",
   "partialTranscript",
+  "partialTranscriptRequestId",
+  "partialTranscriptRevision",
   "finalResultId",
   "finalRequestId",
   "finalTranscript",
+  "finalResultStatus",
   "transcriptRevision",
   "consumedResultId",
   "nativeResultEnvelope",
@@ -48,13 +64,26 @@ function initializeAppGroupBridge() {
   storage.remove("finalResultId");
   storage.remove("finalRequestId");
   storage.remove("finalTranscript");
+  storage.remove("finalResultStatus");
   storage.remove("consumedResultId");
+  storage.remove("sessionActive");
+  storage.remove("sessionOwner");
+  storage.remove("sessionPhase");
+  storage.remove("sessionErrorMessage");
+  storage.remove("sessionHeartbeat");
+  storage.remove("sessionStopRequested");
+  storage.remove("sessionRevision");
+  storage.remove("recordingRequested");
   writeBridgeNumber("bridgeSchemaVersion", BRIDGE_SCHEMA_VERSION);
   seedBoolean("keyboardHapticsEnabled", true);
   seedBoolean("keyboardSoundEnabled", true);
   seedBoolean("keyboardPredictionsEnabled", true);
   seedBoolean("keyboardAutocorrectEnabled", true);
   seedBoolean("keyboardSwipeEnabled", true);
+  if (!readBridgeString("liveActivityDisplayMode")) {
+    writeBridgeString("liveActivityDisplayMode", "waveform");
+  }
+  seedBoolean("streamingInsertionEnabled", false);
 }
 
 function readBridgeBoolean(key: BridgeKey) {

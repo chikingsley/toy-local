@@ -1,6 +1,8 @@
 import { SQLiteProvider, type SQLiteDatabase } from "expo-sqlite";
 import type { PropsWithChildren } from "react";
 
+import { DEFAULT_TRANSCRIPTION_MODEL_ID } from "@/features/modes/mode-defaults";
+
 const DATABASE_NAME = "timbervox-mobile.db";
 
 const VOICE_MODE_ID = "mode_voice_default";
@@ -75,7 +77,7 @@ const migrations: Migration[] = [
         VOICE_DESCRIPTION,
         "voice",
         null,
-        "",
+        DEFAULT_TRANSCRIPTION_MODEL_ID,
         1,
         0,
         null,
@@ -249,6 +251,42 @@ const migrations: Migration[] = [
       }
     },
   },
+  {
+    version: 5,
+    migrate: async (database) => {
+      await database.execAsync(`
+        CREATE TABLE IF NOT EXISTS processing_runs (
+          id TEXT PRIMARY KEY NOT NULL,
+          dictation_id TEXT NOT NULL REFERENCES dictations(id) ON DELETE CASCADE,
+          source_artifact_id TEXT NOT NULL REFERENCES artifacts(id) ON DELETE CASCADE,
+          output_artifact_id TEXT REFERENCES artifacts(id) ON DELETE SET NULL,
+          model_id TEXT NOT NULL,
+          instructions TEXT NOT NULL,
+          status TEXT NOT NULL CHECK (status IN ('running', 'succeeded', 'failed')),
+          output_text TEXT,
+          error_message TEXT,
+          started_at TEXT NOT NULL,
+          ended_at TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS processing_runs_dictation_id
+          ON processing_runs (dictation_id, started_at DESC);
+      `);
+    },
+  },
+  {
+    version: 6,
+    migrate: async (database) => {
+      await database.runAsync(
+        `UPDATE modes
+         SET asr_model_id = ?, realtime_enabled = 1, updated_at = ?
+         WHERE id = ? AND TRIM(asr_model_id) = ''`,
+        DEFAULT_TRANSCRIPTION_MODEL_ID,
+        new Date().toISOString(),
+        VOICE_MODE_ID,
+      );
+    },
+  },
 ];
 
 function countWords(text: string) {
@@ -311,5 +349,6 @@ export {
   DATABASE_NAME,
   migrateDatabase,
   migrations,
+  DEFAULT_TRANSCRIPTION_MODEL_ID,
   VOICE_MODE_ID,
 };

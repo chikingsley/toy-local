@@ -53,6 +53,7 @@ export default function LanguagePickerScreen() {
             router.back();
           }}
           selected={editor.draft?.language === item.code}
+          testID={`language-option-${item.code ?? "automatic"}`}
         />
       )}
     />

@@ -19,6 +19,7 @@ function ModeRow({
       accessibilityLabel={accessibilityLabel ?? `Edit ${mode.name}`}
       className="border-border bg-card active:bg-accent min-h-[88px] flex-row items-center gap-3 rounded-[22px] border px-4 py-3"
       onPress={onPress}
+      testID={`mode-row-${mode.id}`}
     >
       <ModeIcon iconKey={mode.iconKey} />
       <View className="min-w-0 flex-1 gap-1">

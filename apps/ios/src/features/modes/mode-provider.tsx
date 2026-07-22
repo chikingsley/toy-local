@@ -40,6 +40,7 @@ type ModeContextValue = {
   loading: boolean;
   modes: Mode[];
   reload: () => Promise<void>;
+  retryCatalog: () => Promise<void>;
   saveMode: (draft: ModeDraft) => Promise<Mode>;
 };
 
@@ -56,16 +57,15 @@ function ModeProvider({ children }: PropsWithChildren) {
     setModes(await listModes(database));
   }, [database]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let mounted = true;
-
-    async function load() {
-      setLoading(true);
+  const synchronizeCatalog = useCallback(
+    async (signal?: AbortSignal) => {
       const storedModes = await listModes(database);
-      if (mounted) setModes(storedModes);
+      if (signal?.aborted) return;
+      setLoading(true);
+      setCatalogError(null);
+      setModes(storedModes);
       try {
-        const nextCatalog = await fetchModelCatalog(controller.signal);
+        const nextCatalog = await fetchModelCatalog(signal);
         for (const mode of storedModes) {
           const currentDraft = modeToDraft(mode);
           const normalized = normalizeModeDraft(currentDraft, nextCatalog);
@@ -73,28 +73,34 @@ function ModeProvider({ children }: PropsWithChildren) {
             await updateMode(database, mode.id, normalized);
           }
         }
-        if (!mounted) return;
         setCatalog(nextCatalog);
         setCatalogError(null);
         setModes(await listModes(database));
       } catch (error) {
-        if (!mounted || controller.signal.aborted) return;
+        if (signal?.aborted) return;
         setCatalogError(
           error instanceof Error
             ? error.message
             : "The model catalog failed to load.",
         );
       } finally {
-        if (mounted) setLoading(false);
+        if (!signal?.aborted) setLoading(false);
       }
-    }
+    },
+    [database],
+  );
 
-    void load();
+  useEffect(() => {
+    const controller = new AbortController();
+    const task = setTimeout(
+      () => void synchronizeCatalog(controller.signal),
+      0,
+    );
     return () => {
-      mounted = false;
+      clearTimeout(task);
       controller.abort();
     };
-  }, [database]);
+  }, [synchronizeCatalog]);
 
   const save = useCallback(
     async (draft: ModeDraft) => {
@@ -177,6 +183,7 @@ function ModeProvider({ children }: PropsWithChildren) {
       loading,
       modes,
       reload,
+      retryCatalog: synchronizeCatalog,
       saveMode: save,
     }),
     [
@@ -190,6 +197,7 @@ function ModeProvider({ children }: PropsWithChildren) {
       reload,
       remove,
       save,
+      synchronizeCatalog,
     ],
   );
 

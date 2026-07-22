@@ -9,9 +9,9 @@ The target is an iPhone-first Expo application with a native iOS keyboard and na
 TimberVox mobile has four first-class areas:
 
 1. **Record** — select the active mode, start or stop dictation, see truthful live state, and use the same recording workflow the keyboard and Shortcut use.
-2. **Modes** — create and edit named, icon-bearing modes that determine transcription and optional text processing.
-3. **History** — browse saved dictations and open every item on its own detail route.
-4. **Settings** — configure keyboard behavior, storage/privacy, Shortcut integration, access status, and account/license state.
+1. **Modes** — create and edit named, icon-bearing modes that determine transcription and optional text processing.
+1. **History** — browse saved dictations and open every item on its own detail route.
+1. **Settings** — configure keyboard behavior, storage/privacy, Shortcut integration, access status, and account/license state.
 
 The keyboard is a product surface, not a React Native screen. The Shortcut and Action button are system entry points into the same dictation workflow, not separate recorders.
 
@@ -20,9 +20,9 @@ The keyboard is a product surface, not a React Native screen. The Shortcut and A
 The supplied iCloud Shortcut is named **Toggle Superwhisper Dictation**. Its decoded workflow is:
 
 1. Run `com.superduper.superwhisper-ios.ToggleRecordingIntent`.
-2. Test the intent's output.
-3. When the output is empty, end the shortcut. This is the start-recording invocation.
-4. When the output contains text, copy it to the clipboard, combine it as text, show a notification containing it, and vibrate. This is the stop-recording invocation.
+1. Test the intent's output.
+1. When the output is empty, end the shortcut. This is the start-recording invocation.
+1. When the output contains text, copy it to the clipboard, combine it as text, show a notification containing it, and vibrate. This is the stop-recording invocation.
 
 TimberVox should reproduce the useful contract, not the Superwhisper identifier:
 
@@ -134,7 +134,7 @@ Initial RNR primitives:
 
 RNR currently does not provide the exact iOS settings-list item or an app drawer. One thin `SettingsRow` composition is justified and must be built only from the primitives above. Expo Router's native `formSheet` presentation is the first choice for mobile pickers; do not add a second bottom-sheet framework unless an accepted interaction cannot be expressed with a route-backed form sheet.
 
-Use semantic color and spacing tokens. Do not hand-style every screen with raw hex values and one-off `StyleSheet` blocks. Do not create fake controls, fake waveforms, or placeholder charts that imply data the runtime does not produce.
+Use semantic color and spacing tokens. The iPhone layout contract lives in `components/app/app-layout.ts`: 18 points for the outer page gutter and top inset, 12 points between ordinary page sections, 8 points only for a deliberately dense list, 17 points inside standard cards, and at least 44 by 44 points for interactive controls. `AppScreen`, route-backed form sheets, virtualized lists, and `AppBottomActionBar` own safe-area and native-tab clearance; feature screens compose those shells rather than inventing new page insets. Test changes on the named iPhone 12 Pro Max and iPhone 17 Pro simulators so the contract survives both compact height and current-device geometry. Do not hand-style every screen with raw hex values and one-off `StyleSheet` blocks. Do not create fake controls, fake waveforms, or placeholder charts that imply data the runtime does not produce.
 
 ## Approved dependency map
 
@@ -152,7 +152,7 @@ This is the exact library boundary for the rebuild. A dependency is added only f
 | Local batch and realtime speech recognition                          | [FluidAudio](https://github.com/FluidInference/FluidAudio) `v0.15.5` through the source-owned `TimberVoxLocalAsr` Expo module | Installed and pinned by tag. The module owns the paired Parakeet TDT-CTC 110M batch and Parakeet EOU 120M/320 ms realtime package, download/progress/delete state, model loading, PCM conversion, partial events, and final text. TypeScript selects batch or realtime from the saved mode and adapts both to the shared dictation workflow. Physical-iPhone performance remains an explicit acceptance gate. |
 | Canonical app and Shortcut text delivery                             | [`expo-clipboard`](https://docs.expo.dev/versions/v57.0.0/sdk/clipboard/) `~57.0.0`                                           | Installed. Delivery occurs after durable persistence. App and Shortcut entry points copy the canonical result; the keyboard entry point publishes the request-matched result through the App Group bridge.                                                                                                                                                                                                    |
 | Keyboard, App Intent, Live Activity, and App Group target generation | [`@bacons/apple-targets`](https://github.com/EvanBacon/expo-apple-targets) `^4.0.7`                                           | Installed. Target source stays in `targets/`; generated `ios/` remains disposable. `ExtensionStorage` bridges only small App Group values.                                                                                                                                                                                                                                                                    |
-| Mobile session credential                                            | In-memory session state                                                                                                       | Keep only a short-lived access token in memory. Re-mint it from installation/account proof after launch or expiry; do not add a persistent credential store.                                                                                                                                                                                                                                                    |
+| Mobile session credential                                            | In-memory session state                                                                                                       | Keep only a short-lived access token in memory. Re-mint it from installation/account proof after launch or expiry; do not add a persistent credential store.                                                                                                                                                                                                                                                  |
 | Accepted in-screen motion                                            | [`react-native-reanimated`](https://docs.expo.dev/versions/v57.0.0/sdk/reanimated/) `4.5.0`                                   | Installed. Use for recording-state and small layout transitions with Reduced Motion support.                                                                                                                                                                                                                                                                                                                  |
 | App icons                                                            | `lucide-react-native` `^1.24.0` through the RNR `Icon` adapter                                                                | Installed. Swift keyboard icons remain SF Symbols.                                                                                                                                                                                                                                                                                                                                                            |
 
@@ -179,10 +179,10 @@ The signature element is the **mode identity in the navigation header** paired w
 Onboarding is a short, resumable checklist:
 
 1. Microphone permission.
-2. TimberVox keyboard installed.
-3. Full Access enabled.
-4. Shortcut/App Shortcut available.
-5. One real test dictation completed.
+1. TimberVox keyboard installed.
+1. Full Access enabled.
+1. Shortcut/App Shortcut available.
+1. One real test dictation completed.
 
 Each row shows observed state, not an optimistic checkmark. The keyboard and Full Access states come from the extension's App Group evidence. The app can open its Settings page, but it cannot enable the keyboard or Full Access for the user.
 
@@ -264,12 +264,12 @@ The detail route:
 Sections:
 
 1. **Keyboard** — language, haptics, sound, predictive text, autocorrection, auto-capitalization, swipe trail, and a link to iPhone Settings.
-2. **Dictation** — default/fallback behavior that is not mode-specific.
-3. **Shortcuts** — open TimberVox App Shortcuts and optionally install the wrapper shortcut.
-4. **Storage & privacy** — keep recordings, delete audio after a selected period, storage used, and clear recordings/history with confirmation.
-5. **Account** — tappable TimberVox Pro/license row. Active is green only when a real entitlement is verified.
-6. **Access status** — microphone, keyboard installed, Full Access, App Group/extension seen, and Shortcut readiness. This diagnostic section stays near the bottom after setup.
-7. **About** — version/build and support/legal links.
+1. **Dictation** — default/fallback behavior that is not mode-specific.
+1. **Shortcuts** — open TimberVox App Shortcuts and optionally install the wrapper shortcut.
+1. **Storage & privacy** — keep recordings, delete audio after a selected period, storage used, and clear recordings/history with confirmation.
+1. **Account** — tappable TimberVox Pro/license row. Active is green only when a real entitlement is verified.
+1. **Access status** — microphone, keyboard installed, Full Access, App Group/extension seen, and Shortcut readiness. This diagnostic section stays near the bottom after setup.
+1. **About** — version/build and support/legal links.
 
 ### Account/license
 
@@ -281,10 +281,10 @@ The account row opens a real detail route with entitlement state, account identi
 
 The current implementation already uses three distinct stores:
 
-| Store                | Library and exact location                                                                                        | Data stored today                                                                                                                                                                  | Current limitation                                                                                              |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| App database         | `expo-sqlite`, `timbervox-mobile.db`                                                                              | Versioned WAL-mode `modes`, `app_settings`, `dictations`, and `artifacts` tables. Legacy `dictation_history` rows migrate once into normalized Dictation and Raw Artifact records. | Migration and repository tests pass; a non-silent physical-device recording still needs acceptance.             |
-| Persistent files     | `expo-file-system`, `Paths.document/recordings/*.wav`                                                             | Final 16 kHz mono linear-PCM WAV assembled from captured realtime chunks, plus file size/format on the Dictation. Deleting History or audio retention removes the referenced file. | Audio chunks remain in memory until a terminal outcome; crash-resumable in-progress capture is not implemented. |
+| Store                | Library and exact location                                                                                          | Data stored today                                                                                                                                                                  | Current limitation                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| App database         | `expo-sqlite`, `timbervox-mobile.db`                                                                                | Versioned WAL-mode `modes`, `app_settings`, `dictations`, and `artifacts` tables. Legacy `dictation_history` rows migrate once into normalized Dictation and Raw Artifact records. | Migration and repository tests pass; a non-silent physical-device recording still needs acceptance.             |
+| Persistent files     | `expo-file-system`, `Paths.document/recordings/*.wav`                                                               | Final 16 kHz mono linear-PCM WAV assembled from captured realtime chunks, plus file size/format on the Dictation. Deleting History or audio retention removes the referenced file. | Audio chunks remain in memory until a terminal outcome; crash-resumable in-progress capture is not implemented. |
 | Cross-process bridge | `@bacons/apple-targets` `ExtensionStorage` and Swift `UserDefaults(suiteName: "group.studio.peacockery.timbervox")` | Schema v2 keyboard/access facts, active mode and preferences, request ownership, partial text, durable result ID, and consumed result ID.                                          | Source and contract tests pass; a signed physical-device keyboard round trip still needs acceptance.            |
 
 The realtime WebSocket, queued PCM, captured PCM, and partial accumulator are memory-only. The current static Worker credential comes from Expo config and is embedded in the build; it is not protected storage.
@@ -400,25 +400,25 @@ A signed development/TestFlight build must prove:
 Every feature slice follows the same sequence:
 
 1. Define the visible states and real data source.
-2. Build the RNR/route composition against fixtures on web.
-3. Connect the repository/service path.
-4. Add route/component/repository tests outside `src/app`.
-5. Verify on an iPhone simulator.
-6. Run the physical-iPhone lane when the slice crosses a native boundary.
-7. Update `docs/TODO.md` with literal state: designed, implemented, simulator-verified, physical-device-verified, or TestFlight-uploaded.
+1. Build the RNR/route composition against fixtures on web.
+1. Connect the repository/service path.
+1. Add route/component/repository tests outside `src/app`.
+1. Verify on an iPhone simulator.
+1. Run the physical-iPhone lane when the slice crosses a native boundary.
+1. Update `docs/TODO.md` with literal state: designed, implemented, simulator-verified, physical-device-verified, or TestFlight-uploaded.
 
 ## Rebuild order
 
 1. **Safe foundation reset** — preserve native/runtime experiments, remove starter/demo files, set `supportsTablet: false`, install/configure RNR manually, establish tokens, tabs, route groups, error boundary, and test harness.
-2. **Mode domain** — SQLite schema/repository, default Voice to Text mode, preset templates, list/new/editor, active mode, catalog/capability integration.
-3. **History domain** — normalized dictation/artifact schema, list/detail routes, search, actual playback, retention and deletion.
-4. **Record screen** — one workflow interface, real states, mode-aware request construction, in-app realtime recording.
-5. **Keyboard contract** — versioned App Group bridge, mode-aware requests, swipe quality baseline, settings synchronization, insertion acceptance.
-6. **Native intent spike** — `AudioRecordingIntent`, Live Activity target, exact shared Shortcut contract, physical-device decision gate.
-7. **Final recorder ownership** — keep TypeScript or move the minimal necessary capture/transport code to Swift based on evidence.
-8. **Mobile authentication** — server-issued session, secure storage, remove embedded credential.
-9. **Onboarding/settings/account** — observed permissions, Shortcut link, storage/privacy, real entitlement display.
-10. **TestFlight** — regenerate native project, signing/entitlements, release build, upload, install, and complete the physical-iPhone matrix.
+1. **Mode domain** — SQLite schema/repository, default Voice to Text mode, preset templates, list/new/editor, active mode, catalog/capability integration.
+1. **History domain** — normalized dictation/artifact schema, list/detail routes, search, actual playback, retention and deletion.
+1. **Record screen** — one workflow interface, real states, mode-aware request construction, in-app realtime recording.
+1. **Keyboard contract** — versioned App Group bridge, mode-aware requests, swipe quality baseline, settings synchronization, insertion acceptance.
+1. **Native intent spike** — `AudioRecordingIntent`, Live Activity target, exact shared Shortcut contract, physical-device decision gate.
+1. **Final recorder ownership** — keep TypeScript or move the minimal necessary capture/transport code to Swift based on evidence.
+1. **Mobile authentication** — server-issued session, secure storage, remove embedded credential.
+1. **Onboarding/settings/account** — observed permissions, Shortcut link, storage/privacy, real entitlement display.
+1. **TestFlight** — regenerate native project, signing/entitlements, release build, upload, install, and complete the physical-iPhone matrix.
 
 ## Safe cleanup boundary
 
