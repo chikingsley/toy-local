@@ -5,7 +5,10 @@
     "capabilities": [
       "keyboardSeen",
       "keyboardHasFullAccess",
-      "shortcutAvailable"
+      "keyboardStatusRevision",
+      "keyboardVerificationRequired",
+      "shortcutAvailable",
+      "swipeDecoderStatus"
     ],
     "preferences": [
       "activeModeId",
@@ -14,6 +17,8 @@
       "keyboardPredictionsEnabled",
       "keyboardAutocorrectEnabled",
       "keyboardSwipeEnabled",
+      "keyboardPersonalVocabulary",
+      "keyboardPersonalVocabularyRevision",
       "liveActivityDisplayMode",
       "streamingInsertionEnabled",
       "onboardingComplete",

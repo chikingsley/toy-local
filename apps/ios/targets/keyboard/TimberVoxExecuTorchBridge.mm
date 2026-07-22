@@ -109,6 +109,14 @@ NSError *BridgeError(NSInteger code, NSString *description) {
                                                 keyCenters:(NSData *)keyCenters
                                                    keyMask:(NSData *)keyMask
                                                      error:(NSError **)error {
+  if (features.length != 2 * 64 * sizeof(float) ||
+      keyCenters.length != 64 * 2 * sizeof(float) ||
+      keyMask.length != 64 * sizeof(uint8_t)) {
+    if (error != nullptr) {
+      *error = BridgeError(12, @"The encoder input buffers have invalid sizes.");
+    }
+    return nil;
+  }
   ExecuTorchTensor *featureTensor = FloatTensor(features, @[@1, @2, @64]);
   ExecuTorchTensor *centerTensor = FloatTensor(keyCenters, @[@1, @64, @2]);
   ExecuTorchTensor *maskTensor = BoolTensor(keyMask, @[@1, @64]);
@@ -137,6 +145,12 @@ NSError *BridgeError(NSInteger code, NSString *description) {
 
 - (nullable NSData *)refinedEmissionsWithInput:(NSData *)input
                                           error:(NSError **)error {
+  if (input.length != 32 * 92 * sizeof(float)) {
+    if (error != nullptr) {
+      *error = BridgeError(13, @"The refiner input buffer has an invalid size.");
+    }
+    return nil;
+  }
   ExecuTorchTensor *inputTensor = FloatTensor(input, @[@1, @32, @92]);
   NSArray<ExecuTorchValue *> *values =
       [_refiner executeMethod:@"forward" withTensors:@[inputTensor] error:error];

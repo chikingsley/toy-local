@@ -41,6 +41,10 @@ final class NeuralSwipeDecoder: SwipeDecoding {
     }
   }
 
+  func releaseContext() {
+    runtime?.releaseContextModel()
+  }
+
   func predictions(
     for samples: [SwipePoint],
     layout: KeyLayout,

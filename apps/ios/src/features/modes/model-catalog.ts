@@ -361,15 +361,28 @@ function humanizeModelIdentifier(identifier: string, provider: string) {
   const providerless = identifier.startsWith(providerPrefix)
     ? identifier.slice(providerPrefix.length)
     : identifier;
-  return providerless
-    .replaceAll("_", "-")
-    .split("-")
+  return joinDottedVersions(providerless.replaceAll("_", "-").split("-"))
     .map((token) => {
       if (/^v\d+$/i.test(token)) return token.toLocaleLowerCase();
-      if (/^\d+$/.test(token)) return token;
+      if (/^\d+(?:\.\d+)?$/.test(token)) return token;
       return token.charAt(0).toLocaleUpperCase() + token.slice(1);
     })
     .join(" ");
+}
+
+// Model identifiers encode dotted versions with dashes ("claude-sonnet-4-6"
+// means Sonnet 4.6); adjacent integer tokens are one version number.
+function joinDottedVersions(tokens: string[]) {
+  const merged: string[] = [];
+  for (const token of tokens) {
+    const previous = merged.at(-1);
+    if (previous && /^\d+$/.test(previous) && /^\d+$/.test(token)) {
+      merged[merged.length - 1] = `${previous}.${token}`;
+    } else {
+      merged.push(token);
+    }
+  }
+  return merged;
 }
 
 function languageModelDisplayName(model: LanguageModel) {
@@ -382,7 +395,7 @@ function languageModelDisplayName(model: LanguageModel) {
     model.provider === "mistral"
       ? rawLeaf.replace(/-(?:latest|\d{4}|\d+\.\d+)$/i, "")
       : rawLeaf;
-  const tokens = leaf.split("-");
+  const tokens = joinDottedVersions(leaf.split("-"));
 
   return tokens
     .map((token) => {

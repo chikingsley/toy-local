@@ -67,6 +67,7 @@
   },
   "scripts": {
     "start": "PEACOCKERY_VOICE_EMBED_DEV_CREDENTIAL=1 PEACOCKERY_VOICE_ENVIRONMENT=lab expo start",
+  "eas-build-pre-install": "node ./scripts/eas-build-pre-install.js",
     "check": "tsc --noEmit && expo lint",
     "test": "jest --runInBand && swift test",
     "prebuild:ios": "expo prebuild -p ios --clean",

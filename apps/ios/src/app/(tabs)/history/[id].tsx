@@ -29,7 +29,8 @@ import { configuredApiCredential } from "@/lib/api-credential";
 type ArtifactKind = StoredArtifact["kind"];
 
 export default function HistoryDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id: routeId } = useLocalSearchParams<{ id: string | string[] }>();
+  const id = Array.isArray(routeId) ? routeId[0] : routeId;
   const database = useSQLiteContext();
   const history = useHistory();
   const router = useRouter();
@@ -40,9 +41,17 @@ export default function HistoryDetailScreen() {
 
   useEffect(() => {
     let mounted = true;
-    void loadStoredDictationDetail(database, id).then((stored) => {
-      if (mounted) setDetail(stored);
-    });
+    if (!id) {
+      setDetail(null);
+      return;
+    }
+    loadStoredDictationDetail(database, id)
+      .then((stored) => {
+        if (mounted) setDetail(stored);
+      })
+      .catch(() => {
+        if (mounted) setDetail(null);
+      });
     return () => {
       mounted = false;
     };

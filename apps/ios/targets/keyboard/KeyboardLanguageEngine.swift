@@ -117,6 +117,8 @@ final class KeyboardLanguageEngine {
   private var learnedBigrams: [String: Int]
   private var learnedIndicesByEndpoints: [String: Set<String>]
   private var learnedWords: [String: Int]
+  private var learningPersistPending = false
+  private var learningPersistTask: Task<Void, Never>?
   private var personalEntries: [String: KeyboardPersonalVocabularyEntry] = [:]
   private var personalIndicesByEndpoints: [String: Set<String>] = [:]
   private var personalVocabularyRevision = -1
@@ -322,10 +324,11 @@ final class KeyboardLanguageEngine {
     refreshPersonalVocabularyIfNeeded()
     let endpointKey = "\(first.lowercased())\(last.lowercased())"
     var entriesByWord = Dictionary(
-      uniqueKeysWithValues: (indicesByEndpoints[endpointKey] ?? []).map { index in
+      (indicesByEndpoints[endpointKey] ?? []).map { index in
         let entry = vocabulary[index]
         return (entry.word, entry)
-      }
+      },
+      uniquingKeysWith: { first, _ in first }
     )
     for word in supplementaryIndicesByEndpoints[endpointKey] ?? [] {
       entriesByWord[word] = SwipeVocabularyEntry(
@@ -361,6 +364,12 @@ final class KeyboardLanguageEngine {
       return preferred
     }
     return capitalized ? normalized.capitalized : normalized
+  }
+
+  func flushPendingLearning() {
+    learningPersistTask?.cancel()
+    learningPersistTask = nil
+    persistLearningIfPending()
   }
 
   private func nextWordPredictions(after previousWord: String?) -> [String] {
@@ -419,6 +428,19 @@ final class KeyboardLanguageEngine {
       learnedIndicesByEndpoints = Self.endpointIndex(for: learnedWords.keys)
       preferredForms = preferredForms.filter { learnedWords[$0.key] != nil }
     }
+    learningPersistPending = true
+    guard learningPersistTask == nil else { return }
+    learningPersistTask = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(2))
+      guard !Task.isCancelled else { return }
+      self?.learningPersistTask = nil
+      self?.persistLearningIfPending()
+    }
+  }
+
+  private func persistLearningIfPending() {
+    guard learningPersistPending else { return }
+    learningPersistPending = false
     defaults?.set(learnedWords, forKey: Self.learnedWordsKey)
     defaults?.set(learnedBigrams, forKey: Self.learnedBigramsKey)
     defaults?.set(preferredForms, forKey: Self.preferredFormsKey)

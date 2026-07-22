@@ -45,6 +45,13 @@ final class FutoSwipeRuntime {
     return contextModel != nil
   }
 
+  func releaseContextModel() {
+    contextLock.lock()
+    contextModel = nil
+    contextLoadStarted = false
+    contextLock.unlock()
+  }
+
   func beginLoadingContext(
     bundle: Bundle,
     completion: @escaping (Result<Void, Error>) -> Void
@@ -62,7 +69,14 @@ final class FutoSwipeRuntime {
         forResource: "futo_swipe_context_lm",
         ofType: "pte"
       )
-    else { return }
+    else {
+      let error = FutoSwipeRuntimeError.missingModel("futo_swipe_context_lm")
+      Self.logger.error(
+        "FUTO context model failed to load: \(error.localizedDescription, privacy: .public)"
+      )
+      completion(.failure(error))
+      return
+    }
 
     DispatchQueue.global(qos: .utility).async { [weak self] in
       guard let self else { return }

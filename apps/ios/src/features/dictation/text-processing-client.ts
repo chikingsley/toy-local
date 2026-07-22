@@ -3,6 +3,7 @@ import type { DictationPlan } from "@/features/dictation/dictation-types";
 import {
   configuredVoiceClient,
   voiceApiError,
+  withRequestTimeout,
 } from "@/lib/peacockery-voice-client";
 
 type TextStreamEvent =
@@ -22,12 +23,16 @@ async function processDictationText(plan: DictationPlan, transcript: string) {
     transcript,
   });
   if (!request) return null;
-  const { data, error, response } = await configuredVoiceClient(
-    plan.credential,
-  ).POST("/v1/text/stream", {
-    body: request,
-    parseAs: "text",
-  });
+  const { data, error, response } = await withRequestTimeout(
+    60_000,
+    "Text processing",
+    (signal) =>
+      configuredVoiceClient(plan.credential).POST("/v1/text/stream", {
+        body: request,
+        parseAs: "text",
+        signal,
+      }),
+  );
   if (error) throw voiceApiError("Text processing", response, error);
   let output = "";
   let completed = false;
@@ -50,7 +55,18 @@ function parseServerSentEvents(payload: string): TextStreamEvent[] {
       .map((line) => line.slice(5).trimStart())
       .join("\n");
     if (!data) continue;
-    const candidate = JSON.parse(data) as Record<string, unknown>;
+    let candidate: Record<string, unknown>;
+    try {
+      const parsed: unknown = JSON.parse(data);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        continue;
+      }
+      candidate = parsed as Record<string, unknown>;
+    } catch {
+      // Keepalive comments and sentinel lines such as "[DONE]" are not
+      // protocol events; skip them instead of failing the whole stream.
+      continue;
+    }
     if (
       candidate.protocol_version !== 1 ||
       typeof candidate.type !== "string"

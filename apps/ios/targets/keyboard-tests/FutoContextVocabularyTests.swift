@@ -20,6 +20,17 @@ final class FutoContextVocabularyTests: XCTestCase {
     )
   }
 
+  func testDuplicateWordsKeepTheFirstID() throws {
+    let vocabulary = try FutoContextVocabulary(
+      text: "the\nto\nthe\n",
+      exactWordCount: 3,
+      hashBucketCount: 32_768
+    )
+
+    XCTAssertEqual(vocabulary.lookup("the").id, 0)
+    XCTAssertEqual(vocabulary.lookup("to").id, 1)
+  }
+
   func testRejectsAWordListThatDoesNotMatchTheModelEmbeddingCount() {
     XCTAssertThrowsError(
       try FutoContextVocabulary(

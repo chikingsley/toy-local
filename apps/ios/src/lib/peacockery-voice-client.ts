@@ -30,5 +30,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export { configuredVoiceClient, voiceApiError };
+// Every Worker request must carry a deadline; a hung connection otherwise
+// strands the dictation workflow in a stage the user cannot leave.
+async function withRequestTimeout<T>(
+  milliseconds: number,
+  label: string,
+  run: (signal: AbortSignal) => Promise<T>,
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), milliseconds);
+  try {
+    return await run(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(`${label} timed out. Check your connection and retry.`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export { configuredVoiceClient, voiceApiError, withRequestTimeout };
 export type { FetchImplementation };

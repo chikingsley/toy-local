@@ -30,13 +30,19 @@ export function useSetupState() {
   startKeyboardStatusObserver();
   const [state, setState] = useState<SetupState>(() => readSetupState(false));
   const refreshBridgeState = useCallback(() => {
-    setState((current) =>
-      readSetupState(current.microphoneGranted, getKeyboardStatus()),
-    );
+    setState((current) => {
+      const next = readSetupState(current.microphoneGranted, getKeyboardStatus());
+      // The poll runs forever; keep the previous object identity when nothing
+      // changed so consumers do not re-render at the poll frequency.
+      return setupStatesEqual(current, next) ? current : next;
+    });
   }, []);
   const refresh = useCallback(async () => {
     const microphone = await getRecordingPermissionsAsync();
-    setState(readSetupState(microphone.granted, getKeyboardStatus()));
+    setState((current) => {
+      const next = readSetupState(microphone.granted, getKeyboardStatus());
+      return setupStatesEqual(current, next) ? current : next;
+    });
   }, []);
 
   useEffect(() => {
@@ -95,6 +101,18 @@ export function useSetupState() {
     refreshBridgeState,
     restart,
   };
+}
+
+function setupStatesEqual(left: SetupState, right: SetupState) {
+  return (
+    left.completed === right.completed &&
+    left.fullAccessVerified === right.fullAccessVerified &&
+    left.keyboardEnabled === right.keyboardEnabled &&
+    left.keyboardVerified === right.keyboardVerified &&
+    left.keyboardVerificationPending === right.keyboardVerificationPending &&
+    left.microphoneGranted === right.microphoneGranted &&
+    left.shortcutAvailable === right.shortcutAvailable
+  );
 }
 
 function readSetupState(

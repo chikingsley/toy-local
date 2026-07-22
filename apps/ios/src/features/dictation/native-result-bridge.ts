@@ -38,25 +38,40 @@ type NativeResultEnvelope = {
 async function consumeNativeResult(database: SQLiteDatabase) {
   const outbox = getNativeResultOutbox();
   if (outbox.length) {
+    let persistedAny = false;
     for (const item of outbox) {
-      const envelope = parseNativeResultEnvelope(item.json);
+      let envelope: NativeResultEnvelope;
+      try {
+        envelope = parseNativeResultEnvelope(item.json);
+      } catch {
+        // A malformed envelope must not block every later result forever;
+        // acknowledge it so the outbox keeps draining. Persistence failures
+        // below still propagate, leaving the item for a retry.
+        acknowledgeNativeResult(item.filename);
+        continue;
+      }
       await persistNativeResult(database, envelope);
       acknowledgeNativeResult(item.filename);
+      persistedAny = true;
     }
     writeBridgeNumber(
       "nativeResultConsumedRevision",
       readBridgeNumber("nativeResultRevision"),
     );
-    return true;
+    return persistedAny;
   }
 
   const revision = readBridgeNumber("nativeResultRevision");
   if (revision <= readBridgeNumber("nativeResultConsumedRevision")) {
     return false;
   }
-  const envelope = parseNativeResultEnvelope(
-    readBridgeString("nativeResultEnvelope"),
-  );
+  let envelope: NativeResultEnvelope;
+  try {
+    envelope = parseNativeResultEnvelope(readBridgeString("nativeResultEnvelope"));
+  } catch {
+    writeBridgeNumber("nativeResultConsumedRevision", revision);
+    return false;
+  }
   await persistNativeResult(database, envelope);
   writeBridgeNumber("nativeResultConsumedRevision", revision);
   return true;

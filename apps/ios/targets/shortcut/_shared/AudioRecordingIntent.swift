@@ -339,6 +339,7 @@ private final class TimberVoxBackgroundSession {
     capture = nil
     let duration = activeCapture.recorder.stop(deactivateAudioSession: true)
     let finalPCM = activeCapture.recorder.nextPCMChunk()
+    activeCapture.recorder.finishPCMStream()
     if let realtimeClient = activeCapture.realtimeClient {
       Task { await realtimeClient.finish(finalPCM: finalPCM) }
     }
@@ -627,6 +628,7 @@ extension String {
 
 @MainActor
 private final class TimberVoxAudioRecorder {
+  private var pcmFileHandle: FileHandle?
   private var pcmReadOffset: UInt64?
   private let recordingURL: URL
   private let recorder: AVAudioRecorder
@@ -664,18 +666,39 @@ private final class TimberVoxAudioRecorder {
   }
 
   func nextPCMChunk() -> Data? {
-    guard let data = try? Data(contentsOf: recordingURL), !data.isEmpty else { return nil }
-    if pcmReadOffset == nil {
-      guard let dataOffset = Self.waveDataOffset(in: data) else { return nil }
+    guard let handle = pcmHandle() else { return nil }
+    guard let offset = pcmReadOffset else {
+      guard (try? handle.seek(toOffset: 0)) != nil,
+        let data = try? handle.readToEnd(), !data.isEmpty,
+        let dataOffset = Self.waveDataOffset(in: data)
+      else { return nil }
       pcmReadOffset = UInt64(dataOffset)
+      let available = data.count - dataOffset
+      let evenByteCount = available - available % MemoryLayout<Int16>.size
+      guard evenByteCount > 0 else { return nil }
+      let end = dataOffset + evenByteCount
+      pcmReadOffset = UInt64(end)
+      return data.subdata(in: dataOffset..<end)
     }
-    guard let offset = pcmReadOffset, offset < UInt64(data.count) else { return nil }
-    let available = data.count - Int(offset)
-    let evenByteCount = available - available % MemoryLayout<Int16>.size
+    guard (try? handle.seek(toOffset: offset)) != nil,
+      let data = try? handle.readToEnd(), !data.isEmpty
+    else { return nil }
+    let evenByteCount = data.count - data.count % MemoryLayout<Int16>.size
     guard evenByteCount > 0 else { return nil }
-    let end = Int(offset) + evenByteCount
-    pcmReadOffset = UInt64(end)
-    return data.subdata(in: Int(offset)..<end)
+    pcmReadOffset = offset + UInt64(evenByteCount)
+    return data.subdata(in: 0..<evenByteCount)
+  }
+
+  func finishPCMStream() {
+    try? pcmFileHandle?.close()
+    pcmFileHandle = nil
+  }
+
+  private func pcmHandle() -> FileHandle? {
+    if let pcmFileHandle { return pcmFileHandle }
+    guard let handle = try? FileHandle(forReadingFrom: recordingURL) else { return nil }
+    pcmFileHandle = handle
+    return handle
   }
 
   @discardableResult

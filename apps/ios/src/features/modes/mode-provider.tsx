@@ -15,6 +15,10 @@ import {
   type ModelCatalog,
 } from "@/features/modes/model-catalog";
 import {
+  readCachedModelCatalog,
+  writeCachedModelCatalog,
+} from "@/features/modes/model-catalog-cache";
+import {
   createMode,
   deleteMode,
   getMode,
@@ -76,13 +80,28 @@ function ModeProvider({ children }: PropsWithChildren) {
         setCatalog(nextCatalog);
         setCatalogError(null);
         setModes(await listModes(database));
+        try {
+          await writeCachedModelCatalog(database, nextCatalog);
+        } catch {
+          // The cache is best-effort; a write failure must not fail the sync.
+        }
       } catch (error) {
         if (signal?.aborted) return;
-        setCatalogError(
-          error instanceof Error
-            ? error.message
-            : "The model catalog failed to load.",
-        );
+        // Fall back to the last fetched catalog so downloaded local models
+        // and existing cloud modes can still dictate offline. Stored modes
+        // are deliberately not re-normalized against a cached catalog.
+        const cached = await readCachedModelCatalog(database);
+        if (signal?.aborted) return;
+        if (cached) {
+          setCatalog(cached);
+          setCatalogError(null);
+        } else {
+          setCatalogError(
+            error instanceof Error
+              ? error.message
+              : "The model catalog failed to load.",
+          );
+        }
       } finally {
         if (!signal?.aborted) setLoading(false);
       }

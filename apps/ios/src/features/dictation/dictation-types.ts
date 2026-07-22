@@ -96,6 +96,9 @@ export type DictationWorkflowSnapshot = {
   error: DictationFailure | null;
   finalText: string;
   requestId: string | null;
+  // True while stage is "result" and the delivered dictation contained text;
+  // false for a no-speech result, whose row still lands in History.
+  resultHadText: boolean;
   resultId: string | null;
   sessionId: string | null;
   stage: DictationStage;

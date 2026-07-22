@@ -9,7 +9,9 @@ const {
 } = require("@bacons/apple-targets/build/with-bacons-xcode");
 
 const packageURL = "https://github.com/pytorch/executorch.git";
-const packageBranch = "swiftpm-1.4.0.20260721";
+// Head of the swiftpm-1.4.0.20260721 snapshot branch, pinned by commit so a
+// pruned or force-pushed nightly branch cannot break future builds.
+const packageRevision = "d52bb2f8e280079c80430b05778bbb7ed404f8ad";
 const keyboardTargetName = "TimberVoxKeyboard";
 const packageProducts = ["executorch", "backend_xnnpack", "kernels_optimized"];
 
@@ -32,11 +34,16 @@ module.exports = function withExecuTorchKeyboard(config) {
       packageReference = XCRemoteSwiftPackageReference.create(project, {
         repositoryURL: packageURL,
         requirement: {
-          branch: packageBranch,
-          kind: "branch",
+          kind: "revision",
+          revision: packageRevision,
         },
       });
       project.rootObject.props.packageReferences.push(packageReference);
+    } else {
+      packageReference.props.requirement = {
+        kind: "revision",
+        revision: packageRevision,
+      };
     }
 
     keyboardTarget.props.packageProductDependencies ??= [];

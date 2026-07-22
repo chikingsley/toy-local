@@ -120,6 +120,7 @@ final class KeyboardLanguageEngineTests: XCTestCase {
     defer { fixture.defaults.removePersistentDomain(forName: fixture.suiteName) }
     var engine = fixture.engine
     engine.learn(word: "Chibuzor", after: nil, atSentenceStart: true)
+    engine.flushPendingLearning()
 
     engine = makeEngine(defaults: fixture.defaults)
 
@@ -128,6 +129,24 @@ final class KeyboardLanguageEngineTests: XCTestCase {
       engine.swipeVocabulary(first: "c", last: "r", previousWord: nil)
         .contains(where: { $0.word == "chibuzor" })
     )
+  }
+
+  func testDuplicateBaseVocabularyEntriesKeepTheFirstOccurrence() {
+    let fixture = makeFixture()
+    defer { fixture.defaults.removePersistentDomain(forName: fixture.suiteName) }
+    let engine = KeyboardLanguageEngine(
+      defaults: fixture.defaults,
+      vocabulary: [
+        SwipeVocabularyEntry(frequency: 1_000_000, word: "cheap"),
+        SwipeVocabularyEntry(frequency: 500, word: "cheap"),
+      ]
+    )
+
+    let entries = engine.swipeVocabulary(first: "c", last: "p", previousWord: nil)
+      .filter { $0.word == "cheap" }
+
+    XCTAssertEqual(entries.count, 1)
+    XCTAssertEqual(entries.first?.frequency, 1_000_000)
   }
 
   func testSupplementaryWordsJoinSwipeVocabularyWithoutTraining() {

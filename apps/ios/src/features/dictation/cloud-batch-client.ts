@@ -6,6 +6,7 @@ import { makeWaveFile } from "@/features/dictation/recording-file";
 import {
   configuredVoiceClient,
   voiceApiError,
+  withRequestTimeout,
   type FetchImplementation,
 } from "@/lib/peacockery-voice-client";
 
@@ -16,13 +17,19 @@ async function transcribeCloudBatch(
 ): Promise<TranscriptionArtifact> {
   const audio = makeWaveFile(audioChunks);
   const voice = configuredVoiceClient(plan.credential, fetchImplementation);
-  const reservationResponse = await voice.POST("/v1/uploads", {
-    body: {
-      content_type: "audio/wav",
-      filename: `${plan.requestId}.wav`,
-      size_bytes: audio.byteLength,
-    },
-  });
+  const reservationResponse = await withRequestTimeout(
+    15_000,
+    "Audio upload reservation",
+    (signal) =>
+      voice.POST("/v1/uploads", {
+        body: {
+          content_type: "audio/wav",
+          filename: `${plan.requestId}.wav`,
+          size_bytes: audio.byteLength,
+        },
+        signal,
+      }),
+  );
   if (reservationResponse.error) {
     throw voiceApiError(
       "Audio upload reservation",
@@ -37,20 +44,29 @@ async function transcribeCloudBatch(
   if (transfer.kind !== "single") {
     throw new Error("The upload service returned an unsupported transfer.");
   }
-  const uploadResponse = await fetchImplementation(transfer.url, {
-    body: audio as unknown as BodyInit,
-    headers: transfer.headers,
-    method: "PUT",
-  });
+  const uploadResponse = await withRequestTimeout(
+    60_000,
+    "Audio upload",
+    (signal) =>
+      fetchImplementation(transfer.url, {
+        body: audio as unknown as BodyInit,
+        headers: transfer.headers,
+        method: "PUT",
+        signal,
+      }),
+  );
   if (!uploadResponse.ok) {
     throw new Error(`Audio upload failed (${uploadResponse.status}).`);
   }
-  const completionResponse = await voice.POST(
-    "/v1/uploads/{upload_id}/complete",
-    {
-      body: { parts: [] },
-      params: { path: { upload_id: uploadId } },
-    },
+  const completionResponse = await withRequestTimeout(
+    15_000,
+    "Audio upload completion",
+    (signal) =>
+      voice.POST("/v1/uploads/{upload_id}/complete", {
+        body: { parts: [] },
+        params: { path: { upload_id: uploadId } },
+        signal,
+      }),
   );
   if (completionResponse.error) {
     throw voiceApiError(
@@ -67,14 +83,20 @@ async function transcribeCloudBatch(
     language: plan.mode.language ?? undefined,
     sync: true,
   };
-  const transcriptionResponse = await voice.POST("/v1/transcriptions", {
-    body: requestBody,
-    params: {
-      header: {
-        "idempotency-key": plan.requestId,
-      },
-    },
-  });
+  const transcriptionResponse = await withRequestTimeout(
+    120_000,
+    "Batch transcription",
+    (signal) =>
+      voice.POST("/v1/transcriptions", {
+        body: requestBody,
+        params: {
+          header: {
+            "idempotency-key": plan.requestId,
+          },
+        },
+        signal,
+      }),
+  );
   if (transcriptionResponse.error) {
     throw voiceApiError(
       "Batch transcription",
@@ -93,9 +115,15 @@ async function transcribeCloudBatch(
       throw new Error("Batch transcription took longer than two minutes.");
     }
     await wait(300);
-    const jobResponse = await voice.GET("/v1/jobs/{job_id}", {
-      params: { path: { job_id: job.job_id } },
-    });
+    const jobResponse = await withRequestTimeout(
+      15_000,
+      "Batch transcription status",
+      (signal) =>
+        voice.GET("/v1/jobs/{job_id}", {
+          params: { path: { job_id: job.job_id } },
+          signal,
+        }),
+    );
     if (jobResponse.error) {
       throw voiceApiError(
         "Batch transcription status",

@@ -47,4 +47,18 @@ describe("foundation components", () => {
     expect(screen.getByLabelText(label)).toBeTruthy();
     expect(screen.getByText(text)).toBeTruthy();
   });
+
+  it("does not claim a copy for a no-speech result", () => {
+    render(
+      <RecordingControl
+        onPress={jest.fn()}
+        resultHadText={false}
+        stage="result"
+      />,
+    );
+
+    expect(screen.getByLabelText("No speech detected")).toBeTruthy();
+    expect(screen.getByText("No speech")).toBeTruthy();
+    expect(screen.queryByText("Copied")).toBeNull();
+  });
 });

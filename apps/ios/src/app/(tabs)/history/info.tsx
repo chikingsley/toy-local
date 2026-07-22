@@ -25,13 +25,20 @@ import {
 import { useModes } from "@/features/modes/mode-provider";
 
 export default function HistoryInfoScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id: routeId } = useLocalSearchParams<{ id: string | string[] }>();
+  const id = Array.isArray(routeId) ? routeId[0] : routeId;
   const database = useSQLiteContext();
   const { catalog } = useModes();
   const [detail, setDetail] = useState<StoredDictationDetail | null>();
 
   useEffect(() => {
-    void loadStoredDictationDetail(database, id).then(setDetail);
+    if (!id) {
+      setDetail(null);
+      return;
+    }
+    loadStoredDictationDetail(database, id)
+      .then(setDetail)
+      .catch(() => setDetail(null));
   }, [database, id]);
 
   return (

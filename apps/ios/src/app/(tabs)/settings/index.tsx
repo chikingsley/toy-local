@@ -185,7 +185,7 @@ export default function SettingsScreen() {
         <Separator />
         <ActionRow
           label="Personal vocabulary"
-          onPress={() => router.push("./personal-vocabulary")}
+          onPress={() => router.push("/settings/personal-vocabulary")}
           systemName="chevron.right"
           testID="settings-personal-vocabulary"
           value="Learn & reorder"

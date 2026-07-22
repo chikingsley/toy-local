@@ -9,6 +9,7 @@ final class KeyboardViewController: UIInputViewController {
   private var pollTimer: Timer?
   private var blockedStreamingRequestID: String?
   private var insertedPartialText = ""
+  private var lastKeyboardSeenWrite = Date.distantPast
   private var lastPartialTranscriptRevision = -1
   private var lastTranscriptRevision = -1
   private var streamingInsertionPrefix = ""
@@ -46,6 +47,7 @@ final class KeyboardViewController: UIInputViewController {
     model.controller = self
     model.proxy = textDocumentProxy
     model.hasFullAccess = hasFullAccess
+    lastKeyboardSeenWrite = Date()
     KeyboardBridge.set(true, for: .keyboardSeen)
     KeyboardBridge.set(hasFullAccess, for: .keyboardHasFullAccess)
     KeyboardBridge.set(false, for: .keyboardVerificationRequired)
@@ -76,6 +78,12 @@ final class KeyboardViewController: UIInputViewController {
     super.viewWillDisappear(animated)
     pollTimer?.invalidate()
     pollTimer = nil
+    model.flushLearning()
+  }
+
+  override func didReceiveMemoryWarning() {
+    super.didReceiveMemoryWarning()
+    model.releaseSwipeContext()
   }
 
   override func textDidChange(_ textInput: UITextInput?) {
@@ -143,7 +151,13 @@ final class KeyboardViewController: UIInputViewController {
   }
 
   private func pollBridge() {
-    KeyboardBridge.set(true, for: .keyboardSeen)
+    let now = Date()
+    if !KeyboardBridge.bool(for: .keyboardSeen)
+      || now.timeIntervalSince(lastKeyboardSeenWrite) >= 5
+    {
+      lastKeyboardSeenWrite = now
+      KeyboardBridge.set(true, for: .keyboardSeen)
+    }
     model.refreshBridgeState()
     applyPartialTranscriptIfNeeded()
     let revision = KeyboardBridge.integer(for: .transcriptRevision)
@@ -298,6 +312,14 @@ final class KeyboardModel: ObservableObject {
 
   func prepareSwipeContext() {
     decoder.prepareContext()
+  }
+
+  func releaseSwipeContext() {
+    decoder.releaseContext()
+  }
+
+  func flushLearning() {
+    languageEngine.flushPendingLearning()
   }
 
   func refreshBridgeState() {

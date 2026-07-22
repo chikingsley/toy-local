@@ -44,9 +44,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#1e130a",
+          "image": "./assets/images/timbervox-icon.png",
+          "imageWidth": 160
         }
       ],
       [

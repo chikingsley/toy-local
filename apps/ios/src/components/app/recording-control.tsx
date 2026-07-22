@@ -7,15 +7,17 @@ import { ActivityIndicator } from "react-native";
 type RecordingControlProps = {
   disabled?: boolean;
   onPress: () => void;
+  resultHadText?: boolean;
   stage: DictationStage;
 };
 
 function RecordingControl({
   disabled = false,
   onPress,
+  resultHadText = true,
   stage,
 }: RecordingControlProps) {
-  const presentation = recordingControlPresentation(stage);
+  const presentation = recordingControlPresentation(stage, resultHadText);
 
   return (
     <Button
@@ -35,7 +37,7 @@ function RecordingControl({
         <SymbolView
           name={presentation.icon}
           size={24}
-          tintColor={stage === "result" ? "#092214" : "#ffffff"}
+          tintColor={presentation.variant === "success" ? "#092214" : "#ffffff"}
         />
       )}
       <Text className="text-base font-bold">{presentation.label}</Text>
@@ -43,7 +45,10 @@ function RecordingControl({
   );
 }
 
-function recordingControlPresentation(stage: DictationStage) {
+function recordingControlPresentation(
+  stage: DictationStage,
+  resultHadText = true,
+) {
   switch (stage) {
     case "connecting":
       return {
@@ -73,6 +78,16 @@ function recordingControlPresentation(stage: DictationStage) {
         variant: "processing" as const,
       };
     case "result":
+      if (!resultHadText) {
+        return {
+          accessibilityLabel: "No speech detected",
+          busy: false,
+          disabled: true,
+          icon: "waveform.slash" as const,
+          label: "No speech",
+          variant: "default" as const,
+        };
+      }
       return {
         accessibilityLabel: "Dictation copied",
         busy: false,

@@ -143,6 +143,9 @@ function buildPresetProcessingRequest({
   }
   const instructions = processingInstructions?.trim();
   if (!instructions) {
+    // A Custom mode saved without instructions has no processing configured
+    // yet; deliver the raw transcript instead of failing the dictation.
+    if (presetKind === "custom") return null;
     throw new Error("Processing instructions are required for this preset.");
   }
   return {

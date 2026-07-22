@@ -59,6 +59,7 @@ const INITIAL_SNAPSHOT: DictationWorkflowSnapshot = {
   error: null,
   finalText: "",
   requestId: null,
+  resultHadText: false,
   resultId: null,
   sessionId: null,
   stage: "idle",
@@ -91,6 +92,13 @@ class DictationWorkflow {
     null;
   private recoveryInFlight = false;
   private terminal = false;
+  // Bumped by start/cancel/idle so async completion work can detect that the
+  // session it belongs to was torn down while it awaited.
+  private generation = 0;
+  // Set when the user stops while the transport is still handshaking; the
+  // queued audio flushes and finalizes as soon as the socket opens instead of
+  // closing an un-opened connection and losing the take.
+  private finalizeWhenOpen = false;
 
   constructor(dependencies: WorkflowDependencies) {
     this.dependencies = {
@@ -118,6 +126,8 @@ class DictationWorkflow {
   }
 
   idle() {
+    this.generation += 1;
+    this.finalizeWhenOpen = false;
     this.clearConnectionTimer();
     this.clearFinalizationTimer();
     this.transport?.close();
@@ -139,6 +149,7 @@ class DictationWorkflow {
       error: null,
       finalText: "",
       requestId: null,
+      resultHadText: false,
       resultId: null,
       sessionId: null,
       stage: "ready",
@@ -154,6 +165,8 @@ class DictationWorkflow {
 
   start(plan: DictationPlan) {
     if (this.isCapturing()) return false;
+    this.generation += 1;
+    this.finalizeWhenOpen = false;
     this.clearConnectionTimer();
     this.clearFinalizationTimer();
     this.transport?.close();
@@ -171,6 +184,7 @@ class DictationWorkflow {
       error: null,
       finalText: "",
       requestId: plan.requestId,
+      resultHadText: false,
       resultId: null,
       sessionId: null,
       stage: isRealtimePlan(plan) ? "connecting" : "listening",
@@ -215,13 +229,24 @@ class DictationWorkflow {
     ) {
       return false;
     }
+    if (this.audioChunks.length === 0) {
+      // Nothing was captured before the stop, so there is no dictation to
+      // finalize; an empty flush would only produce a provider error.
+      this.cancel();
+      return true;
+    }
+    const stoppedWhileConnecting = this.snapshot.stage === "connecting";
     this.clearConnectionTimer();
     this.update({ stage: "finalizing" });
     if (this.plan && !isRealtimePlan(this.plan)) {
       void this.completeBatch();
       return true;
     }
-    this.transport?.finalize();
+    if (stoppedWhileConnecting && this.transport) {
+      this.finalizeWhenOpen = true;
+    } else {
+      this.transport?.finalize();
+    }
     this.finalizationTimer = setTimeout(() => {
       if (this.snapshot.stage !== "finalizing" || this.terminal) return;
       const transport = this.transport;
@@ -234,6 +259,8 @@ class DictationWorkflow {
 
   cancel() {
     if (!this.isCapturing()) return false;
+    this.generation += 1;
+    this.finalizeWhenOpen = false;
     this.clearConnectionTimer();
     this.clearFinalizationTimer();
     this.transport?.close();
@@ -249,6 +276,7 @@ class DictationWorkflow {
       error: null,
       finalText: "",
       requestId: null,
+      resultHadText: false,
       resultId: null,
       sessionId: null,
       stage: "ready",
@@ -259,13 +287,20 @@ class DictationWorkflow {
 
   async retrySave() {
     if (!this.pendingOutcome) return false;
+    const generation = this.generation;
     try {
       await this.dependencies.persist(this.pendingOutcome);
       const outcome = this.pendingOutcome;
       this.pendingOutcome = null;
-      await this.finishPersistedOutcome(outcome, displayedText(outcome));
+      if (this.generation !== generation) return true;
+      await this.finishPersistedOutcome(
+        outcome,
+        displayedText(outcome),
+        generation,
+      );
       return true;
     } catch {
+      if (this.generation !== generation) return false;
       this.fail(persistenceFailure());
       return false;
     }
@@ -274,28 +309,40 @@ class DictationWorkflow {
   async retryDelivery() {
     if (!this.pendingDelivery) return false;
     const delivery = this.pendingDelivery;
+    const generation = this.generation;
     try {
       await this.dependencies.deliver(delivery.outcome, delivery.text);
       this.pendingDelivery = null;
+      if (this.generation !== generation) return true;
       this.update({
         error: null,
         finalText: "",
+        resultHadText: Boolean(delivery.text.trim()),
         stage: "result",
         visibleText: "",
       });
       return true;
     } catch {
+      if (this.generation !== generation) return false;
       this.fail(deliveryFailure());
       return false;
     }
   }
 
   private handleOpen() {
-    if (this.snapshot.stage !== "connecting") return;
-    this.clearConnectionTimer();
-    this.update({ stage: "listening" });
-    for (const audio of this.queuedAudio) this.transport?.sendAudio(audio);
-    this.queuedAudio = [];
+    if (this.snapshot.stage === "connecting") {
+      this.clearConnectionTimer();
+      this.update({ stage: "listening" });
+      for (const audio of this.queuedAudio) this.transport?.sendAudio(audio);
+      this.queuedAudio = [];
+      return;
+    }
+    if (this.snapshot.stage === "finalizing" && this.finalizeWhenOpen) {
+      this.finalizeWhenOpen = false;
+      for (const audio of this.queuedAudio) this.transport?.sendAudio(audio);
+      this.queuedAudio = [];
+      this.transport?.finalize();
+    }
   }
 
   private async handleRawEvent(raw: string) {
@@ -360,8 +407,12 @@ class DictationWorkflow {
       { type: "session.completed" | "session.failed" }
     >,
   ) {
-    if (!this.plan || !this.startedAt || this.terminal) return;
+    const plan = this.plan;
+    const startedAt = this.startedAt;
+    if (!plan || !startedAt || this.terminal) return;
+    const generation = this.generation;
     this.terminal = true;
+    this.finalizeWhenOpen = false;
     this.clearConnectionTimer();
     this.clearFinalizationTimer();
     this.transport?.close();
@@ -385,19 +436,21 @@ class DictationWorkflow {
 
     const endedAt = this.dependencies.now();
     const artifacts: PersistedArtifact[] = [
-      rawArtifact(resultId, event.result, this.plan.mode.asrModelId),
+      rawArtifact(resultId, event.result, plan.mode.asrModelId),
     ];
+    const audioChunks = this.audioChunks;
     let displayedText = finalText;
     let processingError: Error | null = null;
     if (event.type === "session.completed" && finalText.trim()) {
       try {
-        const processed = await this.dependencies.process(this.plan, finalText);
+        const processed = await this.dependencies.process(plan, finalText);
+        if (this.generation !== generation) return;
         if (processed?.trim()) {
           displayedText = processed.trim();
           artifacts.push({
             id: `${resultId}_processed`,
             kind: "processed",
-            modelId: this.plan.mode.processingModelId,
+            modelId: plan.mode.processingModelId,
             payload: null,
             text: displayedText,
             timing: null,
@@ -405,6 +458,7 @@ class DictationWorkflow {
           this.update({ finalText: displayedText, visibleText: displayedText });
         }
       } catch (error) {
+        if (this.generation !== generation) return;
         processingError =
           error instanceof Error ? error : new Error("Text processing failed.");
       }
@@ -412,28 +466,28 @@ class DictationWorkflow {
 
     const noSpeech = isNoSpeechEvent(event);
     const providerFailed = event.type === "session.failed" && !noSpeech;
-    const failed = providerFailed || Boolean(processingError);
+    // A text-processing failure does not fail the dictation: the canonical
+    // raw transcript is persisted and delivered, and History's reprocess
+    // action can redo the processing step later.
+    const failed = providerFailed;
     const outcome: DictationOutcome = {
       artifacts,
-      audioChunks: this.audioChunks,
-      createdAt: this.startedAt.toISOString(),
-      durationMs: Math.max(0, endedAt.getTime() - this.startedAt.getTime()),
+      audioChunks,
+      createdAt: startedAt.toISOString(),
+      durationMs: Math.max(0, endedAt.getTime() - startedAt.getTime()),
       endedAt: endedAt.toISOString(),
-      entryPoint: this.plan.entryPoint,
+      entryPoint: plan.entryPoint,
       error: failed
         ? {
-            code: providerFailed ? event.error.code : "text_processing_failed",
-            message:
-              (providerFailed
-                ? event.error.message
-                : processingError?.message) ?? "Dictation failed.",
+            code: event.error.code,
+            message: event.error.message ?? "Dictation failed.",
           }
         : null,
-      language: artifactLanguage(event.result) ?? this.plan.mode.language,
-      mode: this.plan.mode,
-      requestId: this.plan.requestId,
+      language: artifactLanguage(event.result) ?? plan.mode.language,
+      mode: plan.mode,
+      requestId: plan.requestId,
       resultId,
-      startedAt: this.startedAt.toISOString(),
+      startedAt: startedAt.toISOString(),
       status: failed
         ? "failed"
         : displayedText.trim()
@@ -444,16 +498,19 @@ class DictationWorkflow {
     try {
       await this.dependencies.persist(outcome);
       this.pendingOutcome = null;
+      if (this.generation !== generation) return;
     } catch {
+      if (this.generation !== generation) return;
       this.fail(persistenceFailure());
       return;
     }
-    await this.finishPersistedOutcome(outcome, displayedText);
+    await this.finishPersistedOutcome(outcome, displayedText, generation);
   }
 
   private async finishPersistedOutcome(
     outcome: DictationOutcome,
     text: string,
+    generation: number,
   ) {
     if (outcome.status === "failed") {
       this.fail({
@@ -467,7 +524,9 @@ class DictationWorkflow {
     try {
       await this.dependencies.deliver(outcome, text);
       this.pendingDelivery = null;
+      if (this.generation !== generation) return;
     } catch {
+      if (this.generation !== generation) return;
       this.pendingDelivery = { outcome, text };
       this.fail(deliveryFailure());
       return;
@@ -475,6 +534,7 @@ class DictationWorkflow {
     this.update({
       error: null,
       finalText: "",
+      resultHadText: Boolean(text.trim()),
       stage: "result",
       visibleText: "",
     });

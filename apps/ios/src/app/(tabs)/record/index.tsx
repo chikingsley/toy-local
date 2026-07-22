@@ -115,6 +115,7 @@ export default function RecordScreen() {
               ? session.stopDictation
               : session.startDictation
           }
+          resultHadText={session.resultHadText}
           stage={session.stage}
         />
       </AppBottomActionBar>

@@ -21,9 +21,10 @@ struct FutoContextVocabulary {
     self.exactWordCount = exactWordCount
     self.hashBucketCount = hashBucketCount
     wordIDs = Dictionary(
-      uniqueKeysWithValues: words.enumerated().map { index, word in
+      words.enumerated().map { index, word in
         (word, Int64(index))
-      }
+      },
+      uniquingKeysWith: { first, _ in first }
     )
   }
 

@@ -77,6 +77,7 @@ type DictationSessionValue = {
   recording: boolean;
   recover: () => Promise<void>;
   recoveryLabel: string | null;
+  resultHadText: boolean;
   sessionActive: boolean;
   stage: DictationStage;
   startDictation: () => Promise<void>;
@@ -88,6 +89,7 @@ type DictationSessionValue = {
 type NativeSessionState = {
   active: boolean;
   error: string | null;
+  partialRevision: number;
   phase: string;
   recording: boolean;
 };
@@ -96,6 +98,7 @@ const INITIAL_SNAPSHOT: DictationWorkflowSnapshot = {
   error: null,
   finalText: "",
   requestId: null,
+  resultHadText: false,
   resultId: null,
   sessionId: null,
   stage: "idle",
@@ -178,6 +181,9 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
     consumingNativeResultRef.current = true;
     try {
       if (await consumeNativeResult(database)) await historyReload();
+    } catch {
+      // A transient persistence failure leaves the envelope unacknowledged
+      // in the outbox; the next revision tick retries it.
     } finally {
       consumingNativeResultRef.current = false;
     }
@@ -250,26 +256,13 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
     [localPackage.ready],
   );
 
-  const handleAudioBuffer = useCallback(
-    (buffer: AudioStreamBuffer) => {
-      if (!sessionActiveRef.current) return;
-      const revision = readBridgeNumber("requestRevision");
-      if (revision !== lastRequestRevisionRef.current) {
-        lastRequestRevisionRef.current = revision;
-        if (
-          readBridgeBoolean("recordingRequested") &&
-          readBridgeString("requestedEntryPoint") === "keyboard"
-        ) {
-          beginDictation("keyboard", readBridgeString("keyboardRequestId"));
-        } else if (!readBridgeBoolean("recordingRequested")) {
-          workflowRef.current.stop();
-        }
-      }
-      if (!readBridgeBoolean("recordingRequested")) return;
-      workflowRef.current.receiveAudio(buffer.data);
-    },
-    [beginDictation],
-  );
+  const handleAudioBuffer = useCallback((buffer: AudioStreamBuffer) => {
+    if (!sessionActiveRef.current) return;
+    // Request-revision changes are detected by the 200 ms bridge poll; the
+    // per-buffer path keeps a single gating read so no audio is dropped.
+    if (!readBridgeBoolean("recordingRequested")) return;
+    workflowRef.current.receiveAudio(buffer.data);
+  }, []);
 
   const { stream } = useAudioStream({
     channels: 1,
@@ -422,15 +415,26 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (
-        sessionActiveRef.current &&
-        readBridgeBoolean("sessionStopRequested")
-      ) {
+      if (!sessionActiveRef.current) return;
+      if (readBridgeBoolean("sessionStopRequested")) {
         void endExpoSession();
+        return;
+      }
+      const requestRevision = readBridgeNumber("requestRevision");
+      if (requestRevision !== lastRequestRevisionRef.current) {
+        lastRequestRevisionRef.current = requestRevision;
+        if (
+          readBridgeBoolean("recordingRequested") &&
+          readBridgeString("requestedEntryPoint") === "keyboard"
+        ) {
+          beginDictation("keyboard", readBridgeString("keyboardRequestId"));
+        } else if (!readBridgeBoolean("recordingRequested")) {
+          workflowRef.current.stop();
+        }
       }
     }, 200);
     return () => clearInterval(timer);
-  }, [endExpoSession]);
+  }, [beginDictation, endExpoSession]);
 
   const recover = useCallback(async () => {
     const action = workflowRef.current.current.error?.action;
@@ -530,11 +534,12 @@ export function DictationSessionProvider({ children }: PropsWithChildren) {
       recording: presentedStage === "connecting" || presentedStage === "listening",
       recover,
       recoveryLabel: recoveryLabel(snapshot.error),
+      resultHadText: snapshot.resultHadText,
       sessionActive: nativeSession.active || snapshot.stage !== "idle",
       stage: presentedStage,
       startDictation,
       startSession,
-      stateLabel: stageLabel(presentedStage, snapshot.finalText),
+      stateLabel: stageLabel(presentedStage, snapshot.resultHadText),
       stopDictation,
     }),
     [
@@ -675,6 +680,9 @@ function readNativeSessionState(): NativeSessionState {
   return {
     active,
     error: error || null,
+    // Included so the polled state changes identity when the native side
+    // publishes new partial text; the session memo re-reads the partial then.
+    partialRevision: readBridgeNumber("partialTranscriptRevision"),
     phase: readBridgeString("sessionPhase") || "off",
     recording: active && readBridgeBoolean("recordingRequested"),
   };
@@ -687,12 +695,13 @@ function nativeSessionStateEqual(
   return (
     left.active === right.active &&
     left.error === right.error &&
+    left.partialRevision === right.partialRevision &&
     left.phase === right.phase &&
     left.recording === right.recording
   );
 }
 
-function stageLabel(stage: DictationStage, finalText: string) {
+function stageLabel(stage: DictationStage, resultHadText: boolean) {
   switch (stage) {
     case "idle":
       return "Session off";
@@ -705,7 +714,7 @@ function stageLabel(stage: DictationStage, finalText: string) {
     case "finalizing":
       return "Finishing…";
     case "result":
-      return finalText.trim() ? "Saved" : "No speech detected";
+      return resultHadText ? "Saved" : "No speech detected";
     case "error":
       return "Needs attention";
   }

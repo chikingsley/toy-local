@@ -186,7 +186,7 @@ export default function PersonalVocabularyScreen() {
         <Button
           accessibilityLabel="Add personal vocabulary"
           className="h-14 rounded-2xl"
-          onPress={() => router.push("./personal-vocabulary-add")}
+          onPress={() => router.push("/settings/personal-vocabulary-add")}
           testID="personal-vocabulary-open-add"
         >
           <SymbolView name="plus" size={17} tintColor="#ffffff" />

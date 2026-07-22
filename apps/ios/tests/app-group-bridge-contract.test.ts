@@ -85,6 +85,18 @@ describe("App Group bridge contract", () => {
     }
   });
 
+  it("documents every code-declared bridge key in the contract", () => {
+    const declaration = typescript.match(/const bridgeKeys = \[([^\]]+)\]/);
+    expect(declaration).not.toBeNull();
+    const codeKeys = [...declaration![1]!.matchAll(/"([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+    expect(codeKeys.length).toBeGreaterThan(0);
+    const documented = new Set([...keys, "bridgeSchemaVersion"]);
+    const undocumented = codeKeys.filter((key) => !documented.has(key!));
+    expect(undocumented).toEqual([]);
+  });
+
   it("publishes keyboard results with request ownership instead of v1 pending text", () => {
     expect(session).toContain('lastEntryPointRef.current === "keyboard"');
     expect(delivery).toContain('writeBridgeString("finalRequestId"');
